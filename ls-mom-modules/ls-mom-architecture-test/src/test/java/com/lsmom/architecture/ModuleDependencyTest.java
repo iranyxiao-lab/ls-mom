@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
 /**
  * 模块依赖方向（design.md D4，spec platform/project-baseline「模块依赖方向受控」）。
@@ -99,5 +100,16 @@ class ModuleDependencyTest {
     @Test
     void aiAndMcpOnlyUseAction() {
         aiAndMcpOnlyUseAction.check(classes);
+    }
+
+    /** 核心语义不含客户/扩展领域概念（spec meta/concept-registry「核心污染检测」）。 */
+    static final String CORE_FORBIDDEN = ".*(?i)(exam|training|trainee|course|lesson|quiz|consult|survey|customer).*";
+
+    @Test
+    void coreHasNoExtensionDomainConcepts() {
+        noClasses().that().resideInAPackage("com.lsmom.core..").should().haveNameMatching(CORE_FORBIDDEN)
+            .because("ls.core 只承载通用语义，培训、咨询等进对应 Pack").check(classes);
+        noFields().that().areDeclaredInClassesThat().resideInAPackage("com.lsmom.core..").should().haveNameMatching(CORE_FORBIDDEN)
+            .because("ls.core 只承载通用语义，培训、咨询等进对应 Pack").check(classes);
     }
 }
