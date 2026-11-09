@@ -153,6 +153,12 @@ public class IssueService {
     /** 生成整改工作（IMPROVEMENT），双向可追溯：工作 source 指向 Issue，Issue 关联 RECTIFICATION。 */
     @Transactional
     public List<WorkItem> createRectifications(long issueId, List<String> titles, Long createdBy) {
+        return createRectifications(issueId, titles, WorkType.IMPROVEMENT, null, createdBy);
+    }
+
+    /** 按指定工作类型生成整改工作（如设备缺陷维修为 MAINTENANCE）；description 为空时用"整改：标题"。 */
+    @Transactional
+    public List<WorkItem> createRectifications(long issueId, List<String> titles, WorkType type, String description, Long createdBy) {
         Issue issue = get(issueId);
         if (issue.status() == IssueStatus.CLOSED || issue.status() == IssueStatus.CANCELLED || issue.status() == IssueStatus.REJECTED) {
             throw new LsBizException("ISSUE_CLOSED", "Issue 已结束，不能再生成整改工作");
@@ -160,7 +166,8 @@ public class IssueService {
         if (titles == null || titles.isEmpty()) throw LsBizException.validation(Map.of("titles", "至少一条整改工作"));
         List<WorkItem> created = new ArrayList<>();
         for (String t : titles) {
-            WorkItem w = works.create(WorkItemService.CreateWorkItem.of(WorkType.IMPROVEMENT, t, "整改：" + issue.title(), issue.orgUnitId())
+            WorkItem w = works.create(WorkItemService.CreateWorkItem.of(type, t,
+                description == null ? "整改：" + issue.title() : description, issue.orgUnitId())
                 .withSource("ISSUE", issueId).createdBy(createdBy));
             link(issueId, new ObjectRef("WORK", String.valueOf(w.id())), "RECTIFICATION");
             created.add(w);

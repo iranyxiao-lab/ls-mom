@@ -1,0 +1,37 @@
+-- 设备 Pack 的菜单与权限点（页面、Operation 权限、通用台账权限）。Pack 元数据由标准 Pack 安装器在启动时安装。
+-- 菜单编号 3100–3199 保留给设备。
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query_param, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark)
+values
+(3100, '设备', 0, 21, 'asset', null, '', '1', '0', 'M', '0', '0', '', 'monitor', 103, 1, now(), null, null, 'ls.asset'),
+(3101, '设备台账', 3100, 1, 'center', 'lsmom/asset/center/index', '', '1', '0', 'C', '0', '0', 'ls:asset:view:center', 'list', 103, 1, now(), null, null, 'ls.asset'),
+(3102, '点检', 3100, 2, 'inspection', 'lsmom/asset/inspection/index', '', '1', '0', 'C', '0', '0', 'ls:asset:view:inspection', 'checkbox', 103, 1, now(), null, null, 'ls.asset'),
+(3103, '缺陷与维修', 3100, 3, 'defects', 'lsmom/asset/defects/index', '', '1', '0', 'C', '0', '0', 'ls:asset:view:defects', 'bug', 103, 1, now(), null, null, 'ls.asset'),
+(3110, '设备台账与状态', 3100, 10, '#', '', '', '1', '0', 'F', '0', '0', 'ls:asset:manage', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3111, '点检计划', 3100, 11, '#', '', '', '1', '0', 'F', '0', '0', 'ls:asset:plan', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3112, '点检填报与缺陷登记', 3100, 12, '#', '', '', '1', '0', 'F', '0', '0', 'ls:asset:inspect', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3113, '维修', 3100, 13, '#', '', '', '1', '0', 'F', '0', '0', 'ls:asset:repair', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3114, '维修验证', 3100, 14, '#', '', '', '1', '0', 'F', '0', '0', 'ls:asset:verify', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3115, '工作执行与填报', 3100, 15, '#', '', '', '1', '0', 'F', '0', '0', 'lsmom:work:execute', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3116, '工作确认', 3100, 16, '#', '', '', '1', '0', 'F', '0', '0', 'lsmom:work:confirm', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3117, '工作分派', 3100, 17, '#', '', '', '1', '0', 'F', '0', '0', 'lsmom:work:assign', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3130, '设备列表', 3100, 30, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Asset:list', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3131, '设备详情', 3100, 31, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Asset:query', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3132, '设备新增', 3100, 32, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Asset:add', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3133, '设备修改', 3100, 33, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Asset:edit', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3134, '设备删除', 3100, 34, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Asset:remove', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3135, '设备状态历史列表', 3100, 35, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.AssetStatusLog:list', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3136, '设备状态历史详情', 3100, 36, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.AssetStatusLog:query', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3137, '点检计划列表', 3100, 37, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionPlan:list', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3138, '点检计划详情', 3100, 38, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionPlan:query', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3139, '点检计划新增', 3100, 39, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionPlan:add', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3140, '点检计划修改', 3100, 40, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionPlan:edit', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3141, '点检计划删除', 3100, 41, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionPlan:remove', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3142, '点检记录列表', 3100, 42, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionRecord:list', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3143, '点检记录详情', 3100, 43, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionRecord:query', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3144, '点检记录修改', 3100, 44, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.InspectionRecord:edit', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3145, '设备缺陷列表', 3100, 45, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Defect:list', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3146, '设备缺陷详情', 3100, 46, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Defect:query', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3147, '设备缺陷新增', 3100, 47, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Defect:add', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3148, '设备缺陷修改', 3100, 48, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Defect:edit', '#', 103, 1, now(), null, null, 'ls.asset'),
+(3149, '设备缺陷删除', 3100, 49, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.asset.Defect:remove', '#', 103, 1, now(), null, null, 'ls.asset')
+on conflict (menu_id) do nothing;

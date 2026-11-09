@@ -1,0 +1,12 @@
+code: ls.asset.Asset
+displayName: 设备
+description: 设备 / 工位台账。所属车间即记录的组织；状态只能经 Operation 变更，每次变更写入状态历史
+fields:
+  - { code: assetCode, displayName: 设备编码, dataType: STRING, required: true, props: { unique: true, queryable: true, sortable: true, maxLength: 64 } }
+  - { code: name, displayName: 名称, dataType: STRING, required: true, props: { queryable: true, maxLength: 128 } }
+  - { code: assetType, displayName: 类型, dataType: ENUM, required: true, options: [PUMP, MOTOR, VALVE, VESSEL, INSTRUMENT, STATION, OTHER], props: { queryable: true } }
+  - { code: location, displayName: 位置, dataType: STRING, props: { queryable: true, maxLength: 128 } }
+  - { code: owner, displayName: 负责人, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
+  - { code: model, displayName: 型号, dataType: STRING, props: { maxLength: 128 } }
+  - { code: commissionedOn, displayName: 投用日期, dataType: DATE }
+  - { code: statusReason, displayName: 最近状态原因, dataType: STRING, props: { maxLength: 500 } }

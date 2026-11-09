@@ -1,5 +1,6 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.lsmom.action.api.OperationContext;
 import com.lsmom.action.guard.Guard;
 import com.lsmom.action.guard.GuardResult;
@@ -17,7 +18,7 @@ final class HandoverGuards {
     private HandoverGuards() {
     }
 
-    static Guard owner(ProductionRecords records) {
+    static Guard owner(ManagedRecords records) {
         return guard(OWNER, ctx -> {
             Map<String, Object> h = records.row(ProductionPack.HANDOVER, ctx.targetIdAsLong());
             if (Objects.equals(toLong(h.get("createdBy")), ctx.actor().effectiveParty())) return GuardResult.pass();
@@ -25,7 +26,7 @@ final class HandoverGuards {
         });
     }
 
-    static Guard receiver(ProductionRecords records, JdbcTemplate jdbc) {
+    static Guard receiver(ManagedRecords records, JdbcTemplate jdbc) {
         return guard(RECEIVER, ctx -> {
             Map<String, Object> h = records.row(ProductionPack.HANDOVER, ctx.targetIdAsLong());
             Long party = ctx.actor().effectiveParty();

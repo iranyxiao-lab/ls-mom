@@ -156,12 +156,22 @@ public class PackTester {
 
     private void create(JsonNode c, ActorContext actor, Map<String, Long> vars) {
         ObjectNode values = c.path("values").isObject() ? ((ObjectNode) c.get("values")).deepCopy() : PackJson.JSON.createObjectNode();
+        resolveVars(values, vars);
         if (!values.has("orgId")) {
             jdbc.queryForList("select id from core_org_unit where parent_id is null order by id limit 1", Long.class).stream().findFirst()
                 .ifPresent(o -> values.put("orgId", o));
         }
         Map<String, Object> r = crud.create(c.path("concept").asText(), values, actor, null);
         if (c.hasNonNull("as")) vars.put(c.get("as").asText(), ((Number) r.get("id")).longValue());
+    }
+
+    /** 值写成 "$变量名" 时替换为前面步骤创建的记录编号（如引用字段 asset: $a）。 */
+    private static void resolveVars(ObjectNode values, Map<String, Long> vars) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = values.fields(); it.hasNext(); ) {
+            var f = it.next();
+            String t = f.getValue().isTextual() ? f.getValue().asText() : null;
+            if (t != null && t.startsWith("$") && vars.containsKey(t.substring(1))) f.setValue(PackJson.JSON.getNodeFactory().numberNode(vars.get(t.substring(1))));
+        }
     }
 
     private void op(JsonNode o, ActorContext actor, Map<String, Long> vars) {
@@ -174,7 +184,9 @@ public class PackTester {
             String table = concepts.get(operations.require(code).concept()).tableName();
             version = jdbc.queryForObject("select version from " + table + " where id = ?", Integer.class, id);
         }
-        gateway.execute(code, new OperationRequest(o.path("input").isObject() ? o.get("input") : PackJson.JSON.createObjectNode(), target, version,
+        ObjectNode input = o.path("input").isObject() ? ((ObjectNode) o.get("input")).deepCopy() : PackJson.JSON.createObjectNode();
+        resolveVars(input, vars);
+        gateway.execute(code, new OperationRequest(input, target, version,
             null, false), actor);
     }
 

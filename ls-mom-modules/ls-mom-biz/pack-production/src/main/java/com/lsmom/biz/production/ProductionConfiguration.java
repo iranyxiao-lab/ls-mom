@@ -1,10 +1,10 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.lsmom.action.guard.Guard;
 import com.lsmom.action.state.TransitionEffect;
 import com.lsmom.core.work.AssignmentService;
 import com.lsmom.core.work.WorkItemService;
-import com.lsmom.meta.concept.ConceptRegistry;
 import com.lsmom.meta.concept.DraftPrivacy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,17 +20,12 @@ import java.time.Clock;
 public class ProductionConfiguration {
 
     @Bean
-    public ProductionRecords productionRecords(JdbcTemplate jdbc, ConceptRegistry concepts) {
-        return new ProductionRecords(jdbc, concepts);
-    }
-
-    @Bean
     public HandoverSummarizer handoverSummarizer() {
         return new HandoverSummarizer();
     }
 
     @Bean
-    public ProductionEffects productionEffects(JdbcTemplate jdbc, ProductionRecords records, WorkItemService works,
+    public ProductionEffects productionEffects(JdbcTemplate jdbc, ManagedRecords records, WorkItemService works,
                                                AssignmentService assignments, HandoverSummarizer summarizer, Clock clock) {
         return new ProductionEffects(jdbc, records, works, assignments, summarizer, clock);
     }
@@ -76,12 +71,12 @@ public class ProductionConfiguration {
     }
 
     @Bean
-    public Guard handoverOwnerGuard(ProductionRecords records) {
+    public Guard handoverOwnerGuard(ManagedRecords records) {
         return HandoverGuards.owner(records);
     }
 
     @Bean
-    public Guard handoverReceiverGuard(ProductionRecords records, JdbcTemplate jdbc) {
+    public Guard handoverReceiverGuard(ManagedRecords records, JdbcTemplate jdbc) {
         return HandoverGuards.receiver(records, jdbc);
     }
 

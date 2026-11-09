@@ -1,5 +1,6 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.lsmom.action.api.ActorContext;
 import com.lsmom.action.web.ActorResolver;
 import com.lsmom.core.org.DataScope;
@@ -32,9 +33,9 @@ public class ProductionBoardController {
 
     private final JdbcTemplate jdbc;
     private final ActorResolver actors;
-    private final ProductionRecords records;
+    private final ManagedRecords records;
 
-    public ProductionBoardController(JdbcTemplate jdbc, ActorResolver actors, ProductionRecords records) {
+    public ProductionBoardController(JdbcTemplate jdbc, ActorResolver actors, ManagedRecords records) {
         this.jdbc = jdbc;
         this.actors = actors;
         this.records = records;

@@ -1,0 +1,50 @@
+code: ls.asset.Defect.lifecycle
+concept: ls.asset.Defect
+displayName: 缺陷闭环
+states: [DRAFT, REPORTED, REPAIRING, PENDING_VERIFY, CLOSED, CANCELLED]
+initial: DRAFT
+transitions:
+  - operation: ls.asset.Defect.report
+    name: 登记缺陷
+    from: [DRAFT]
+    to: REPORTED
+    permission: "ls:asset:inspect"
+    risk: C1
+    inputSchema: {"type": "object"}
+  - operation: ls.asset.Defect.createRepair
+    name: 生成维修工作
+    from: [REPORTED, REPAIRING]
+    to: REPAIRING
+    permission: "ls:asset:repair"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"titles": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 200}}, "assignee": {"type": "integer"}, "checklist": {"type": "array", "items": {"type": "string", "minLength": 1, "maxLength": 200}}, "dueAt": {"type": "string"}}}
+  - operation: ls.asset.Defect.submitVerify
+    name: 维修完成待验证
+    from: [REPAIRING]
+    to: PENDING_VERIFY
+    guards: [ls.asset.repairsDone]
+    permission: "ls:asset:repair"
+    risk: C1
+    inputSchema: {"type": "object"}
+  - operation: ls.asset.Defect.verifyPass
+    name: 验证通过关闭
+    from: [PENDING_VERIFY]
+    to: CLOSED
+    guards: [ls.asset.verifierSeparation]
+    permission: "ls:asset:verify"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["conclusion"], "properties": {"conclusion": {"type": "string", "minLength": 1, "maxLength": 1000}}}
+  - operation: ls.asset.Defect.verifyFail
+    name: 验证不通过
+    from: [PENDING_VERIFY]
+    to: REPAIRING
+    permission: "ls:asset:verify"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["conclusion"], "properties": {"conclusion": {"type": "string", "minLength": 1, "maxLength": 1000}}}
+  - operation: ls.asset.Defect.cancel
+    name: 取消
+    from: [DRAFT, REPORTED]
+    to: CANCELLED
+    permission: "ls:asset:inspect"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["reason"], "properties": {"reason": {"type": "string", "minLength": 1, "maxLength": 500}}}

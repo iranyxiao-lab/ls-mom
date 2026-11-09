@@ -1,0 +1,107 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.asset.assetForm",
+  "version": 1,
+  "conceptCode": "ls.asset.Asset",
+  "title": "设备",
+  "layout": [
+    {
+      "type": "field",
+      "key": "assetCode"
+    },
+    {
+      "type": "field",
+      "key": "name"
+    },
+    {
+      "type": "field",
+      "key": "assetType"
+    },
+    {
+      "type": "field",
+      "key": "location"
+    },
+    {
+      "type": "field",
+      "key": "owner"
+    },
+    {
+      "type": "field",
+      "key": "model"
+    },
+    {
+      "type": "field",
+      "key": "commissionedOn"
+    }
+  ],
+  "fields": [
+    {
+      "key": "assetCode",
+      "label": "设备编码",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "name",
+      "label": "名称",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "assetType",
+      "label": "类型",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "泵",
+          "value": "PUMP"
+        },
+        {
+          "label": "电机",
+          "value": "MOTOR"
+        },
+        {
+          "label": "阀门",
+          "value": "VALVE"
+        },
+        {
+          "label": "容器",
+          "value": "VESSEL"
+        },
+        {
+          "label": "仪表",
+          "value": "INSTRUMENT"
+        },
+        {
+          "label": "工位",
+          "value": "STATION"
+        },
+        {
+          "label": "其他",
+          "value": "OTHER"
+        }
+      ]
+    },
+    {
+      "key": "location",
+      "label": "位置",
+      "widget": "input"
+    },
+    {
+      "key": "owner",
+      "label": "负责人",
+      "widget": "userRef"
+    },
+    {
+      "key": "model",
+      "label": "型号",
+      "widget": "input"
+    },
+    {
+      "key": "commissionedOn",
+      "label": "投用日期",
+      "widget": "date"
+    }
+  ]
+}

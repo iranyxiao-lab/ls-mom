@@ -1,0 +1,20 @@
+code: ls.asset.InspectionRecord.lifecycle
+concept: ls.asset.InspectionRecord
+displayName: 点检记录状态
+states: [DRAFT, SUBMITTED]
+initial: DRAFT
+transitions:
+  - operation: ls.asset.InspectionRecord.submit
+    name: 提交点检
+    from: [DRAFT]
+    to: SUBMITTED
+    permission: "ls:asset:inspect"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object", "required": ["itemCode"], "properties": {"itemCode": {"type": "string"}, "valueNum": {"type": ["number", "null"]}, "outcome": {"enum": ["OK", "ABNORMAL", null]}, "note": {"type": ["string", "null"], "maxLength": 500}}}}}}
+  - operation: ls.asset.InspectionRecord.raiseDefects
+    name: 异常项生成缺陷草稿
+    from: [SUBMITTED]
+    to: SUBMITTED
+    permission: "ls:asset:inspect"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"itemCodes": {"type": "array", "items": {"type": "string"}}}}

@@ -1,0 +1,42 @@
+# 设备标准 Pack：台账与状态历史、点检计划 → 点检工作 → 点检记录、异常项一键生成缺陷、缺陷经 Issue 闭环、维修复用 WorkItem、设备时间轴
+code: ls.asset
+version: 1.0.1
+name: 设备
+description: 设备 / 工位台账、状态历史、点检计划与记录、缺陷登记、维修与验证关闭、设备时间轴
+standard: true
+owner: { name: LS 标准产品组 }
+requester: { name: 设备与点检场景（切片 B） }
+reviewDue: 2027-12-31
+contents:
+  concepts:
+    - ls.asset.Asset
+    - ls.asset.AssetStatusLog
+    - ls.asset.InspectionPlan
+    - ls.asset.InspectionRecord
+    - ls.asset.Defect
+  operations:
+    - ls.asset.Asset.commission
+    - ls.asset.Asset.run
+    - ls.asset.Asset.standby
+    - ls.asset.Asset.maintain
+    - ls.asset.Asset.stop
+    - ls.asset.Asset.scrap
+    - ls.asset.InspectionPlan.activate
+    - ls.asset.InspectionPlan.pause
+    - ls.asset.InspectionPlan.generate
+    - ls.asset.InspectionRecord.submit
+    - ls.asset.InspectionRecord.raiseDefects
+    - ls.asset.Defect.report
+    - ls.asset.Defect.createRepair
+    - ls.asset.Defect.submitVerify
+    - ls.asset.Defect.verifyPass
+    - ls.asset.Defect.verifyFail
+    - ls.asset.Defect.cancel
+  views:
+    - ls.asset.assetForm
+    - ls.asset.defectForm
+entries:
+  - { name: 设备台账, path: /asset/center }
+  - { name: 点检, path: /asset/inspection }
+  - { name: 缺陷与维修, path: /asset/defects }
+  - { name: 点检计划, path: /lsmom/ledger/ls.asset.InspectionPlan }

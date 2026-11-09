@@ -1,5 +1,6 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lsmom.action.api.OperationContext;
 import com.lsmom.action.state.StateSnapshot;
@@ -37,13 +38,13 @@ import static com.lsmom.biz.production.ProductionPack.SHIFT_PLAN;
 public class ProductionEffects {
 
     private final JdbcTemplate jdbc;
-    private final ProductionRecords records;
+    private final ManagedRecords records;
     private final WorkItemService works;
     private final AssignmentService assignments;
     private final HandoverSummarizer summarizer;
     private final Clock clock;
 
-    public ProductionEffects(JdbcTemplate jdbc, ProductionRecords records, WorkItemService works, AssignmentService assignments,
+    public ProductionEffects(JdbcTemplate jdbc, ManagedRecords records, WorkItemService works, AssignmentService assignments,
                              HandoverSummarizer summarizer, Clock clock) {
         this.jdbc = jdbc;
         this.records = records;

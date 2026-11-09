@@ -1,0 +1,10 @@
+code: ls.asset.AssetStatusLog
+displayName: 设备状态历史
+description: 设备状态变更的留痕，由设备状态 Operation 写入，只读
+fields:
+  - { code: asset, displayName: 设备, dataType: REF, refConcept: ls.asset.Asset, required: true, props: { queryable: true } }
+  - { code: fromStatus, displayName: 原状态, dataType: STRING, required: true, props: { maxLength: 32 } }
+  - { code: toStatus, displayName: 新状态, dataType: STRING, required: true, props: { maxLength: 32, queryable: true } }
+  - { code: reason, displayName: 原因, dataType: STRING, props: { maxLength: 500 } }
+  - { code: operator, displayName: 操作人, dataType: REF, refConcept: ls.core.Party }
+  - { code: changedAt, displayName: 变更时间, dataType: DATETIME, required: true, props: { sortable: true } }

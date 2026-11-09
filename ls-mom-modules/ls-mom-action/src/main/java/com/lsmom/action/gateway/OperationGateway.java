@@ -215,7 +215,11 @@ public class OperationGateway {
             ctx.target(after.id(), after.version(), after.status(), after.orgUnitId());
             ctx.eventPayload().put("from", before.status());
             ctx.eventPayload().put("to", after.status());
-            data = Map.of("status", after.status(), "version", after.version());
+            // 迁移结果带上效果写入的事件载荷（如生成的工作、缺陷编号），便于界面直接定位
+            Map<String, Object> out = new java.util.LinkedHashMap<>(ctx.eventPayload());
+            out.put("status", after.status());
+            out.put("version", after.version());
+            data = out;
         } else {
             OperationHandler handler = registry.handler(op.code())
                 .orElseThrow(() -> new LsBizException("OPERATION_NOT_FOUND", "Operation 没有处理器：" + op.code()));

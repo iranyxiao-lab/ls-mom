@@ -1,0 +1,28 @@
+code: ls.asset.InspectionPlan.lifecycle
+concept: ls.asset.InspectionPlan
+displayName: 点检计划状态
+states: [DRAFT, ACTIVE, PAUSED]
+initial: DRAFT
+transitions:
+  - operation: ls.asset.InspectionPlan.activate
+    name: 启用
+    from: [DRAFT, PAUSED]
+    to: ACTIVE
+    guards: [ls.asset.planReady]
+    permission: "ls:asset:plan"
+    risk: C1
+    inputSchema: {"type": "object"}
+  - operation: ls.asset.InspectionPlan.pause
+    name: 暂停
+    from: [ACTIVE]
+    to: PAUSED
+    permission: "ls:asset:plan"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"reason": {"type": "string", "maxLength": 500}}}
+  - operation: ls.asset.InspectionPlan.generate
+    name: 生成点检工作
+    from: [ACTIVE]
+    to: ACTIVE
+    permission: "ls:asset:plan"
+    risk: C0
+    inputSchema: {"type": "object"}

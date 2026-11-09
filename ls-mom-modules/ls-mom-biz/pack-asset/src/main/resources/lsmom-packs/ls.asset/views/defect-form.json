@@ -1,0 +1,68 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.asset.defectForm",
+  "version": 1,
+  "conceptCode": "ls.asset.Defect",
+  "title": "设备缺陷",
+  "layout": [
+    {
+      "type": "field",
+      "key": "asset"
+    },
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "severity"
+    },
+    {
+      "type": "field",
+      "key": "symptom"
+    }
+  ],
+  "fields": [
+    {
+      "key": "asset",
+      "label": "设备",
+      "widget": "assetRef",
+      "required": true
+    },
+    {
+      "key": "title",
+      "label": "缺陷描述",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "severity",
+      "label": "严重度",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "低",
+          "value": "LOW"
+        },
+        {
+          "label": "中",
+          "value": "MEDIUM"
+        },
+        {
+          "label": "高",
+          "value": "HIGH"
+        },
+        {
+          "label": "严重",
+          "value": "CRITICAL"
+        }
+      ]
+    },
+    {
+      "key": "symptom",
+      "label": "现象",
+      "widget": "textarea"
+    }
+  ]
+}

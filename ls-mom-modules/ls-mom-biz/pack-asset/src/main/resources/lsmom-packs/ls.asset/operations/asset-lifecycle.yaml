@@ -1,0 +1,48 @@
+code: ls.asset.Asset.lifecycle
+concept: ls.asset.Asset
+displayName: 设备状态
+states: [DRAFT, RUNNING, STANDBY, MAINTENANCE, STOPPED, SCRAPPED]
+initial: DRAFT
+transitions:
+  - operation: ls.asset.Asset.commission
+    name: 投用
+    from: [DRAFT]
+    to: RUNNING
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"reason": {"type": "string", "maxLength": 500}}}
+  - operation: ls.asset.Asset.run
+    name: 运行
+    from: [STANDBY, MAINTENANCE, STOPPED]
+    to: RUNNING
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"reason": {"type": "string", "maxLength": 500}}}
+  - operation: ls.asset.Asset.standby
+    name: 备用
+    from: [RUNNING]
+    to: STANDBY
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "properties": {"reason": {"type": "string", "maxLength": 500}}}
+  - operation: ls.asset.Asset.maintain
+    name: 停机检修
+    from: [RUNNING, STANDBY, STOPPED]
+    to: MAINTENANCE
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["reason"], "properties": {"reason": {"type": "string", "minLength": 1, "maxLength": 500}}}
+  - operation: ls.asset.Asset.stop
+    name: 停机
+    from: [RUNNING, STANDBY]
+    to: STOPPED
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["reason"], "properties": {"reason": {"type": "string", "minLength": 1, "maxLength": 500}}}
+  - operation: ls.asset.Asset.scrap
+    name: 报废
+    from: [DRAFT, RUNNING, STANDBY, MAINTENANCE, STOPPED]
+    to: SCRAPPED
+    permission: "ls:asset:manage"
+    risk: C1
+    inputSchema: {"type": "object", "required": ["reason"], "properties": {"reason": {"type": "string", "minLength": 1, "maxLength": 500}}}

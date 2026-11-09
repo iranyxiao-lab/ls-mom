@@ -1,5 +1,6 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lsmom.action.ActionFixture;
 import com.lsmom.action.api.ActorContext;
@@ -41,7 +42,7 @@ class ProductionPackTest {
         "crud:" + HANDOVER + ":add", "crud:" + HANDOVER + ":list", "crud:" + HANDOVER + ":query", "crud:" + HANDOVER + ":edit"};
 
     private final PackFixture f = new PackFixture();
-    private final ProductionRecords records = new ProductionRecords(f.core.jdbc, f.action.concepts);
+    private final ManagedRecords records = new ManagedRecords(f.core.jdbc, f.action.concepts);
 
     ProductionPackTest() {
         ProductionConfiguration cfg = new ProductionConfiguration();

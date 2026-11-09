@@ -1,0 +1,6 @@
+name: 登记设备缺陷产生 Issue
+steps:
+  - create: { concept: ls.asset.Asset, as: a, values: { assetCode: SCN-P-02, name: 场景泵二, assetType: PUMP } }
+  - create: { concept: ls.asset.Defect, as: d, values: { asset: $a, title: 轴承异响, severity: MEDIUM } }
+  - op: { code: ls.asset.Defect.report, target: d }
+  - expect: { concept: ls.asset.Defect, target: d, status: REPORTED }

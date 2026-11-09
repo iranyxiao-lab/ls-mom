@@ -1,0 +1,7 @@
+name: 设备停机检修留痕
+steps:
+  - create: { concept: ls.asset.Asset, as: a, values: { assetCode: SCN-P-01, name: 场景泵, assetType: PUMP } }
+  - op: { code: ls.asset.Asset.commission, target: a }
+  - expectError: { code: VALIDATION_FAILED, op: { code: ls.asset.Asset.maintain, target: a } }
+  - op: { code: ls.asset.Asset.maintain, target: a, input: { reason: 机封泄漏 } }
+  - expect: { concept: ls.asset.Asset, target: a, status: MAINTENANCE, values: { statusReason: 机封泄漏 } }

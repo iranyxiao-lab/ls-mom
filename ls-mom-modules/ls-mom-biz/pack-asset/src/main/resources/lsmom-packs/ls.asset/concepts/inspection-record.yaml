@@ -1,0 +1,28 @@
+code: ls.asset.InspectionRecord
+displayName: 点检记录
+description: 一次点检的逐项结果；提交时每项写入 Observation，数值超限自动判异常，异常项可一键生成缺陷草稿
+fields:
+  - { code: plan, displayName: 点检计划, dataType: REF, refConcept: ls.asset.InspectionPlan, props: { queryable: true } }
+  - { code: asset, displayName: 设备, dataType: REF, refConcept: ls.asset.Asset, required: true, props: { queryable: true } }
+  - { code: workItem, displayName: 点检工作, dataType: REF, refConcept: ls.core.Work, props: { unique: true } }
+  - { code: inspector, displayName: 点检人, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
+  - { code: dueDate, displayName: 应检日期, dataType: DATE, props: { queryable: true, sortable: true } }
+  - { code: inspectedAt, displayName: 点检时间, dataType: DATETIME, props: { sortable: true } }
+  - { code: result, displayName: 结论, dataType: ENUM, options: [NORMAL, ABNORMAL], props: { queryable: true } }
+  - { code: abnormalCount, displayName: 异常项数, dataType: INTEGER }
+  - { code: defectCount, displayName: 已生成缺陷数, dataType: INTEGER }
+children:
+  - code: ls.asset.InspectionRecordItem
+    displayName: 点检结果
+    fields:
+      - { code: itemCode, displayName: 检查项编码, dataType: STRING, required: true, props: { maxLength: 64 } }
+      - { code: name, displayName: 检查项, dataType: STRING, required: true, props: { maxLength: 128 } }
+      - { code: standard, displayName: 判定标准, dataType: STRING, props: { maxLength: 200 } }
+      - { code: valueType, displayName: 结果类型, dataType: ENUM, required: true, options: [CHECK, NUMBER] }
+      - { code: unit, displayName: 单位, dataType: STRING, props: { maxLength: 16 } }
+      - { code: lowerLimit, displayName: 下限, dataType: DECIMAL }
+      - { code: upperLimit, displayName: 上限, dataType: DECIMAL }
+      - { code: valueNum, displayName: 读数, dataType: DECIMAL }
+      - { code: outcome, displayName: 判定, dataType: ENUM, options: [OK, ABNORMAL] }
+      - { code: note, displayName: 说明, dataType: STRING, props: { maxLength: 500 } }
+      - { code: defect, displayName: 缺陷, dataType: INTEGER }

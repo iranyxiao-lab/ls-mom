@@ -1,5 +1,6 @@
 package com.lsmom.biz.production;
 
+import com.lsmom.meta.concept.ManagedRecords;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -51,7 +52,7 @@ class SliceAGoldenScenariosTest {
         "crud:" + MATERIAL + ":query", "lsmom:work:execute"};
 
     private final PackFixture f = new PackFixture();
-    private final ProductionRecords records = new ProductionRecords(f.core.jdbc, f.action.concepts);
+    private final ManagedRecords records = new ManagedRecords(f.core.jdbc, f.action.concepts);
     private final JsonNode ds = load();
     private final String day = LocalDate.now().plusDays(3).toString();
 

@@ -1,10 +1,6 @@
-package com.lsmom.biz.production;
+package com.lsmom.meta.concept;
 
 import com.lsmom.core.error.LsBizException;
-import com.lsmom.meta.concept.ConceptDef;
-import com.lsmom.meta.concept.ConceptRegistry;
-import com.lsmom.meta.concept.FieldDef;
-import com.lsmom.meta.concept.MetaNames;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
@@ -15,15 +11,16 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 轻生产托管台账的读写（迁移效果内部使用，与 Operation 同一事务）。列名一律取自 Concept 元数据。
- * 业务 Pack 不依赖通用台账模块，所以这里直接按元数据写表；对外的增删改仍走通用台账接口与 Operation。
+ * 托管台账（MANAGED_TABLE）的内部读写，供业务 Pack 的迁移效果、守卫与定时任务使用（与 Operation 同一事务）。
+ * 列名一律取自 Concept 元数据。业务 Pack 不依赖通用台账模块；对外的增删改仍走通用台账接口与 Operation。
  */
-public class ProductionRecords {
+@org.springframework.stereotype.Component
+public class ManagedRecords {
 
     private final JdbcTemplate jdbc;
     private final ConceptRegistry concepts;
 
-    public ProductionRecords(JdbcTemplate jdbc, ConceptRegistry concepts) {
+    public ManagedRecords(JdbcTemplate jdbc, ConceptRegistry concepts) {
         this.jdbc = jdbc;
         this.concepts = concepts;
     }

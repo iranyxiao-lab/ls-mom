@@ -1,0 +1,13 @@
+code: ls.asset.Defect
+displayName: 设备缺陷
+description: 设备缺陷扩展记录，外壳是 Issue（类型 EQUIPMENT_DEFECT，关联该设备）。缺陷状态与 Issue 状态同步推进
+fields:
+  - { code: asset, displayName: 设备, dataType: REF, refConcept: ls.asset.Asset, required: true, props: { queryable: true } }
+  - { code: title, displayName: 缺陷描述, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
+  - { code: symptom, displayName: 现象, dataType: TEXT }
+  - { code: severity, displayName: 严重度, dataType: ENUM, required: true, options: [LOW, MEDIUM, HIGH, CRITICAL], props: { queryable: true } }
+  - { code: issue, displayName: 异常 Issue, dataType: REF, refConcept: ls.core.Issue, props: { unique: true } }
+  - { code: inspectionRecord, displayName: 来源点检记录, dataType: REF, refConcept: ls.asset.InspectionRecord, props: { queryable: true } }
+  - { code: inspectionItem, displayName: 来源检查项, dataType: STRING, props: { maxLength: 64 } }
+  - { code: repairChecklist, displayName: 维修检查清单, dataType: TEXT }
+  - { code: verifyConclusion, displayName: 验证结论, dataType: STRING, props: { maxLength: 1000 } }
