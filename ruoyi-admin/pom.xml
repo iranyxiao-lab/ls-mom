@@ -17,11 +17,7 @@
 
     <dependencies>
 
-        <!-- Mysql驱动包 -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-        </dependency>
+        <!-- LS-MOM：只用 PostgreSQL；MySQL 驱动为 GPL-2.0（FOSS 例外不覆盖闭源分发），已移除 -->
 
 <!--        &lt;!&ndash; mp支持的数据库均支持 只需要增加对应的jdbc依赖即可 &ndash;&gt;-->
 <!--        &lt;!&ndash; Oracle &ndash;&gt;-->

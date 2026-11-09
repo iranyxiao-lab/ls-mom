@@ -29,6 +29,22 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 12 | `ruoyi-admin/src/main/resources/logback-plus.xml` | 控制台与文件日志格式加入 `[%X{traceId:-}]` | 全链路 trace_id 进入日志 | 2.5 |
 | 13 | `ruoyi-admin/src/main/resources/application-dev.yml`、`application-prod.yml` | 监控账号改为 `${MONITOR_USERNAME:...}`、`${MONITOR_PASSWORD:...}` | `/actuator` Basic 认证账号可由部署环境注入，容器健康检查使用 | 3.1 |
 | 14 | `plus-ui/pnpm-workspace.yaml`（新增） | `allowBuilds` 放行 esbuild、@parcel/watcher | pnpm 10+ 在 CI/容器中默认拒绝依赖安装脚本 | 3.1 |
+| 15 | `ruoyi-admin/pom.xml` | 移除 `mysql-connector-j` | 只用 PostgreSQL；MySQL 驱动为 GPL-2.0（Universal FOSS Exception 不覆盖闭源分发），许可证门禁拒绝 | 3.3 |
+| 16 | `plus-ui/package.json`、`plus-ui/vitest.config.ts`（新增） | 增加 `vitest`、`@vitest/browser-playwright`、`playwright` 与 `test`（无头）/`test:browser` 脚本 | 前端单元与组件测试在真实浏览器中无头运行 | 3.3 |
+
+## 生产前必须替换的上游密钥
+
+上游仓库自带以下演示密钥，任何人都能从公开源码拿到。gitleaks 按指纹豁免了这些位置（`.gitleaksignore`），只是为了不阻塞 CI，**不代表可以在生产使用**。客户部署前必须替换，并通过环境变量或私有配置注入，不写回仓库：
+
+| 位置 | 内容 | 替换方式 |
+| --- | --- | --- |
+| `application.yml` `api-decrypt.publicKey/privateKey` 与 `plus-ui/.env.production`、`.env.development` 的 `VITE_APP_RSA_PUBLIC_KEY/PRIVATE_KEY` | 接口加解密 RSA 密钥对（前后端成对） | 重新生成两对 RSA 密钥，后端与前端构建参数同步更新 |
+| `application.yml` `sa-token.jwt-secret-key` 等签名密钥 | 令牌签名 | 生产随机生成 ≥32 字节 |
+| `application-dev.yml`、`application-prod.yml` 的 `justauth` 各 `client-secret` | 第三方登录演示凭据 | 未启用的登录源删除配置；启用的使用客户自己的应用凭据 |
+| `ruoyi-demo` 的 `TestDemoEncrypt` | 字段加密示例密钥 | 演示模块不在生产启用 |
+| 演示种子中的管理员与演示用户口令 | 见 `deploy/seed/README.md` | 首次登录后立即修改，生产不加载演示种子（`LSMOM_SEED_DEMO_ENABLED=false`） |
+
+`ruoyi-extend`（SnailJob 服务端、监控服务端）不随 LS-MOM 应用分发，未纳入许可证门禁；若要部署需单独评估（SnailJob 服务端会带入 MySQL 驱动）。
 
 ## 合并上游更新的方法
 

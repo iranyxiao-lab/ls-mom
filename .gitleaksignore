@@ -1,0 +1,16 @@
+# 上游 RuoYi-Vue-Plus / plus-ui 自带的演示密钥（接口加密 RSA 密钥对、Sa-Token 签名密钥、加密示例类）。
+# 按指纹逐条豁免，不整体放行文件：这些文件中新增的密钥仍会被拦截。
+# 生产部署必须替换这些密钥（见 docs/upstream-patches.md「生产前必须替换的上游密钥」）。
+80a003840d51df19d297b64bffeab814fc70fff5:plus-ui/.env.development:generic-api-key:27
+80a003840d51df19d297b64bffeab814fc70fff5:plus-ui/.env.production:generic-api-key:30
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-dev.yml:generic-api-key:199
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-dev.yml:generic-api-key:20
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-dev.yml:generic-api-key:219
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-prod.yml:generic-api-key:201
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-prod.yml:generic-api-key:221
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application-prod.yml:generic-api-key:23
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-admin/src/main/resources/application.yml:generic-api-key:180
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-modules/ruoyi-demo/src/main/java/org/dromara/demo/domain/TestDemoEncrypt.java:generic-api-key:17
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-modules/ruoyi-demo/src/main/java/org/dromara/demo/domain/TestDemoEncrypt.java:generic-api-key:18
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-modules/ruoyi-demo/src/main/java/org/dromara/demo/domain/TestDemoEncrypt.java:generic-api-key:25
+80a003840d51df19d297b64bffeab814fc70fff5:ruoyi-modules/ruoyi-demo/src/main/java/org/dromara/demo/domain/TestDemoEncrypt.java:generic-api-key:26

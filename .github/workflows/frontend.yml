@@ -1,0 +1,40 @@
+name: frontend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: plus-ui
+
+jobs:
+  build-test:
+    name: 构建与无头浏览器测试
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: plus-ui/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: 安装 Playwright Chromium
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Vitest（Browser Mode，无头）
+        run: pnpm exec vitest run --browser.headless
+      - name: 生产构建
+        run: pnpm build:prod
