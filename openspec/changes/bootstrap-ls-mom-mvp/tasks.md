@@ -32,9 +32,9 @@
 - [x] 4.3 实现 `core_work_item`、`core_work_assignment`、`core_work_report`、`core_work_relation` 表、实体与服务（不含任何 BOM/库存字段）；验证 DOM-01「无制造主数据创建」测试
 - [x] 4.4 实现约束 Profile（宽松/严格，冲突提示/阻断、产出单位必填等开关），启用后不影响历史记录；验证 DOM-02 测试
 - [x] 4.5 实现工作关系成环检测与父子拆分；验证成环拒绝测试
-- [ ] 4.6 实现 `core_issue` 外壳、多对象关联、整改工作生成与"整改未完成不得提交验证"规则、来源去重键；验证 spec `core/issue-management` 全部场景
-- [ ] 4.7 实现 `core_observation`、`core_document_link`（对象存储 受控下载、密级、数据域）；验证越权下载被拒绝并审计
-- [ ] 4.8 编写 `docs/core-model.md` 描述核心对象与状态；验证文档字段与迁移脚本一致（脚本自动比对）
+- [x] 4.6 实现 `core_issue` 外壳、多对象关联、整改工作生成与"整改未完成不得提交验证"规则、来源去重键；验证 spec `core/issue-management` 全部场景
+- [x] 4.7 实现 `core_observation`、`core_document_link`（对象存储 受控下载、密级、数据域）；验证越权下载被拒绝并审计
+- [x] 4.8 编写 `docs/core-model.md` 描述核心对象与状态；验证文档字段与迁移脚本一致（脚本自动比对）
 
 ## 5. 元数据内核与 Operation Gateway（P1）
 

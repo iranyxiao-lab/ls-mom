@@ -22,6 +22,11 @@
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-mybatis</artifactId>
         </dependency>
+        <!-- 附件受控下载经 RuoYi OSS 模块读取对象存储 -->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-oss</artifactId>
+        </dependency>
         <!-- 数据库版本化迁移（核心与 Pack 迁移） -->
         <dependency>
             <groupId>org.flywaydb</groupId>
