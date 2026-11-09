@@ -80,3 +80,6 @@ acceptance/runs/**/video/
 # 本地工具索引
 .codegraph/
 sbom-frontend.json
+
+# 备份产物
+deploy/backups/

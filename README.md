@@ -54,6 +54,15 @@ mvn -DskipTests package
 cd plus-ui && pnpm install && pnpm dev
 ```
 
+## 备份与恢复
+
+```bash
+deploy/scripts/backup.sh                       # 业务库（含 flowable schema）＋对象存储桶＋Pack 清单 → deploy/backups/<时间戳>
+deploy/scripts/restore.sh deploy/backups/<时间戳> --yes   # 校验和通过后覆盖恢复，并核对迁移版本、对象数、Pack 清单
+```
+
+恢复目标可以是全新的空环境；`COMPOSE_PROJECT_NAME` 决定操作哪套 Compose 项目。
+
 ## 文档
 
 - 需求与规划：[openspec/changes/](openspec/changes/)
