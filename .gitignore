@@ -1,35 +1,52 @@
-# Java / Maven
+######################################################################
+# Build Tools
+
+.gradle
+/build/
+!gradle/wrapper/gradle-wrapper.jar
+
 target/
-*.class
-*.jar
-!**/src/main/resources/**/*.jar
-.mvn/wrapper/maven-wrapper.jar
-*.log
-logs/
+!.mvn/wrapper/maven-wrapper.jar
 
-# Node / Frontend
-node_modules/
-dist/
-.pnpm-store/
-.vite/
-coverage/
-storybook-static/
+######################################################################
+# IDE
 
-# IDE / OS
-.idea/
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### IntelliJ IDEA ###
+.idea
+*.iws
 *.iml
-.vscode/
-.DS_Store
-Thumbs.db
+*.ipr
 
-# Env & secrets
-.env
-.env.*
-!.env.example
-*.pem
-*.key
+### VS CODE ###
+.vscode
 
-# Runtime data
-deploy/data/
-deploy/backup/
-acceptance/runs/**/video/
+### JRebel ###
+rebel.xml
+
+### NetBeans ###
+nbproject/private/
+build/*
+nbbuild/
+nbdist/
+.nb-gradle/
+
+######################################################################
+# Others
+*.log
+*.log.gz
+*.xml.versionsBackup
+*.swp
+
+!*/build/*.java
+!*/build/*.html
+!*/build/*.xml
+
+.flattened-pom.xml
