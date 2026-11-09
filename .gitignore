@@ -1,0 +1,35 @@
+# Java / Maven
+target/
+*.class
+*.jar
+!**/src/main/resources/**/*.jar
+.mvn/wrapper/maven-wrapper.jar
+*.log
+logs/
+
+# Node / Frontend
+node_modules/
+dist/
+.pnpm-store/
+.vite/
+coverage/
+storybook-static/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime data
+deploy/data/
+deploy/backup/
+acceptance/runs/**/video/
