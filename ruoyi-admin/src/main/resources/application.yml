@@ -262,6 +262,9 @@ spring:
     baseline-on-migrate: true
     baseline-version: 1
     validate-on-migrate: true
+    # 各模块按版本段（V1–19 core、V20–39 meta、V40–59 action……）共用一张历史表：
+    # 某模块新增的低段脚本可能晚于其他模块的高段脚本发布，必须允许乱序执行
+    out-of-order: true
 lsmom:
   schema:
     # 开发环境发现漂移只告警；生产环境在 application-prod.yml 中改为 fail

@@ -77,9 +77,9 @@ class RiskAndExternalTest {
     void C0台账可通用写入_C1台账状态字段不可() {
         String code = "acme." + PgTestSupport.uniq("r") + ".Ledger";
         f.concepts.publish(ConceptDef.managed(code, "台账", List.of(FieldDef.of("name", "名称", DataType.STRING),
-            FieldDef.of("status", "状态", DataType.ENUM).asState()), null));
+            FieldDef.of("stage", "阶段", DataType.ENUM).asState()), null));
         assertThat(policy.riskOf(code)).isEqualTo(Risk.C0);
-        policy.check(code, List.of("name", "status"));
+        policy.check(code, List.of("name", "stage"));
     }
 
     @Test

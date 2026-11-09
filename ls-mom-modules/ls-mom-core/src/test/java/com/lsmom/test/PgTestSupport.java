@@ -30,7 +30,7 @@ public final class PgTestSupport {
         ds.setDriverClassName("org.postgresql.Driver");
         DATA_SOURCE = ds;
         new JdbcTemplate(ds).execute("create extension if not exists vector; create schema if not exists flowable");
-        Flyway.configure().dataSource(ds).locations("classpath:db/migration/core").load().migrate();
+        Flyway.configure().dataSource(ds).locations("classpath:db/migration/core").outOfOrder(true).load().migrate();
     }
 
     private PgTestSupport() {

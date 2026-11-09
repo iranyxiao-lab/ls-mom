@@ -76,6 +76,20 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/lsmom',
+    component: Layout,
+    hidden: true,
+    redirect: 'noredirect',
+    children: [
+      {
+        path: 'ledger/:concept',
+        component: () => import('@/views/lsmom/ledger/index.vue'),
+        name: 'LedgerList',
+        meta: { title: '台账', icon: 'list' }
+      }
+    ]
+  },
+  {
     path: '/user',
     component: Layout,
     hidden: true,
@@ -92,9 +106,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 ];
 
 // 动态路由，基于用户权限动态去加载
-export const dynamicRoutes: RouteRecordRaw[] = [
-
-];
+export const dynamicRoutes: RouteRecordRaw[] = [];
 
 /**
  * 创建路由

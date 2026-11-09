@@ -65,6 +65,7 @@ public class ActionFixture {
     public final com.lsmom.action.rule.RuleService rules;
     public final com.lsmom.action.rule.RulePublisher rulePublisher;
     public final GuardRegistry guardRegistry;
+    public final StateStores stores;
 
     public ActionFixture() {
         this(List.of());
@@ -87,7 +88,7 @@ public class ActionFixture {
         List<TransitionEffect> effects = List.of(e.workAssignEffect(core.assignments), e.workStartEffect(core.clock), e.workBlockEffect(),
             e.workUnblockEffect(), e.workConfirmEffect(core.clock), e.workReasonEffects(), e.workCancelEffect(core.assignments),
             e.issueStartRectificationEffect(), e.issueVerifyPassEffect(core.clock), e.issueVerifyFailEffect(issues), e.issueRejectEffect());
-        StateStores stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues)));
+        stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues)));
         rules = new com.lsmom.action.rule.RuleService(core.jdbc, new com.lsmom.action.rule.CelRuleEngine(), core.clock);
         var ruleGuards = new com.lsmom.action.rule.RuleGuardProvider(rules, stores, facts, core.clock);
         guardRegistry = new GuardRegistry(guards, List.of(ruleGuards), List.of(ruleGuards));

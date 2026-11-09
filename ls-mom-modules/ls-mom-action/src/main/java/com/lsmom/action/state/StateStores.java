@@ -11,10 +11,36 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class StateStores {
 
+    /** 动态解析（如受控物理表的通用状态存储）。 */
+    public interface Resolver {
+        java.util.Optional<StateStore> resolve(String concept);
+    }
+
     private final Map<String, StateStore> stores = new ConcurrentHashMap<>();
+    private final List<Resolver> resolvers = new java.util.concurrent.CopyOnWriteArrayList<>();
 
     public StateStores(List<StateStore> beans) {
         beans.forEach(this::register);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public StateStores(List<StateStore> beans, List<Resolver> resolvers) {
+        beans.forEach(this::register);
+        this.resolvers.addAll(resolvers);
+    }
+
+    public void addResolver(Resolver r) {
+        resolvers.add(r);
+    }
+
+    private StateStore find(String concept) {
+        StateStore s = stores.get(concept);
+        if (s != null) return s;
+        for (Resolver r : resolvers) {
+            java.util.Optional<StateStore> x = r.resolve(concept);
+            if (x.isPresent()) return x.get();
+        }
+        return null;
     }
 
     public void register(StateStore s) {
@@ -22,12 +48,12 @@ public class StateStores {
     }
 
     public StateStore of(String concept) {
-        StateStore s = stores.get(concept);
+        StateStore s = find(concept);
         if (s == null) throw new LsBizException("STATE_STORE_MISSING", "没有为 " + concept + " 注册状态存储");
         return s;
     }
 
     public boolean has(String concept) {
-        return stores.containsKey(concept);
+        return find(concept) != null;
     }
 }

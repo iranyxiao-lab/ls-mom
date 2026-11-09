@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 public class ConceptRegistry {
 
     public static final String CORE_NAMESPACE = "ls.core";
+    /** 受控表统一保留字段（DDL 生成器自动创建）。 */
+    public static final Set<String> RESERVED_COLUMNS = Set.of("id", "org_id", "status", "created_by", "created_at", "updated_by",
+        "updated_at", "version", "del_flag", "schema_version", "ext_attrs", "parent_id", "line_no");
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private final JdbcTemplate jdbc;
@@ -41,13 +44,13 @@ public class ConceptRegistry {
     private final RowMapper<FieldDef> fieldMapper = (rs, i) -> new FieldDef(rs.getString("field_code"), rs.getString("display_name"),
         DataType.valueOf(rs.getString("data_type")), rs.getString("column_name"), rs.getBoolean("required"),
         rs.getString("ref_concept"), readOptions(rs.getString("options")), rs.getBoolean("state_field"), rs.getBoolean("system_field"),
-        FieldDef.FieldStatus.valueOf(rs.getString("status")), rs.getInt("sort_order"));
+        FieldDef.FieldStatus.valueOf(rs.getString("status")), rs.getInt("sort_order"), readProps(rs.getString("props")));
 
     public Optional<ConceptDef> find(String code) {
         List<ConceptDef> list = jdbc.query("select * from meta_concept where code = ?", (rs, i) -> new ConceptDef(rs.getString("code"),
             rs.getString("namespace"), rs.getString("display_name"), ConceptDef.Storage.valueOf(rs.getString("storage")),
             rs.getString("table_name"), rs.getBoolean("editable"), rs.getString("owner_pack"), rs.getString("description"),
-            fields(rs.getString("code"), true), rs.getString("status"), rs.getInt("version")), code);
+            fields(rs.getString("code"), true), rs.getString("status"), rs.getInt("version"), rs.getString("parent_concept")), code);
         return list.stream().findFirst();
     }
 
@@ -104,11 +107,13 @@ public class ConceptRegistry {
         Optional<ConceptDef> old = find(def.code());
         int version = old.map(o -> o.version() + (o.status().equals("PUBLISHED") ? 1 : 0)).orElse(1);
         jdbc.update("""
-            insert into meta_concept (code, namespace, display_name, storage, table_name, status, version, editable, owner_pack, description, published_at)
-            values (?, ?, ?, ?, ?, 'PUBLISHED', ?, true, ?, ?, now())
+            insert into meta_concept (code, namespace, display_name, storage, table_name, status, version, editable, owner_pack, description,
+              published_at, parent_concept)
+            values (?, ?, ?, ?, ?, 'PUBLISHED', ?, true, ?, ?, now(), ?)
             on conflict (code) do update set display_name = excluded.display_name, status = 'PUBLISHED', version = excluded.version,
               description = excluded.description, published_at = now(), updated_at = now()""",
-            def.code(), def.namespace(), def.displayName(), def.storage().name(), def.tableName(), version, def.ownerPack(), def.description());
+            def.code(), def.namespace(), def.displayName(), def.storage().name(), def.tableName(), version, def.ownerPack(), def.description(),
+            def.parentConcept());
         int order = 0;
         for (FieldDef f : def.fields()) {
             upsertField(def.code(), f, order++, version);
@@ -137,6 +142,15 @@ public class ConceptRegistry {
             if (!o.editable()) problems.add("「" + o.displayName() + "」是核心显式表，不能经设计器修改结构");
             if (o.storage() != def.storage()) problems.add("存储方式不能修改");
             if (!o.tableName().equals(def.tableName())) problems.add("物理表名不能修改");
+            if (!java.util.Objects.equals(o.parentConcept(), def.parentConcept())) problems.add("主子表关系不能修改");
+        }
+        if (def.parentConcept() != null) {
+            Optional<ConceptDef> parent = find(def.parentConcept());
+            if (parent.isEmpty() || parent.get().storage() != ConceptDef.Storage.MANAGED_TABLE) {
+                problems.add("子表所属的主表 Concept 不存在或不是受控表：" + def.parentConcept());
+            } else if (parent.get().parentConcept() != null) {
+                problems.add("子表不能再挂子表：" + def.parentConcept());
+            }
         }
         Map<String, FieldDef> oldFields = new LinkedHashMap<>();
         old.ifPresent(o -> o.fields().forEach(f -> oldFields.put(f.code(), f)));
@@ -151,11 +165,16 @@ public class ConceptRegistry {
                 problems.add("字段 " + f.code() + " 的列名不合法：" + f.columnName());
             }
             if (f.dataType() == DataType.REF && f.refConcept() == null) problems.add("引用字段 " + f.code() + " 必须指定引用的 Concept");
+            if (f.ext() && (f.required() || f.flag("queryable") || f.flag("sortable") || f.flag("indexed") || f.flag("unique") || f.stateField())) {
+                problems.add("字段 " + f.code() + " 存入 ext_attrs，只能是非关键补充信息（不能必填、筛选、排序、索引或作为状态）");
+            }
+            if (RESERVED_COLUMNS.contains(f.columnName()) && !f.systemField()) problems.add("列名 " + f.columnName() + " 是保留字段");
             FieldDef prev = oldFields.get(f.code());
             if (prev == null) continue;
             if (prev.status() != FieldDef.FieldStatus.ACTIVE) {
                 problems.add("字段编码 " + f.code() + " 已" + (prev.status() == FieldDef.FieldStatus.DEPRECATED ? "弃用" : "移除") + "，不能复用");
             }
+            if (prev.ext() != f.ext()) problems.add("字段 " + f.code() + " 的存储位置（列 / ext_attrs）不能直接修改，须经评审迁移");
             if (prev.dataType() != f.dataType()) problems.add("字段 " + f.code() + " 的类型不能从 " + prev.dataType() + " 改为 " + f.dataType() + "（破坏性变更须经评审迁移）");
             if (!prev.columnName().equals(f.columnName())) problems.add("字段 " + f.code() + " 的列名不能修改");
         }
@@ -215,15 +234,15 @@ public class ConceptRegistry {
     private void upsertField(String concept, FieldDef f, int order, int version) {
         jdbc.update("""
             insert into meta_concept_field (concept_code, field_code, display_name, data_type, column_name, required, ref_concept, options,
-              state_field, system_field, sort_order, since_version)
-            values (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?)
+              state_field, system_field, sort_order, since_version, props)
+            values (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?, ?, ?::jsonb)
             on conflict (concept_code, field_code) do update set display_name = excluded.display_name, data_type = excluded.data_type,
               required = excluded.required, ref_concept = excluded.ref_concept, options = excluded.options,
-              state_field = excluded.state_field, system_field = excluded.system_field, sort_order = excluded.sort_order,
+              state_field = excluded.state_field, system_field = excluded.system_field, sort_order = excluded.sort_order, props = excluded.props,
               status = case when meta_concept_field.status = 'REMOVED' then 'REMOVED' else 'ACTIVE' end,
               deprecated_at = case when meta_concept_field.status = 'REMOVED' then meta_concept_field.deprecated_at end""",
             concept, f.code(), f.displayName(), f.dataType().name(), f.columnName(), f.required(), f.refConcept(),
-            writeOptions(f.options()), f.stateField(), f.systemField(), f.sortOrder() != 0 ? f.sortOrder() : order, version);
+            writeOptions(f.options()), f.stateField(), f.systemField(), f.sortOrder() != 0 ? f.sortOrder() : order, version, writeProps(f.props()));
     }
 
     private static String writeOptions(List<String> options) {
@@ -232,6 +251,34 @@ public class ConceptRegistry {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    private static String writeProps(Map<String, Object> props) {
+        try {
+            return JSON.writeValueAsString(props == null ? Map.of() : props);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> readProps(String json) {
+        try {
+            return json == null ? Map.of() : JSON.readValue(json, Map.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * 经评审的破坏性变更（改类型等）完成物理迁移后同步字段定义。只供 DDL 迁移执行器调用。
+     */
+    @Transactional
+    public void applyReviewedFieldChange(String conceptCode, FieldDef field) {
+        int n = jdbc.update("update meta_concept_field set data_type = ?, props = ?::jsonb where concept_code = ? and field_code = ?",
+            field.dataType().name(), writeProps(field.props()), conceptCode, field.code());
+        if (n == 0) throw LsBizException.notFound("字段", conceptCode + "." + field.code());
+        jdbc.update("update meta_concept set version = version + 1, updated_at = now() where code = ?", conceptCode);
     }
 
     private static List<String> readOptions(String json) {

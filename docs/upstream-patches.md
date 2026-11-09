@@ -34,6 +34,8 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 17 | `plus-ui/.gitignore` | 不再忽略 `pnpm-lock.yaml`，锁文件入库 | CI 与镜像构建使用 `--frozen-lockfile`，依赖可复现 | 3.3 |
 | 18 | `ruoyi-admin/src/main/resources/application.yml` | `captcha.enable` 改为 `${CAPTCHA_ENABLED:true}` | 自动化验收环境可关闭登录验证码；默认与生产保持开启 | 3.4 |
 | 19 | `ruoyi-admin/src/main/resources/application.yml` | springdoc 分组「5.工作流模块」改为「5.LS-MOM」（`com.lsmom`），`api-docs.version: openapi_3_1` | Warm-Flow 已移除；Operation 以 OpenAPI 3.1 描述 | 5.9 |
+| 20 | `ruoyi-admin/src/main/resources/application.yml` | `spring.flyway.out-of-order: true` | 各模块按版本段共用历史表，低段新脚本可能晚于高段脚本发布 | 7.1 |
+| 21 | `plus-ui/src/router/index.ts` | 新增隐藏路由 `/lsmom/ledger/:concept`（通用台账列表页） | 菜单可直接指向任一已发布台账 | 7.7 |
 
 ## 生产前必须替换的上游密钥
 

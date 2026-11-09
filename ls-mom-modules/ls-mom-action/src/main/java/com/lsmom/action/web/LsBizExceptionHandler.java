@@ -34,7 +34,7 @@ public class LsBizExceptionHandler {
 
     static int status(String code) {
         return switch (code) {
-            case "VALIDATION_FAILED", "TARGET_REQUIRED" -> 400;
+            case "VALIDATION_FAILED", "TARGET_REQUIRED", "QUERY_REJECTED" -> 400;
             case "UNAUTHENTICATED" -> 401;
             case "ACCESS_DENIED" -> 403;
             case "NOT_FOUND", "OPERATION_NOT_FOUND", "CONCEPT_NOT_FOUND" -> 404;

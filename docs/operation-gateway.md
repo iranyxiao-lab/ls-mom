@@ -116,4 +116,6 @@ Concept 的风险取其已发布 Operation 的最高级别。通用写入前调�
 
 ## 迁移版本号分段
 
-各模块的 Flyway 脚本共用 `db/migration/core` 位置与历史表，按版本段区分：V1–V19 core、V20–V39 meta、V40–V59 action、V60–V79 crud、V80–V99 form、V100–V119 flow、V120 起其他模块。
+各模块的 Flyway 脚本共用 `db/migration/core` 位置与历史表，按版本段区分：V1–V19 core、V20–V39 meta、V40–V59 action、V60–V79 crud、V80–V99 form、V100–V119 flow、V120 起其他模块。某模块新增的低段脚本（如 meta 的 V21）常常晚于其他模块的高段脚本（如 action 的 V42）发布，所以 Flyway 开启 `out-of-order`，已执行脚本仍按校验和校验、不可修改。
+
+台账（受控物理表）的 DDL 不在这里：由 Pack 迁移执行器（`PackMigrator`）把脚本登记到 `meta_ddl_script`，再经 Flyway 以独立历史表 `pack_schema_history` 执行。
