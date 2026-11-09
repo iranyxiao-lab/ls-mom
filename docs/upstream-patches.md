@@ -27,6 +27,8 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 10 | `ruoyi-admin/src/main/resources/application.yml` | 追加 `spring.flyway`（核心迁移目录、V1 基线）与 `lsmom.schema.drift-mode: warn` | 表结构只经版本化迁移变更，启动时检测漂移 | 2.4 |
 | 11 | `ruoyi-admin/src/main/resources/application-prod.yml` | 数据源改为 PostgreSQL 且连接参数全部来自环境变量；Redis 地址、密码改为环境变量；监控与 SnailJob 默认关闭；`lsmom.schema.drift-mode: fail` | 生产不保留默认口令；生产发现漂移拒绝启动 | 2.4 |
 | 12 | `ruoyi-admin/src/main/resources/logback-plus.xml` | 控制台与文件日志格式加入 `[%X{traceId:-}]` | 全链路 trace_id 进入日志 | 2.5 |
+| 13 | `ruoyi-admin/src/main/resources/application-dev.yml`、`application-prod.yml` | 监控账号改为 `${MONITOR_USERNAME:...}`、`${MONITOR_PASSWORD:...}` | `/actuator` Basic 认证账号可由部署环境注入，容器健康检查使用 | 3.1 |
+| 14 | `plus-ui/pnpm-workspace.yaml`（新增） | `allowBuilds` 放行 esbuild、@parcel/watcher | pnpm 10+ 在 CI/容器中默认拒绝依赖安装脚本 | 3.1 |
 
 ## 合并上游更新的方法
 

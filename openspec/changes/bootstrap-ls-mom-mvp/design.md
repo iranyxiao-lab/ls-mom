@@ -85,7 +85,7 @@ ls-mom/                         Git 仓库根
 - Concept 发布时 `DdlPlanner` 比较新旧定义生成迁移 SQL，写入 ChangeSet；新增列/表自动通过，改类型/删列/改名标记 `BREAKING` 需审批。DDL 只由 Pack 安装器经 Flyway 执行，设计器无 DDL 权限。
 - 运行时查询用 MyBatis `@SelectProvider`＋自写 `SafeSqlBuilder`：表名、列名只能来自 `meta_concept` 已发布定义并经标识符白名单校验，所有值以 `#{}` 参数绑定；不引入 jOOQ 等第二 ORM。
 - 数据权限复用 RuoYi `@DataPermission` 的 SQL 拼接思路，但在 `SafeSqlBuilder` 中以 `org_id` 条件注入，确保动态表同样生效。
-- 导入导出复用 RuoYi Excel 能力；异步导出走 Outbox Worker，产物存 MinIO 并经受控下载。
+- 导入导出复用 RuoYi Excel 能力；异步导出走 Outbox Worker，产物存 对象存储 并经受控下载。
 
 ### D7 表单：自有 LS FormSchema＋自有渲染器＋form-create 设计器适配
 - **渲染器自研**（`SchemaForm`／`SchemaTable`／`SchemaDetail`，基于 Element Plus）：运行时、移动端、打印、流程节点、设计器预览都用同一渲染器，保证"预览即运行"。
@@ -120,6 +120,12 @@ packs/<pack-code>/
 - 漂移检测：比较运行库中 meta_* 定义的规范化哈希与安装清单哈希；差异可导出为 ChangeSet。
 - 含 Java 代码的标准 Pack（守卫插件、专用 Handler）随应用一起编译发布；纯元数据的客户 Pack 可运行时安装。不支持运行时热部署 Java。
 
+### D11a 对象存储：S3 兼容，MVP 用 SeaweedFS
+- 附件、导出文件统一通过 S3 接口访问（复用 RuoYi OSS 模块），不依赖任何存储产品的私有 API。
+- MVP 部署使用 SeaweedFS（Apache-2.0，单容器运行 master/volume/filer/S3）。
+- **原因**：设计初稿选的 MinIO 社区版已停止分发 Docker 镜像（2026-11 实测 Docker Hub、quay.io 均无法拉取）。
+- **备选**：RustFS（项目较新、成熟度较低）；客户已有 MinIO 商业版或云厂商对象存储时直接改 S3 端点即可。
+
 ### D12 DCS：独立时序存储＋模拟器
 - Compose 可选 profile `dcs` 启动 TimescaleDB 实例（独立容器，非业务库）＋`ls-mom-dcs-simulator`（生成点位值、报警、断网、乱序、时钟偏差场景）。
 - `ls-mom-dcs` 只读访问时序库，定时降采样写 `dcs_telemetry_snapshot`；报警以 `dedup_key` 唯一索引 upsert。真实客户接入时替换为现场 Historian 适配器。
@@ -151,7 +157,7 @@ packs/<pack-code>/
 
 全新系统，无存量数据迁移。部署与回滚：
 1. `deploy/` 下 `docker compose up -d` 启动；应用启动时执行核心 Flyway 迁移，再由 Pack 安装器按依赖安装标准 Pack 与演示种子。
-2. 每次发布前执行 `deploy/scripts/backup.sh`（pg_dump 业务库与 `flowable` schema＋MinIO 镜像＋Pack 清单），并在临时环境用 `restore.sh` 演练升级。
+2. 每次发布前执行 `deploy/scripts/backup.sh`（pg_dump 业务库与 `flowable` schema＋对象存储备份＋Pack 清单），并在临时环境用 `restore.sh` 演练升级。
 3. 回滚：非破坏性 ChangeSet 可停用 Pack 或回退到上一 Pack 版本的定义；破坏性迁移只支持"备份恢复＋前向修复"，不提供自动 down 迁移。
 
 ## Open Questions

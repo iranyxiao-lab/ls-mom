@@ -18,7 +18,7 @@ LS-MOM 面向以人工操作和班组协同为主的产线：生产工作安排�
 | --- | --- |
 | 后端 | JDK 21、Spring Boot 3.5、RuoYi-Vue-Plus 5.6.2（Sa-Token、MyBatis-Plus） |
 | 流程 | Flowable 7（嵌入式，独立 `flowable` schema） |
-| 数据 | PostgreSQL 16（含 pgvector）、Redis、MinIO、Flyway |
+| 数据 | PostgreSQL 16（含 pgvector）、Redis、SeaweedFS（S3 兼容对象存储）、Flyway |
 | 前端 | Vue 3、TypeScript、Element Plus、UnoCSS（plus-ui 2.6.2） |
 | 部署 | Docker Compose，单客户单库 |
 

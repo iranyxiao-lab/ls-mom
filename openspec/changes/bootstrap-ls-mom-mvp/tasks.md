@@ -20,10 +20,10 @@
 
 ## 3. 部署环境与 CI（P0）
 
-- [ ] 3.1 编写 `deploy/docker-compose.yml`（app、postgres:16 含 pgvector、redis、minio，`flowable` 独立 schema，可选 profile `dcs`）与健康检查；验证全新机器 `docker compose up -d` 后所有服务 healthy
+- [x] 3.1 编写 `deploy/docker-compose.yml`（app、postgres:16 含 pgvector、redis、minio，`flowable` 独立 schema，可选 profile `dcs`）与健康检查；验证全新机器 `docker compose up -d` 后所有服务 healthy
 - [ ] 3.2 编写幂等种子（演示组织、管理员、角色、班次、工作类型），重复执行不产生重复数据；验证连续执行两次种子命令后记录数不变
 - [ ] 3.3 编写 GitHub Actions：backend（构建、单测、ArchUnit、Testcontainers）、frontend（pnpm build、`vitest --browser.headless`）、security（gitleaks、许可证扫描拒绝 GPL/AGPL、CycloneDX SBOM）；验证提交含伪造密钥的分支时 CI 失败
-- [ ] 3.4 编写 `deploy/scripts/backup.sh` 与 `restore.sh`（业务库＋flowable schema＋MinIO＋Pack 清单）；验证在空环境恢复后可登录并读取附件
+- [ ] 3.4 编写 `deploy/scripts/backup.sh` 与 `restore.sh`（业务库＋flowable schema＋对象存储＋Pack 清单）；验证在空环境恢复后可登录并读取附件
 
 ## 4. 稳定核心：主体、组织与工作（P1）
 
@@ -33,7 +33,7 @@
 - [ ] 4.4 实现约束 Profile（宽松/严格，冲突提示/阻断、产出单位必填等开关），启用后不影响历史记录；验证 DOM-02 测试
 - [ ] 4.5 实现工作关系成环检测与父子拆分；验证成环拒绝测试
 - [ ] 4.6 实现 `core_issue` 外壳、多对象关联、整改工作生成与"整改未完成不得提交验证"规则、来源去重键；验证 spec `core/issue-management` 全部场景
-- [ ] 4.7 实现 `core_observation`、`core_document_link`（MinIO 受控下载、密级、数据域）；验证越权下载被拒绝并审计
+- [ ] 4.7 实现 `core_observation`、`core_document_link`（对象存储 受控下载、密级、数据域）；验证越权下载被拒绝并审计
 - [ ] 4.8 编写 `docs/core-model.md` 描述核心对象与状态；验证文档字段与迁移脚本一致（脚本自动比对）
 
 ## 5. 元数据内核与 Operation Gateway（P1）
@@ -62,7 +62,7 @@
 - [ ] 7.2 实现 `SafeSqlBuilder`（标识符白名单、参数绑定、数据域注入）与 QuerySpec 解析；验证 CRUD-03 注入测试集（排序注入、非白名单字段、联表越权）全部拒绝
 - [ ] 7.3 实现 `GenericCrudController`：主子表单事务保存、详情、复制、逻辑删除、字典翻译、引用展开、草稿态限制；验证子表行错误定位与已提交记录禁止通用编辑
 - [ ] 7.4 实现服务端字段/行级权限与 Schema 校验在通用接口中强制执行；验证 CRUD-02 绕过前端测试
-- [ ] 7.5 实现 Excel 导入预检（错误行报告、部分导入）与异步导出（条数上限、MinIO、审计）；验证 CRUD-04 测试
+- [ ] 7.5 实现 Excel 导入预检（错误行报告、部分导入）与异步导出（条数上限、对象存储、审计）；验证 CRUD-04 测试
 - [ ] 7.6 实现防重复提交、字段级变更时间轴、Agent 身份禁止访问通用接口；验证双击保存只写一次、Agent 调用被拒
 - [ ] 7.7 前端实现 `SchemaTable`（ListSchema 驱动的列、筛选、排序、行/批量操作绑定 Operation、导出）；验证组件单测与无头 vitest 通过
 
@@ -171,7 +171,7 @@
 - [ ] 19.1 运行全部黄金场景（无 BOM 生产、维修、质量整改、借还台账、培训、咨询、交接班、DCS 报警）端到端测试；验证全部通过
 - [ ] 19.2 运行越权测试矩阵（菜单、Operation、组织、字段、附件、流程任务、Agent）；验证全部被拒并有审计
 - [ ] 19.3 运行升级测试：上一版本备份恢复→Core/Pack/客户 Pack 升级→在途流程继续办理→客户字段与数据保留；验证 §13.5 各项
-- [ ] 19.4 运行联合备份恢复演练（数据库＋MinIO＋Pack＋Flowable 定义）；验证恢复后在途流程可办理
+- [ ] 19.4 运行联合备份恢复演练（数据库＋对象存储＋Pack＋Flowable 定义）；验证恢复后在途流程可办理
 - [ ] 19.5 运行性能基准（100 万行列表 50 并发 P95≤800ms、保存 30 并发 P95≤500ms）；验证报告达标
 - [ ] 19.6 全新环境 `docker compose up` ＋种子重跑演示全部六个切片，推送最终代码到 GitHub `ls-mom` 并确认 CI 全绿
 

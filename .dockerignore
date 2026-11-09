@@ -1,0 +1,11 @@
+.git
+**/node_modules
+**/target
+**/dist
+plus-ui/.pnpm-store
+deploy/data
+deploy/backup
+.codegraph
+.idea
+.vscode
+*.log

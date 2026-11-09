@@ -8,7 +8,7 @@
 
 ## What Changes
 
-- 建立 Git 仓库并推送到 GitHub 私有仓库 `ls-mom`；建立 Maven 多模块工程（参考 dromara/RuoYi-Vue-Plus 5.X 分支，Spring Boot 3＋JDK 21）与 plus-ui 前端（Vue3＋TS＋Element Plus），配套 Docker Compose（app＋PostgreSQL 16＋Redis＋MinIO）、Flyway、CI。
+- 建立 Git 仓库并推送到 GitHub 私有仓库 `ls-mom`；建立 Maven 多模块工程（参考 dromara/RuoYi-Vue-Plus 5.X 分支，Spring Boot 3＋JDK 21）与 plus-ui 前端（Vue3＋TS＋Element Plus），配套 Docker Compose（app＋PostgreSQL 16＋Redis＋对象存储）、Flyway、CI。
 - 新增稳定核心：Party／OrgUnit／WorkItem／WorkAssignment／WorkReport／WorkRelation／Issue／Observation／DomainEvent（含 Outbox）／DocumentLink，核心不含任何 BOM、库存或客户专属字段。
 - 新增自研元数据内核：`meta_concept／meta_view／meta_operation／meta_flow／meta_rule／meta_metric／meta_pack` 七类契约及 `meta_change_set`，支持版本冻结与发布链路。
 - 新增 Operation Gateway：所有受控写入（提交、审核、退回、关闭、确认、分派）经命名 Operation，带权限、守卫、幂等、审计和 `trace_id`；约束分 L0～L4。
@@ -58,7 +58,7 @@
 ## Impact
 
 - **代码**：全新仓库。后端 Maven 多模块（RuoYi 基础模块＋`ls-mom-*` 10 个模块），前端 plus-ui 改造＋设计器与工作台页面，`deploy/` Compose 与种子数据，`packs/` 标准 Pack 资产。
-- **依赖**：RuoYi-Vue-Plus 5.X（MIT）、Spring Boot 3、Sa-Token、MyBatis-Plus、Flowable 7（Apache-2.0）、Flyway、cel-java（Apache-2.0）、PostgreSQL 16、Redis、MinIO、form-create 设计器（MIT）、LogicFlow（Apache-2.0，流程画布）。移除 RuoYi 自带 Warm-Flow 工作流模块，避免双流程引擎。
+- **依赖**：RuoYi-Vue-Plus 5.X（MIT）、Spring Boot 3、Sa-Token、MyBatis-Plus、Flowable 7（Apache-2.0）、Flyway、cel-java（Apache-2.0）、PostgreSQL 16、Redis、对象存储、form-create 设计器（MIT）、LogicFlow（Apache-2.0，流程画布）。移除 RuoYi 自带 Warm-Flow 工作流模块，避免双流程引擎。
 - **API**：`/api/op/{operationCode}`、`/api/q/{queryCode}`、`/api/crud/{conceptCode}`、OpenAPI 3.1、独立 MCP Adapter。
 - **外部系统**：GitHub（私有仓库 `ls-mom`，实施时需用户提供登录或令牌）；DCS／Historian 只读接入（MVP 用模拟器）；LLM 服务可配置私有化端点。
 - **周期**：按 v2.1 §14.1 约 12～16 周，分 P0～P5 阶段推进。
