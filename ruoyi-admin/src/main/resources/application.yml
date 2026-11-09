@@ -248,3 +248,19 @@ websocket:
   # 设置访问源地址
   allowedOrigins: '*'
 
+
+--- # LS-MOM 数据库迁移（Flyway）
+spring:
+  flyway:
+    enabled: true
+    # 核心迁移；Pack 迁移由 Pack 安装器按各自历史表执行
+    locations: classpath:db/migration/core
+    table: flyway_schema_history
+    # 已有上游库（手工导入过 RuoYi 脚本）标记为 V1 基线，不重复执行 V1
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: true
+lsmom:
+  schema:
+    # 开发环境发现漂移只告警；生产环境在 application-prod.yml 中改为 fail
+    drift-mode: warn

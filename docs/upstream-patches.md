@@ -24,6 +24,8 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 7 | `script/sql/**/*workflow*`、`script/leave/` | 删除各数据库的工作流建表与菜单脚本、请假示例 | 同补丁 3 | 2.1 |
 | 8 | `plus-ui/src/views/workflow/`、`plus-ui/src/api/workflow/`、`plus-ui/src/components/Process/` | 删除工作流页面、接口与审批组件 | 同补丁 3；LS-MOM 协同中心另行实现 | 2.1 |
 | 9 | `pom.xml`、`ruoyi-admin/pom.xml` | 根 pom 增加 `ls-mom-modules` 模块；admin 依赖全部 LS-MOM 模块与标准 Pack | 接入自研模块；LS-MOM 组件经 `com.lsmom` 自动配置装配，不改上游启动类 | 2.2 |
+| 10 | `ruoyi-admin/src/main/resources/application.yml` | 追加 `spring.flyway`（核心迁移目录、V1 基线）与 `lsmom.schema.drift-mode: warn` | 表结构只经版本化迁移变更，启动时检测漂移 | 2.4 |
+| 11 | `ruoyi-admin/src/main/resources/application-prod.yml` | 数据源改为 PostgreSQL 且连接参数全部来自环境变量；Redis 地址、密码改为环境变量；监控与 SnailJob 默认关闭；`lsmom.schema.drift-mode: fail` | 生产不保留默认口令；生产发现漂移拒绝启动 | 2.4 |
 
 ## 合并上游更新的方法
 
