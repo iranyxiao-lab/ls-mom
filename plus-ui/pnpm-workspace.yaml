@@ -4,6 +4,8 @@ allowBuilds:
   "@parcel/watcher": true
   # 仅打印赞助信息的安装脚本，不放行
   core-js-pure: false
+  # LogicFlow 的 postinstall 只打印提示，不放行
+  "@logicflow/core": false
 # form-create 设计器依赖固定到发布满 14 天的版本（设计器只作编辑器，存储只保存 LS FormSchema）
 overrides:
   "@form-create/core": 3.3.4

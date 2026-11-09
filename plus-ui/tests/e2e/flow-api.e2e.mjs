@@ -29,9 +29,15 @@ try {
   const v = await api('POST', '/api/flow/definitions/validate', def);
   check(v.code === 200 && v.data.length === 0, '流程校验无问题 ' + JSON.stringify(v.data ?? v.msg));
   const bad = await api('POST', '/api/flow/definitions/validate', { ...def, callbacks: { approved: i + 'startRectification' } });
-  check(bad.data.some((x) => x.code === 'CALLBACK_REQUIRED'), '缺少驳回回调被校验拦截');
+  check(
+    bad.data.some((x) => x.code === 'CALLBACK_REQUIRED'),
+    '缺少驳回回调被校验拦截'
+  );
   const pv = await api('POST', '/api/flow/definitions/preview', def);
-  check(pv.code === 200 && pv.data.bpmnXml.includes('userTask') && !pv.data.bpmnXml.includes('scriptTask'), '预览生成 BPMN（含用户任务、无脚本任务）');
+  check(
+    pv.code === 200 && pv.data.bpmnXml.includes('userTask') && !pv.data.bpmnXml.includes('scriptTask'),
+    '预览生成 BPMN（含用户任务、无脚本任务）'
+  );
   const pub = await api('POST', '/api/flow/definitions/publish', def);
   check(pub.code === 200 && pub.data.version === 1 && pub.data.status === 'PUBLISHED', '发布流程 v1：' + (pub.msg ?? ''));
 
@@ -83,7 +89,10 @@ try {
   check(biz.data.instances[0].instance.status === 'APPROVED', '流程实例状态 APPROVED');
   const tl = await api('GET', `/api/timeline/ls.core.Issue/${okId}`);
   const types = JSON.stringify(tl.data);
-  check(['ls.flow.started', 'ls.flow.task.approved', 'ls.flow.approved'].every((x) => types.includes(x)), '时间线包含 started / task.approved / approved');
+  check(
+    ['ls.flow.started', 'ls.flow.task.approved', 'ls.flow.approved'].every((x) => types.includes(x)),
+    '时间线包含 started / task.approved / approved'
+  );
   const rej = JSON.stringify((await api('GET', `/api/timeline/ls.core.Issue/${noId}`)).data);
   check(rej.includes('重新登记'), '驳回原因来自审核意见');
 

@@ -6,6 +6,7 @@ import com.lsmom.action.api.ActorContext;
 import com.lsmom.action.web.ActorResolver;
 import com.lsmom.core.error.LsBizException;
 import com.lsmom.flow.model.FlowDefinition;
+import com.lsmom.meta.concept.ConceptRegistry;
 import com.lsmom.flow.runtime.FlowCallbacks;
 import com.lsmom.flow.runtime.FlowReconciler;
 import com.lsmom.flow.runtime.FlowRegistry;
@@ -38,10 +39,12 @@ public class FlowController {
     private final FlowCallbacks callbacks;
     private final ActorResolver actors;
     private final JdbcTemplate jdbc;
+    private final ConceptRegistry concepts;
 
     public FlowController(FlowRegistry registry, FlowRuntime runtime, FlowReconciler reconciler, FlowCallbacks callbacks, ActorResolver actors,
-                          JdbcTemplate jdbc) {
+                          JdbcTemplate jdbc, ConceptRegistry concepts) {
         this.jdbc = jdbc;
+        this.concepts = concepts;
         this.registry = registry;
         this.runtime = runtime;
         this.reconciler = reconciler;
@@ -110,6 +113,38 @@ public class FlowController {
               left join core_org_unit o on o.id = po.org_unit_id
              where p.party_type = 'EMPLOYEE' and p.status = 'ACTIVE' and (? = '' or p.name ilike ? or p.code ilike ?)
              order by p.id limit 50""", k, "%" + k + "%", "%" + k + "%"));
+    }
+
+    /** 角色选择器（ROLE / DATA_SCOPE 策略取 roleKey）。 */
+    @SaCheckPermission("lsmom:flow:design")
+    @GetMapping("/roles")
+    public R<List<Map<String, Object>>> roles() {
+        return R.ok(jdbc.queryForList("""
+            select role_key as "roleKey", role_name as "roleName" from sys_role
+             where status = '0' and del_flag = '0' order by role_sort, role_id"""));
+    }
+
+    /** 组织选择器（DEPT / TEAM 策略、流程所属组织）。 */
+    @SaCheckPermission("lsmom:flow:design")
+    @GetMapping("/orgs")
+    public R<List<Map<String, Object>>> orgs() {
+        return R.ok(jdbc.queryForList("""
+            select id, code, name, unit_type as "unitType", parent_id as "parentId" from core_org_unit
+             where valid_to is null or valid_to >= current_date order by id limit 500"""));
+    }
+
+    /** 业务对象字段（FIELD 策略取人员字段；含核心对象）。 */
+    @SaCheckPermission("lsmom:flow:design")
+    @GetMapping("/concepts/{concept}/fields")
+    public R<List<Map<String, Object>>> conceptFields(@PathVariable String concept) {
+        return R.ok(concepts.fields(concept, false).stream().filter(f -> !f.systemField() && !f.stateField()).map(f -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("code", f.code());
+            m.put("label", f.displayName());
+            m.put("type", f.dataType().name());
+            m.put("refConcept", f.refConcept());
+            return m;
+        }).toList());
     }
 
     /** 当前登录人对应的 Party 与主组织。 */

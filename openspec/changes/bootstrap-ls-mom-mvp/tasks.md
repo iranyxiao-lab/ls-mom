@@ -99,8 +99,8 @@
 - [x] 10.1 实现 `meta_flow` 流程配置模型与 `BpmnTemplateGenerator`（固定模板，生成 BPMN 2.0）；验证生成 XML 可部署且节点与配置一致
 - [x] 10.2 实现 `BpmnSafetyScanner`（拒绝 scriptTask、class/delegateExpression、任意 expression、外部 URL），覆盖设计器产物与代码库流程；验证 FLOW-08 含脚本任务部署被拒
 - [x] 10.3 实现发布校验：节点表单引用、策略字段存在、办理人可解析、`onApproved/onRejected` 必填；验证缺少回调与角色无成员两个场景
-- [ ] 10.4 前端实现审批流树形配置器（节点卡片、条件、并行、或签/会签、服务节点仅选已发布 Operation、节点表单策略编辑），不提供 XML 导入；验证 Playwright 无头 E2E 配置并发布一条流程
-- [ ] 10.5 实现 LogicFlow 只读预览与版本差异高亮；验证 v1/v2 差异显示新增会签节点
+- [x] 10.4 前端实现审批流树形配置器（节点卡片、条件、并行、或签/会签、服务节点仅选已发布 Operation、节点表单策略编辑），不提供 XML 导入；验证 Playwright 无头 E2E 配置并发布一条流程
+- [x] 10.5 实现 LogicFlow 只读预览与版本差异高亮；验证 v1/v2 差异显示新增会签节点
 
 ## 11. 协同工作中心与指标（P4）
 

@@ -92,6 +92,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/lsmom/form-designer/index.vue'),
         name: 'FormDesigner',
         meta: { title: '表单设计器', icon: 'form' }
+      },
+      {
+        path: 'flow-designer/:code?',
+        component: () => import('@/views/lsmom/flow-designer/index.vue'),
+        name: 'FlowDesigner',
+        meta: { title: '流程配置', icon: 'tree' }
       }
     ]
   },

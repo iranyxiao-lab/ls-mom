@@ -16,7 +16,7 @@
     "prettier": "prettier --write .",
     "test": "vitest run --browser.headless",
     "test:browser": "vitest --browser.headless=false",
-    "test:e2e": "node tests/e2e/form-designer.e2e.mjs && node tests/e2e/form-designer-perf.e2e.mjs"
+    "test:e2e": "node tests/e2e/form-designer.e2e.mjs && node tests/e2e/form-designer-perf.e2e.mjs && node tests/e2e/flow-api.e2e.mjs && node tests/e2e/flow-designer.e2e.mjs"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "@form-create/designer": "3.5.0",
     "@form-create/element-ui": "3.3.4",
     "@highlightjs/vue-plugin": "2.1.2",
+    "@logicflow/core": "2.2.5",
     "@vueup/vue-quill": "1.2.0",
     "@vueuse/core": "14.2.1",
     "animate.css": "4.1.1",
