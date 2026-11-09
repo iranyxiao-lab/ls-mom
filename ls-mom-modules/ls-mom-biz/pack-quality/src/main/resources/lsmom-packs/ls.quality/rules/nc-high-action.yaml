@@ -1,0 +1,11 @@
+code: ls.quality.ncHighAction
+concept: ls.quality.NonConformance
+level: L1
+kind: CEL
+name: 高严重度须填立即措施
+message: 严重程度为高时必须填写立即措施
+definition:
+  when: "$model.severity == 'HIGH'"
+  assert: "has($model.immediateAction) && $model.immediateAction != null && size($model.immediateAction) > 0"
+  field: immediateAction
+  appliesTo: [ls.quality.NonConformance.submit]

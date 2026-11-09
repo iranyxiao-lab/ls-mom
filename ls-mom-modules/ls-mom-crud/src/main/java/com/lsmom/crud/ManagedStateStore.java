@@ -25,10 +25,19 @@ public class ManagedStateStore implements StateStores.Resolver {
 
     private final JdbcTemplate jdbc;
     private final ConceptRegistry concepts;
+    private Map<String, List<String>> partyAccess = Map.of();
 
     public ManagedStateStore(JdbcTemplate jdbc, ConceptRegistry concepts) {
         this.jdbc = jdbc;
         this.concepts = concepts;
+    }
+
+    /** 指定人员字段（业务 Pack 声明）：字段等于调用者时，可在数据域外办理该记录的迁移。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPartyAccess(List<com.lsmom.meta.concept.PartyAccess> list) {
+        Map<String, List<String>> m = new java.util.HashMap<>();
+        if (list != null) list.forEach(p -> m.computeIfAbsent(p.concept(), k -> new ArrayList<>()).add(p.field()));
+        this.partyAccess = Map.copyOf(m);
     }
 
     @Override
@@ -54,6 +63,18 @@ public class ManagedStateStore implements StateStores.Resolver {
                 return jdbc.query("select id, status, version, org_id, created_by from " + table + " where id = ? and del_flag = '0'",
                     (rs, i) -> new StateSnapshot(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getLong(4), (Long) rs.getObject(5)),
                     Long.parseLong(id)).stream().findFirst().orElseThrow(() -> LsBizException.notFound(m.concept().displayName(), id));
+            }
+
+            @Override
+            public boolean assignedTo(String id, Long party) {
+                List<String> fields = partyAccess.getOrDefault(m.concept().code(), List.of());
+                if (party == null || fields.isEmpty()) return false;
+                String cond = String.join(" or ", fields.stream().map(f -> "\"" + m.column(f) + "\" = ?").toList());
+                List<Object> args = new ArrayList<>(List.of(Long.parseLong(id)));
+                fields.forEach(f -> args.add(party));
+                Integer n = jdbc.queryForObject("select count(*) from " + table + " where id = ? and del_flag = '0' and (" + cond + ")", Integer.class,
+                    args.toArray());
+                return n != null && n > 0;
             }
 
             @Override

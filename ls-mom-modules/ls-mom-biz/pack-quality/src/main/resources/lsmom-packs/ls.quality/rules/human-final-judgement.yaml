@@ -1,0 +1,9 @@
+code: ls.quality.humanFinalJudgement
+concept: ls.quality.NonConformance
+level: L2
+kind: CEL
+name: 质量终判仅限真人
+message: 质量最终判定与关闭只能由具备权限的真人执行，Agent 与服务身份不可执行
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.quality.NonConformance.close, ls.quality.NonConformance.verifyFail]

@@ -1,0 +1,5 @@
+name: DOM-04 质量记录可独立也可多对象关联
+steps:
+  - create: { concept: ls.quality.QualityRecord, as: free, values: { title: 来料抽检, recordType: SAMPLING, result: PASS } }
+  - op: { code: ls.quality.QualityRecord.submit, target: free }
+  - expect: { concept: ls.quality.QualityRecord, target: free, status: SUBMITTED }

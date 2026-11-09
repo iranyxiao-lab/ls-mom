@@ -1,0 +1,11 @@
+code: ls.quality.ncHighAsset
+concept: ls.quality.NonConformance
+level: L1
+kind: CEL
+name: 高严重度须填相关设备
+message: 严重程度为高时必须填写相关设备
+definition:
+  when: "$model.severity == 'HIGH'"
+  assert: "has($model.asset) && $model.asset != null"
+  field: asset
+  appliesTo: [ls.quality.NonConformance.submit]

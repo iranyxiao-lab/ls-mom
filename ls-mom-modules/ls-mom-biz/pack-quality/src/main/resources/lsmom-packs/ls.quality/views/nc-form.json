@@ -1,0 +1,109 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.quality.ncForm",
+  "version": 1,
+  "conceptCode": "ls.quality.NonConformance",
+  "title": "不符合项",
+  "layout": [
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "description"
+    },
+    {
+      "type": "field",
+      "key": "severity"
+    },
+    {
+      "type": "field",
+      "key": "asset"
+    },
+    {
+      "type": "field",
+      "key": "workItem"
+    },
+    {
+      "type": "field",
+      "key": "immediateAction"
+    },
+    {
+      "type": "field",
+      "key": "auditOpinion"
+    }
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "问题",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "description",
+      "label": "问题描述",
+      "widget": "textarea",
+      "required": true
+    },
+    {
+      "key": "severity",
+      "label": "严重程度",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "低",
+          "value": "LOW"
+        },
+        {
+          "label": "中",
+          "value": "MEDIUM"
+        },
+        {
+          "label": "高",
+          "value": "HIGH"
+        }
+      ]
+    },
+    {
+      "key": "asset",
+      "label": "相关设备",
+      "widget": "assetRef"
+    },
+    {
+      "key": "workItem",
+      "label": "相关工作",
+      "widget": "workRef"
+    },
+    {
+      "key": "immediateAction",
+      "label": "立即措施",
+      "widget": "textarea"
+    },
+    {
+      "key": "auditOpinion",
+      "label": "审核意见",
+      "widget": "textarea"
+    }
+  ],
+  "rules": [
+    {
+      "code": "ncHighAsset",
+      "level": "L1",
+      "when": "$model.severity == 'HIGH'",
+      "assert": "has($model.asset) && $model.asset != null",
+      "field": "asset",
+      "message": "严重程度为高时必须填写相关设备"
+    },
+    {
+      "code": "ncHighAction",
+      "level": "L1",
+      "when": "$model.severity == 'HIGH'",
+      "assert": "has($model.immediateAction) && $model.immediateAction != null && size($model.immediateAction) > 0",
+      "field": "immediateAction",
+      "message": "严重程度为高时必须填写立即措施"
+    }
+  ]
+}

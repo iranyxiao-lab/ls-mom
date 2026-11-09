@@ -1,0 +1,60 @@
+code: ls.quality.NonConformance.lifecycle
+concept: ls.quality.NonConformance
+displayName: 不符合项受控流程
+states: [DRAFT, PENDING_AUDIT, IN_RECTIFICATION, PENDING_VERIFY, CLOSED, REJECTED]
+initial: DRAFT
+transitions:
+  - operation: ls.quality.NonConformance.submit
+    name: 登记提交
+    from: [DRAFT]
+    to: PENDING_AUDIT
+    permission: "ls:quality:report"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: ls.quality.NonConformance.audit
+    name: 车间审核通过并派整改
+    from: [PENDING_AUDIT]
+    to: IN_RECTIFICATION
+    permission: "ls:quality:audit"
+    risk: C1
+    inputSchema:
+      type: object
+      required: [auditOpinion, owner]
+      properties:
+        auditOpinion: { type: string, minLength: 1, maxLength: 2000 }
+        immediateAction: { type: string, maxLength: 2000 }
+        owner: { type: integer }
+        titles: { type: array, items: { type: string, minLength: 1, maxLength: 200 } }
+        dueAt: { type: string }
+  - operation: ls.quality.NonConformance.reject
+    name: 审核驳回
+    from: [PENDING_AUDIT]
+    to: REJECTED
+    permission: "ls:quality:audit"
+    risk: C1
+    inputSchema: { type: object, required: [auditOpinion], properties: { auditOpinion: { type: string, minLength: 1, maxLength: 2000 } } }
+  - operation: ls.quality.NonConformance.submitVerify
+    name: 整改完成提交验证
+    from: [IN_RECTIFICATION]
+    to: PENDING_VERIFY
+    guards: [ls.quality.rectificationDone, ls.quality.evidenceRequired]
+    permission: "ls:quality:rectify"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: ls.quality.NonConformance.close
+    name: 验证通过并关闭（终判）
+    from: [PENDING_VERIFY]
+    to: CLOSED
+    guards: [ls.quality.verifierSeparation]
+    permission: "ls:quality:verify"
+    risk: C1
+    exposure: DENY
+    inputSchema: { type: object, required: [conclusion], properties: { conclusion: { type: string, minLength: 1, maxLength: 1000 } } }
+  - operation: ls.quality.NonConformance.verifyFail
+    name: 验证不通过（终判）
+    from: [PENDING_VERIFY]
+    to: IN_RECTIFICATION
+    permission: "ls:quality:verify"
+    risk: C1
+    exposure: DENY
+    inputSchema: { type: object, required: [conclusion], properties: { conclusion: { type: string, minLength: 1, maxLength: 1000 } } }

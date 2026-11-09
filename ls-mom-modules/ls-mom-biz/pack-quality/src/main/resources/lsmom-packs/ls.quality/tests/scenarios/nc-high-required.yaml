@@ -1,0 +1,6 @@
+name: 高严重度不符合项缺立即措施被拒
+steps:
+  - expectError: { code: VALIDATION_FAILED, create: { concept: ls.quality.NonConformance, values: { title: 焊缝气孔, description: 抽检发现焊缝气孔, severity: HIGH } } }
+  - create: { concept: ls.quality.NonConformance, as: nc, values: { title: 标识不清, description: 周转箱标识模糊, severity: MEDIUM } }
+  - op: { code: ls.quality.NonConformance.submit, target: nc }
+  - expect: { concept: ls.quality.NonConformance, target: nc, status: PENDING_AUDIT }

@@ -105,6 +105,22 @@ public class GenericCrudService {
         this.draftPrivacy = Map.copyOf(m);
     }
 
+    private Map<String, List<String>> partyAccess = Map.of();
+
+    /** 指定人员可见的 Concept 字段（业务 Pack 声明）；可选注入。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPartyAccess(List<com.lsmom.meta.concept.PartyAccess> list) {
+        Map<String, List<String>> m = new java.util.HashMap<>();
+        if (list != null) list.forEach(p -> m.computeIfAbsent(p.concept(), k -> new ArrayList<>()).add(p.field()));
+        this.partyAccess = Map.copyOf(m);
+    }
+
+    /** 指定人员可见的列名（字段编码 → 列）。 */
+    private List<String> partyColumns(LedgerModel m) {
+        List<String> fields = partyAccess.get(m.concept().code());
+        return fields == null ? List.of() : fields.stream().map(m::column).toList();
+    }
+
     /** 草稿私有条件（别名 t），无需限制时返回 null。 */
     private String privacySql(LedgerModel m, ActorContext actor, List<Object> args) {
         String st = draftPrivacy.get(m.concept().code());
@@ -428,6 +444,7 @@ public class GenericCrudService {
             if (!actor.hasPermission(permission(ref.refConcept(), "list"))) return null;
             return new SafeSqlBuilder.RefTarget(new LedgerModel(target.get()), actor.dataScope());
         });
+        b.partyAccess(partyColumns(m));
         String st = draftPrivacy.get(m.concept().code());
         return st == null ? b : b.privateDraft(st, actor.effectiveParty());
     }
@@ -442,14 +459,14 @@ public class GenericCrudService {
     private Map<String, Object> loadVisible(LedgerModel m, long id, ActorContext actor) {
         List<Object> args = new ArrayList<>();
         args.add(id);
-        String sc = scopeSql(actor.dataScope(), args);
+        String sc = SafeSqlBuilder.scopeCondition("t", actor.dataScope(), args, partyColumns(m));
         String pv = privacySql(m, actor, args);
         List<Map<String, Object>> rows = jdbc.queryForList("select * from \"" + m.table() + "\" t where t.id = ? and t.del_flag = '0'"
             + (sc == null ? "" : " and " + sc) + (pv == null ? "" : " and " + pv), args.toArray());
         if (!rows.isEmpty()) return rows.get(0);
         if (pv != null) {
             List<Object> a2 = new ArrayList<>(List.of(id));
-            String sc2 = scopeSql(actor.dataScope(), a2);
+            String sc2 = SafeSqlBuilder.scopeCondition("t", actor.dataScope(), a2, partyColumns(m));
             Integer inScope = jdbc.queryForObject("select count(*) from \"" + m.table() + "\" t where t.id = ? and t.del_flag = '0'"
                 + (sc2 == null ? "" : " and " + sc2), Integer.class, a2.toArray());
             // 别人的私有草稿按不存在处理，不暴露其存在
@@ -460,20 +477,6 @@ public class GenericCrudService {
             throw new LsBizException("ACCESS_DENIED", "记录不在你的数据范围内", Map.of("id", id));
         }
         throw LsBizException.notFound(m.concept().displayName(), String.valueOf(id));
-    }
-
-    private static String scopeSql(DataScope scope, List<Object> args) {
-        if (scope == null || scope.all()) return null;
-        List<String> or = new ArrayList<>();
-        if (scope.level() != com.lsmom.core.org.DataScopeLevel.SELF && !scope.orgUnitIds().isEmpty()) {
-            or.add("t.org_id in (" + String.join(", ", java.util.Collections.nCopies(scope.orgUnitIds().size(), "?")) + ")");
-            args.addAll(scope.orgUnitIds());
-        }
-        if (scope.partyId() != null) {
-            or.add("t.created_by = ?");
-            args.add(scope.partyId());
-        }
-        return or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")";
     }
 
     private void requireDraft(LedgerModel m, Map<String, Object> row, String action) {
@@ -707,7 +710,7 @@ public class GenericCrudService {
         if (target.isEmpty() || target.get().storage() != ConceptDef.Storage.MANAGED_TABLE) return null;
         LedgerModel rm = new LedgerModel(target.get());
         List<Object> args = new ArrayList<>(List.of(refId));
-        String sc = scopeSql(actor.dataScope(), args);
+        String sc = SafeSqlBuilder.scopeCondition("t", actor.dataScope(), args, partyColumns(rm));
         String pv = privacySql(rm, actor, args);
         Integer n = jdbc.queryForObject("select count(*) from \"" + rm.table() + "\" t where t.id = ? and t.del_flag = '0'"
             + (sc == null ? "" : " and " + sc) + (pv == null ? "" : " and " + pv), Integer.class, args.toArray());
@@ -871,7 +874,7 @@ public class GenericCrudService {
                 FieldDef labelField = rm.fields().values().stream().filter(x -> x.flag("label")).findFirst()
                     .orElse(rm.fields().values().stream().filter(x -> x.dataType() == DataType.STRING && !x.ext()).findFirst().orElse(null));
                 List<Object> args = new ArrayList<>(List.of(id));
-                String sc = scopeSql(actor.dataScope(), args);
+                String sc = SafeSqlBuilder.scopeCondition("t", actor.dataScope(), args, partyColumns(rm));
                 String pv = privacySql(rm, actor, args);
                 List<Map<String, Object>> rows = jdbc.queryForList("select * from \"" + rm.table() + "\" t where t.id = ? and t.del_flag = '0'"
                     + (sc == null ? "" : " and " + sc) + (pv == null ? "" : " and " + pv), args.toArray());

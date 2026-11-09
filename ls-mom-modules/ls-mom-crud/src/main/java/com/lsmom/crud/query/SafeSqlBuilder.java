@@ -48,6 +48,13 @@ public final class SafeSqlBuilder {
     private final RefResolver refs;
     private String privateStatus;
     private Long viewer;
+    private List<String> partyColumns = List.of();
+
+    /** 指定人员可见：这些列等于查看人主体时，记录不受数据域限制。 */
+    public SafeSqlBuilder partyAccess(List<String> columns) {
+        this.partyColumns = columns == null ? List.of() : List.copyOf(columns);
+        return this;
+    }
 
     /** 草稿私有：该状态的记录只对创建人可见。 */
     public SafeSqlBuilder privateDraft(String status, Long viewerParty) {
@@ -96,7 +103,7 @@ public final class SafeSqlBuilder {
     public String where(String alias, List<QuerySpec.Filter> filters, List<Object> args) {
         List<String> parts = new ArrayList<>();
         parts.add(alias + ".\"del_flag\" = '0'");
-        String sc = scopeCondition(alias, scope, args);
+        String sc = scopeCondition(alias, scope, args, partyColumns);
         if (sc != null) parts.add(sc);
         if (privateStatus != null) parts.add(privateDraftCondition(alias, privateStatus, viewer, args));
         for (QuerySpec.Filter f : filters) parts.add(condition(alias, f, args));
@@ -105,6 +112,11 @@ public final class SafeSqlBuilder {
 
     /** 行级数据域：全部 → 无条件；仅本人 → created_by；其余 → org_id 在范围内或本人创建。 */
     static String scopeCondition(String alias, DataScope scope, List<Object> args) {
+        return scopeCondition(alias, scope, args, List.of());
+    }
+
+    /** 同上，另加"指定人员列等于本人"可见。 */
+    public static String scopeCondition(String alias, DataScope scope, List<Object> args, List<String> partyColumns) {
         if (scope == null || scope.all()) return null;
         List<String> or = new ArrayList<>();
         if (scope.level() != DataScopeLevel.SELF && !scope.orgUnitIds().isEmpty()) {
@@ -114,6 +126,10 @@ public final class SafeSqlBuilder {
         if (scope.partyId() != null) {
             or.add(alias + ".\"created_by\" = ?");
             args.add(scope.partyId());
+            for (String c : partyColumns) {
+                or.add(alias + "." + q(c) + " = ?");
+                args.add(scope.partyId());
+            }
         }
         return or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")";
     }

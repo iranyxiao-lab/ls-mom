@@ -1,0 +1,99 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.quality.recordForm",
+  "version": 1,
+  "conceptCode": "ls.quality.QualityRecord",
+  "title": "质量记录",
+  "layout": [
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "recordType"
+    },
+    {
+      "type": "field",
+      "key": "result"
+    },
+    {
+      "type": "field",
+      "key": "recordedAt"
+    },
+    {
+      "type": "field",
+      "key": "description"
+    }
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "标题",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "recordType",
+      "label": "类型",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "检验",
+          "value": "INSPECTION"
+        },
+        {
+          "label": "抽检",
+          "value": "SAMPLING"
+        },
+        {
+          "label": "巡检",
+          "value": "PATROL"
+        },
+        {
+          "label": "客诉",
+          "value": "COMPLAINT"
+        },
+        {
+          "label": "其他",
+          "value": "OTHER"
+        }
+      ]
+    },
+    {
+      "key": "result",
+      "label": "结论",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "合格",
+          "value": "PASS"
+        },
+        {
+          "label": "不合格",
+          "value": "FAIL"
+        },
+        {
+          "label": "让步接收",
+          "value": "CONCESSION"
+        },
+        {
+          "label": "不适用",
+          "value": "NA"
+        }
+      ]
+    },
+    {
+      "key": "recordedAt",
+      "label": "记录时间",
+      "widget": "datetime"
+    },
+    {
+      "key": "description",
+      "label": "说明",
+      "widget": "textarea"
+    }
+  ]
+}

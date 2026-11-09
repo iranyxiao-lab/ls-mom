@@ -70,7 +70,8 @@ export const TIMELINE_KIND: Record<string, { label: string; type: 'success' | 'i
   DEFECT: { label: '缺陷', type: 'danger' },
   REPAIR: { label: '维修', type: 'warning' },
   VERIFY: { label: '验证', type: 'primary' },
-  WORK: { label: '工作', type: 'info' }
+  WORK: { label: '工作', type: 'info' },
+  EVENT: { label: '关联', type: 'info' }
 };
 
 export interface TimelineItem {

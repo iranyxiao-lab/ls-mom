@@ -1,0 +1,17 @@
+code: ls.quality.NonConformance
+displayName: 不符合项
+description: 质量不符合项，外壳是 Issue（类型 NONCONFORMITY）。严重程度为高时相关设备与立即措施必填；车间审核只可填写审核意见与立即措施
+fields:
+  - { code: title, displayName: 问题, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
+  - { code: description, displayName: 问题描述, dataType: TEXT, required: true }
+  - { code: severity, displayName: 严重程度, dataType: ENUM, required: true, options: [LOW, MEDIUM, HIGH], props: { queryable: true } }
+  - { code: asset, displayName: 相关设备, dataType: REF, refConcept: ls.asset.Asset, props: { queryable: true } }
+  - { code: workItem, displayName: 相关工作, dataType: REF, refConcept: ls.core.Work }
+  - { code: qualityRecord, displayName: 来源质量记录, dataType: REF, refConcept: ls.quality.QualityRecord, props: { queryable: true } }
+  - { code: immediateAction, displayName: 立即措施, dataType: TEXT }
+  - { code: auditOpinion, displayName: 审核意见, dataType: TEXT }
+  - { code: rectifyOwner, displayName: 整改负责人, dataType: REF, refConcept: ls.core.Party }
+  - { code: issue, displayName: 异常 Issue, dataType: REF, refConcept: ls.core.Issue, props: { unique: true } }
+  - { code: verifyConclusion, displayName: 验证结论, dataType: STRING, props: { maxLength: 1000 } }
+  - { code: closedBy, displayName: 终判人, dataType: REF, refConcept: ls.core.Party }
+  - { code: closedAt, displayName: 关闭时间, dataType: DATETIME }

@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.lsmom.biz.asset.AssetPack.ASSET;
 import static com.lsmom.biz.asset.AssetPack.DEFECT;
 import static com.lsmom.biz.asset.AssetPack.OBJECT_TYPE;
 import static com.lsmom.biz.asset.AssetPack.RECORD;
@@ -17,7 +18,7 @@ import static com.lsmom.biz.asset.AssetPack.STATUS_LOG;
 
 /**
  * 设备时间轴：状态变更、点检、异常观察、DCS 报警、缺陷登记 / 维修 / 验证（缺陷的领域事件）、维修工作与占用该设备的生产工作，按时间倒序。
- * 每条：kind、at、title、detail、status、concept、id。
+ * 其他 Pack 以该设备为主体写入的事件（载荷带 title）归为 EVENT。每条：kind、at、title、detail、status、concept、id。
  */
 public class AssetTimeline {
 
@@ -103,6 +104,17 @@ public class AssetTimeline {
                 String.valueOf(r.get("status")), "ls.core.Work", r.get("id")));
         }
 
+        // 其他 Pack 在该设备上留下的事件（如质量记录关联、不符合项），载荷的 title 作为标题
+        for (Map<String, Object> r : jdbc.queryForList("""
+            select e.type, e.occurred_at as at, e.payload::text as payload, p.name as actor from core_domain_event e
+              left join core_party p on p.id = coalesce(e.on_behalf_of, e.actor_party)
+             where e.subject_concept = ? and e.subject_id = ? and e.type not like ? order by e.occurred_at desc limit ?""",
+            ASSET, sid, ASSET + ".%", limit)) {
+            Map<String, Object> payload = payload(r.get("payload"));
+            out.add(item("EVENT", r.get("at"), String.valueOf(payload.getOrDefault("title", r.get("type"))), join(payload.get("label"), r.get("actor")),
+                null, String.valueOf(r.get("type")), null));
+        }
+
         out.sort(Comparator.comparing((Map<String, Object> m) -> (LocalDateTime) m.get("at"), Comparator.nullsLast(Comparator.reverseOrder())));
         return out.size() > limit ? new ArrayList<>(out.subList(0, limit)) : out;
     }
@@ -112,6 +124,15 @@ public class AssetTimeline {
     }
 
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> payload(Object payload) {
+        try {
+            return payload == null ? Map.of() : JSON.readValue(String.valueOf(payload), Map.class);
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
 
     private static String conclusion(Object payload) {
         if (payload == null) return null;

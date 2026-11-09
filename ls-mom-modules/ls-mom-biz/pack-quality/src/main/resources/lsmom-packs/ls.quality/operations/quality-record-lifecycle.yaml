@@ -1,0 +1,13 @@
+code: ls.quality.QualityRecord.lifecycle
+concept: ls.quality.QualityRecord
+displayName: 质量记录状态
+states: [DRAFT, SUBMITTED]
+initial: DRAFT
+transitions:
+  - operation: ls.quality.QualityRecord.submit
+    name: 登记
+    from: [DRAFT]
+    to: SUBMITTED
+    permission: "ls:quality:record"
+    risk: C0
+    inputSchema: { type: object }

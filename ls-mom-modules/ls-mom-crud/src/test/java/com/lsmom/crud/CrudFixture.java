@@ -24,8 +24,10 @@ public class CrudFixture {
         new OperationAudit(action.core.jdbc, action.txm), action.events, action.core.parties, action.txm, action.core.clock,
         CrudProperties.defaults());
 
+    public final ManagedStateStore states = new ManagedStateStore(action.core.jdbc, action.concepts);
+
     public CrudFixture() {
-        action.stores.addResolver(new ManagedStateStore(action.core.jdbc, action.concepts));
+        action.stores.addResolver(states);
     }
 
     /** 工器具（被引用台账）、借还单（主表）+ 借出明细（子表）。命名空间带随机后缀，避免共享数据库中的测试互相影响。 */
