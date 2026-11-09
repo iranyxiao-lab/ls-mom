@@ -17,7 +17,7 @@ public final class TestOperations {
     }
 
     static List<OperationHandler> all(CoreFixture core) {
-        return List.of(new WriteThenFail(core), new RequiresKey());
+        return List.of(new WriteThenFail(core), new RequiresKey(), new DualSign());
     }
 
     /** 先写业务数据再失败，用于验证整体回滚。 */
@@ -43,6 +43,15 @@ public final class TestOperations {
         @Override
         public Object handle(OperationContext ctx) {
             return Map.of("ok", true);
+        }
+    }
+
+    /** 双签（执行人 + 复核人确认），守卫由规则 appliesTo 附加。 */
+    @LsOperation(code = "ls.core.Work.testDualSign", concept = "ls.core.Work", name = "测试：双签确认", risk = Risk.C1)
+    public static class DualSign implements OperationHandler {
+        @Override
+        public Object handle(OperationContext ctx) {
+            return Map.of("signed", true);
         }
     }
 }

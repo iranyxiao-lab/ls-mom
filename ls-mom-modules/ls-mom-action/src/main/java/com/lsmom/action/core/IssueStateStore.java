@@ -30,6 +30,11 @@ public class IssueStateStore implements StateStore {
     }
 
     @Override
+    public Map<String, Object> attributes(String id) {
+        return com.lsmom.action.rule.CelValues.asMap(issues.get(Long.parseLong(id)));
+    }
+
+    @Override
     public StateSnapshot write(String id, int expectedVersion, String from, String to, Map<String, Object> changes) {
         return snap(issues.transition(Long.parseLong(id), expectedVersion, IssueStatus.valueOf(from), IssueStatus.valueOf(to), changes));
     }

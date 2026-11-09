@@ -27,3 +27,7 @@ yarn.lock
 # 编译生成的文件
 auto-imports.d.ts
 components.d.ts
+
+# vitest 失败截图
+.vitest-attachments/
+__screenshots__/

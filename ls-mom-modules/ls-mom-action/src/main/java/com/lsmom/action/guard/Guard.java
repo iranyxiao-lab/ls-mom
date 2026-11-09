@@ -7,5 +7,10 @@ public interface Guard {
 
     String code();
 
+    /** 约束级别；Java 守卫默认为 L3（跨对象、事务一致性或监管规则）。 */
+    default ConstraintLevel level() {
+        return ConstraintLevel.L3;
+    }
+
     GuardResult check(OperationContext ctx);
 }

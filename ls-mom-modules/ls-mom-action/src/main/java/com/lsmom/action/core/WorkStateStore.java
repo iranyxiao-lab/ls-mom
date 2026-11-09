@@ -30,6 +30,11 @@ public class WorkStateStore implements StateStore {
     }
 
     @Override
+    public Map<String, Object> attributes(String id) {
+        return com.lsmom.action.rule.CelValues.asMap(works.get(Long.parseLong(id)));
+    }
+
+    @Override
     public StateSnapshot write(String id, int expectedVersion, String from, String to, Map<String, Object> changes) {
         return snap(works.transition(Long.parseLong(id), expectedVersion, WorkStatus.valueOf(from), WorkStatus.valueOf(to), changes));
     }

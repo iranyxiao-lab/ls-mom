@@ -9,5 +9,10 @@ public interface StateStore {
 
     StateSnapshot load(String id);
 
+    /** 目标对象的业务字段（供规则 {@code $model} 使用），键为字段名。 */
+    default Map<String, Object> attributes(String id) {
+        return Map.of();
+    }
+
     StateSnapshot write(String id, int expectedVersion, String from, String to, Map<String, Object> changes);
 }

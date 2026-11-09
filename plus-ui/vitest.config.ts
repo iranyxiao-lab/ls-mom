@@ -9,6 +9,8 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') }
   },
+  // 一致性用例位于仓库根目录 packs/_shared，测试服务需允许读取
+  server: { fs: { allow: [path.resolve(__dirname, '..')] } },
   test: {
     include: ['src/**/*.{test,spec}.ts', 'tests/unit/**/*.{test,spec}.ts'],
     browser: {

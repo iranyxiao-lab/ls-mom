@@ -62,30 +62,44 @@ public class ActionFixture {
     public final EventPublisher events;
     public final OutboxWorker outbox;
     public final OperationGateway gateway;
+    public final com.lsmom.action.rule.RuleService rules;
+    public final com.lsmom.action.rule.RulePublisher rulePublisher;
+    public final GuardRegistry guardRegistry;
 
     public ActionFixture() {
         this(List.of());
     }
 
     public ActionFixture(List<OutboxDestination> destinations) {
+        this(destinations, List.of());
+    }
+
+    public ActionFixture(List<OutboxDestination> destinations, List<com.lsmom.action.rule.RuleFactProvider> facts) {
         this.destinations = destinations;
         events = new EventPublisher(core.jdbc, destinations, core.clock);
         outbox = new OutboxWorker(core.jdbc, destinations, txm, core.clock, Duration.ZERO);
         new CoreConceptRegistrar(concepts, core.jdbc).registerAll();
 
         CoreGuards g = new CoreGuards();
-        List<Guard> guards = List.of(g.issueEvidenceRequired(issues, docs), g.issueRectificationDone(issues), g.issueVerifierSeparation(issues));
+        List<Guard> guards = List.of(g.issueEvidenceRequired(issues, docs), g.issueRectificationDone(issues), g.issueVerifierSeparation(issues),
+            new com.lsmom.action.guard.DualSignGuard());
         CoreEffects e = new CoreEffects();
         List<TransitionEffect> effects = List.of(e.workAssignEffect(core.assignments), e.workStartEffect(core.clock), e.workBlockEffect(),
             e.workUnblockEffect(), e.workConfirmEffect(core.clock), e.workReasonEffects(), e.workCancelEffect(core.assignments),
             e.issueStartRectificationEffect(), e.issueVerifyPassEffect(core.clock), e.issueVerifyFailEffect(issues), e.issueRejectEffect());
-        gateway = new OperationGateway(operations, machines, new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues))),
-            new GuardRegistry(guards, List.of()), new InputSchemaValidator(), List.of(), effects,
+        StateStores stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues)));
+        rules = new com.lsmom.action.rule.RuleService(core.jdbc, new com.lsmom.action.rule.CelRuleEngine(), core.clock);
+        var ruleGuards = new com.lsmom.action.rule.RuleGuardProvider(rules, stores, facts, core.clock);
+        guardRegistry = new GuardRegistry(guards, List.of(ruleGuards), List.of(ruleGuards));
+        rulePublisher = new com.lsmom.action.rule.RulePublisher(rules, guardRegistry, ruleGuards);
+        gateway = new OperationGateway(operations, machines, stores,
+            guardRegistry, new InputSchemaValidator(), List.of(), effects,
             new IdempotencyStore(core.jdbc, core.clock), new OperationAudit(core.jdbc, txm), events, txm);
 
         machines.publish(CoreStateMachines.work());
         machines.publish(CoreStateMachines.issue());
         operations.reconcile(handlers());
+        new com.lsmom.action.rule.CoreRules(rules, rulePublisher).installAll();
     }
 
     public List<OperationHandler> handlers() {

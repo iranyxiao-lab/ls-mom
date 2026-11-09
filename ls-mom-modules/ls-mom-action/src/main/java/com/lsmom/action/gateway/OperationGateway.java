@@ -182,6 +182,7 @@ public class OperationGateway {
                     Map.of("currentVersion", before.version(), "currentStatus", before.status()));
             }
         }
+        guards.attachedFor(op.code()).stream().filter(g -> !guardCodes.contains(g)).forEach(guardCodes::add);
         guards.runAll(guardCodes, ctx);
 
         Object data;

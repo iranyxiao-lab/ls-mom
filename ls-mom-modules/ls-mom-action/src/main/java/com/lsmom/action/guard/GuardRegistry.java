@@ -20,14 +20,43 @@ public class GuardRegistry {
         boolean supports(String code);
 
         Guard resolve(String code);
+
+        /** 注册表创建后回调，提供者可借此委托已注册的代码守卫。 */
+        default void bind(GuardRegistry registry) {
+        }
+    }
+
+    /** 不修改 Operation 定义、按 Operation 编码附加守卫（如 Pack 规则声明 appliesTo）。 */
+    public interface GuardAttachment {
+        List<String> guardsFor(String operationCode);
     }
 
     private final Map<String, Guard> guards = new ConcurrentHashMap<>();
     private final List<GuardProvider> providers;
+    private final List<GuardAttachment> attachments;
 
     public GuardRegistry(List<Guard> beans, List<GuardProvider> providers) {
+        this(beans, providers, List.of());
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public GuardRegistry(List<Guard> beans, List<GuardProvider> providers, List<GuardAttachment> attachments) {
         beans.forEach(this::register);
         this.providers = providers;
+        this.attachments = attachments;
+        providers.forEach(p -> p.bind(this));
+    }
+
+    /** 附加到该 Operation 的守卫编码。 */
+    public List<String> attachedFor(String operationCode) {
+        List<String> out = new java.util.ArrayList<>();
+        for (GuardAttachment a : attachments) a.guardsFor(operationCode).stream().filter(c -> !out.contains(c)).forEach(out::add);
+        return out;
+    }
+
+    /** 已注册的 Java 守卫（不含提供者动态解析的守卫）。 */
+    public java.util.Optional<Guard> registered(String code) {
+        return java.util.Optional.ofNullable(guards.get(code));
     }
 
     public void register(Guard g) {
