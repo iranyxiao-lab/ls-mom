@@ -1,0 +1,54 @@
+{
+  "viewType": "FORM",
+  "formCode": "{{ns}}.loanForm",
+  "version": 1,
+  "conceptCode": "{{ns}}.LoanOrder",
+  "title": "工器具借还单",
+  "labelWidth": 110,
+  "layout": [
+    { "type": "row", "children": [
+      { "type": "col", "span": 12, "children": [{ "type": "field", "key": "loanNo" }] },
+      { "type": "col", "span": 12, "children": [{ "type": "field", "key": "borrower" }] }
+    ] },
+    { "type": "group", "title": "借用信息", "children": [
+      { "type": "field", "key": "loanDate" },
+      { "type": "field", "key": "purpose" },
+      { "type": "field", "key": "toolRef" },
+      { "type": "field", "key": "remark" },
+      { "type": "field", "key": "qtyNote" },
+      { "type": "field", "key": "auditNote" }
+    ] },
+    { "type": "subTable", "key": "loanLine", "title": "借出明细" }
+  ],
+  "fields": [
+    { "key": "loanNo", "label": "借用单号", "widget": "input", "required": true, "maxLength": 32, "pattern": "^L-[0-9A-Z-]+$", "patternMessage": "单号须以 L- 开头" },
+    { "key": "borrower", "label": "借用人", "widget": "input", "required": true },
+    { "key": "loanDate", "label": "借出日期", "widget": "date", "required": true },
+    { "key": "purpose", "label": "用途", "widget": "select", "options": [
+      { "value": "MAINTENANCE", "label": "检修" }, { "value": "INSPECTION", "label": "巡检" }, { "value": "OTHER", "label": "其他" }
+    ] },
+    { "key": "toolRef", "label": "主要工器具", "widget": "assetRef",
+      "ref": { "concept": "{{ns}}.Tool", "labelField": "name", "filter": [{ "field": "orgId", "op": "eq", "value": "$context.orgId" }] } },
+    { "key": "remark", "label": "备注", "widget": "textarea", "maxLength": 200 },
+    { "key": "qtyNote", "label": "数量说明", "widget": "computed", "computed": { "expression": "string(size($model.loanLine)) + ' 项'" } },
+    { "key": "auditNote", "label": "审核意见", "widget": "textarea", "readonly": true }
+  ],
+  "subTables": [
+    { "key": "loanLine", "label": "借出明细", "conceptCode": "{{ns}}.LoanLine", "minRows": 1, "maxRows": 20, "fields": [
+      { "key": "tool", "label": "工器具", "widget": "input", "required": true },
+      { "key": "qty", "label": "数量", "widget": "number", "required": true, "min": 1, "max": 99 },
+      { "key": "returned", "label": "已归还", "widget": "switch" }
+    ] }
+  ],
+  "rules": [
+    { "code": "remarkWhenOther", "level": "L1", "when": "$model.purpose == 'OTHER'", "assert": "has($model.remark) && size($model.remark) > 0",
+      "field": "remark", "message": "用途为其他时必须填写备注" }
+  ],
+  "actions": [
+    { "key": "submit", "label": "提交", "operation": "{{ns}}.LoanOrder.submit", "style": "primary", "confirm": "确认提交？" }
+  ],
+  "nodePolicies": {
+    "deptAudit": { "readonly": ["*"], "editable": ["auditNote"], "required": ["auditNote"] }
+  },
+  "migration": { "strategy": "PROMPT", "note": "新版本增加了字段，旧草稿可继续按旧版填写" }
+}

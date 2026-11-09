@@ -15,7 +15,8 @@
     "lint:eslint:fix": "eslint --fix",
     "prettier": "prettier --write .",
     "test": "vitest run --browser.headless",
-    "test:browser": "vitest --browser.headless=false"
+    "test:browser": "vitest --browser.headless=false",
+    "test:e2e": "node tests/e2e/form-designer.e2e.mjs && node tests/e2e/form-designer-perf.e2e.mjs"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,8 @@
     "@bufbuild/cel": "0.6.1",
     "@bufbuild/protobuf": "2.16.0",
     "@element-plus/icons-vue": "2.3.2",
+    "@form-create/designer": "3.5.0",
+    "@form-create/element-ui": "3.3.4",
     "@highlightjs/vue-plugin": "2.1.2",
     "@vueup/vue-quill": "1.2.0",
     "@vueuse/core": "14.2.1",

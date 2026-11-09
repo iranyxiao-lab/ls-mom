@@ -17,7 +17,7 @@ public final class LedgerModel {
 
     public static final Map<String, String> SYSTEM_MASTER = linked(
         "id", "id", "orgId", "org_id", "status", "status", "createdBy", "created_by", "createdAt", "created_at",
-        "updatedBy", "updated_by", "updatedAt", "updated_at", "version", "version");
+        "updatedBy", "updated_by", "updatedAt", "updated_at", "version", "version", "schemaVersion", "schema_version");
     public static final Map<String, String> SYSTEM_CHILD = linked("id", "id", "lineNo", "line_no");
     /** 默认允许筛选、排序的系统字段。 */
     public static final List<String> SYSTEM_QUERYABLE = List.of("id", "orgId", "status", "createdBy", "createdAt", "updatedAt");

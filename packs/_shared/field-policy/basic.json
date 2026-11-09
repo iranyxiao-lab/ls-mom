@@ -1,0 +1,67 @@
+{
+  "description": "节点字段策略合并一致性用例：Java FieldPolicy.resolve 与 TS resolveFieldPolicy 必须给出相同结果。expect 中 v=可见 e=可编辑 r=必填。",
+  "form": {
+    "fields": [
+      { "key": "title", "widget": "input", "required": true },
+      { "key": "amount", "widget": "number" },
+      { "key": "note", "widget": "textarea", "readonly": true },
+      { "key": "secret", "widget": "input", "hidden": true },
+      { "key": "total", "widget": "computed", "computed": { "expression": "model.amount * 2" } },
+      { "key": "confirmComment", "widget": "textarea" }
+    ],
+    "subTables": [
+      { "key": "lines", "conceptCode": "x.y.Line", "fields": [
+        { "key": "tool", "widget": "input", "required": true },
+        { "key": "qty", "widget": "number" }
+      ] }
+    ]
+  },
+  "cases": [
+    {
+      "name": "无节点策略按表单默认",
+      "policy": null,
+      "expect": {
+        "title": "v e r", "amount": "v e -", "note": "v - -", "secret": "- - -", "total": "v - -", "confirmComment": "v e -",
+        "lines": "v e -", "lines.tool": "v e r", "lines.qty": "v e -"
+      }
+    },
+    {
+      "name": "readonly 通配加显式 editable：仅 confirmComment 可编辑",
+      "policy": { "readonly": ["*"], "editable": ["confirmComment"] },
+      "expect": {
+        "title": "v - r", "amount": "v - -", "note": "v - -", "secret": "- - -", "total": "v - -", "confirmComment": "v e -",
+        "lines": "v - -", "lines.tool": "v - r", "lines.qty": "v - -"
+      }
+    },
+    {
+      "name": "显式 editable 放开表单只读字段，计算字段仍只读",
+      "policy": { "editable": ["note", "total"] },
+      "expect": { "note": "v e -", "total": "v - -", "title": "v e r" }
+    },
+    {
+      "name": "hidden 与 required：必填使字段可见",
+      "policy": { "hidden": ["amount", "secret"], "required": ["secret", "confirmComment"] },
+      "expect": { "amount": "- - -", "secret": "v e r", "confirmComment": "v e r" }
+    },
+    {
+      "name": "子表整体只读，单列显式放开",
+      "policy": { "readonly": ["lines"], "editable": ["lines.qty"] },
+      "expect": { "lines": "v - -", "lines.tool": "v - r", "lines.qty": "v e -" }
+    },
+    {
+      "name": "子表整体隐藏，列跟随",
+      "policy": { "hidden": ["lines"] },
+      "expect": { "lines": "- - -", "lines.tool": "- - -", "lines.qty": "- - -" }
+    },
+    {
+      "name": "hidden 通配加 editable：显式 editable 使字段可见可编辑",
+      "policy": { "hidden": ["*"], "editable": ["amount"] },
+      "expect": { "title": "- - -", "amount": "v e -", "lines.qty": "- - -" }
+    },
+    {
+      "name": "editable 通配不放开只读字段",
+      "policy": { "editable": ["*"] },
+      "expect": { "note": "v - -", "title": "v e r" }
+    }
+  ]
+}

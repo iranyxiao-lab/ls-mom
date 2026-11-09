@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.local/schema/print.schema.json",
+  "title": "LS PrintSchema",
+  "type": "object",
+  "required": ["viewType", "formCode", "version", "conceptCode", "templateVersion", "sections"],
+  "additionalProperties": false,
+  "properties": {
+    "viewType": { "const": "PRINT" },
+    "formCode": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "conceptCode": { "type": "string" },
+    "templateVersion": { "type": "string", "pattern": "^[0-9]+(\\.[0-9]+){0,2}$" },
+    "paper": { "enum": ["A4", "A5", "LETTER"] },
+    "orientation": { "enum": ["portrait", "landscape"] },
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "title": { "type": "string", "maxLength": 100 }, "fields": { "type": "array", "items": { "type": "string" } } }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["fields"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "maxLength": 100 },
+          "columns": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "fields": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+          "subTable": { "type": "string", "maxLength": 64 }
+        }
+      }
+    },
+    "signatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label"],
+        "additionalProperties": false,
+        "properties": { "label": { "type": "string", "maxLength": 50 }, "role": { "type": "string", "maxLength": 64 } }
+      }
+    },
+    "footer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "text": { "type": "string", "maxLength": 500 }, "pageNumber": { "type": "boolean" } }
+    }
+  }
+}

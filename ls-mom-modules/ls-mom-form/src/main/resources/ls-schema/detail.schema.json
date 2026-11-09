@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.local/schema/detail.schema.json",
+  "title": "LS DetailSchema",
+  "type": "object",
+  "required": ["viewType", "formCode", "version", "conceptCode", "groups"],
+  "additionalProperties": false,
+  "properties": {
+    "viewType": { "const": "DETAIL" },
+    "formCode": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "conceptCode": { "type": "string" },
+    "title": { "type": "string", "maxLength": 100 },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "fields"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "maxLength": 100 },
+          "columns": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "fields": { "type": "array", "items": { "type": "string", "maxLength": 64 } }
+        }
+      }
+    },
+    "subTables": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+    "relatedLists": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["concept", "via"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "maxLength": 100 },
+          "concept": { "type": "string", "maxLength": 128 },
+          "via": { "type": "string", "maxLength": 64 },
+          "columns": { "type": "array", "items": { "type": "string", "maxLength": 64 } }
+        }
+      }
+    },
+    "timeline": { "type": "boolean" },
+    "attachments": { "type": "boolean" }
+  }
+}

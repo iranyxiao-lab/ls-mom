@@ -86,6 +86,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/lsmom/ledger/index.vue'),
         name: 'LedgerList',
         meta: { title: '台账', icon: 'list' }
+      },
+      {
+        path: 'form-designer/:code?',
+        component: () => import('@/views/lsmom/form-designer/index.vue'),
+        name: 'FormDesigner',
+        meta: { title: '表单设计器', icon: 'form' }
       }
     ]
   },

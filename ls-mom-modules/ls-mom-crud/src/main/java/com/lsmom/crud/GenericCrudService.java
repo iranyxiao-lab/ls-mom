@@ -70,6 +70,7 @@ public class GenericCrudService {
     private final TransactionTemplate tx;
     private final Clock clock;
     private final CrudProperties props;
+    private List<RecordValidator> recordValidators = List.of();
 
     public GenericCrudService(JdbcTemplate jdbc, ConceptRegistry concepts, GenericWritePolicy policy, OperationRegistry operations,
                               IdempotencyStore idempotency, OperationAudit audit, EventPublisher events, PartyService parties,
@@ -85,6 +86,12 @@ public class GenericCrudService {
         this.tx = new TransactionTemplate(txm);
         this.clock = clock;
         this.props = props;
+    }
+
+    /** 表单模块等提供的记录级校验（按冻结的表单版本）；可选注入。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setRecordValidators(List<RecordValidator> validators) {
+        this.recordValidators = validators == null ? List.of() : List.copyOf(validators);
     }
 
     public record Page(List<Map<String, Object>> rows, long total, int page, int size) {
@@ -179,8 +186,10 @@ public class GenericCrudService {
             Map<String, List<Map<String, Object>>> lines = validateChildren(m, body, actor, true);
             policy.check(concept, touched(values, lines));
             Long org = resolveOrg(body, actor);
+            Integer formVersion = recordCheck(m, body, null, org, actor, values);
             long id = insertMaster(m, values, org, actor);
             insertChildren(m, lines, id);
+            freezeForm(m, id, formVersion);
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("summary", "新建" + m.concept().displayName());
             publish("crud.created", m, id, org, actor, idempotencyKey, payload);
@@ -201,8 +210,10 @@ public class GenericCrudService {
             Map<String, List<Map<String, Object>>> lines = validateChildren(m, body, actor, false);
             policy.check(concept, touched(values, lines));
             Map<String, Object> before = LedgerRows.toRow(m, current, f -> true);
+            Integer formVersion = recordCheck(m, body, current, (Long) current.get("org_id"), actor, values);
             List<Map<String, Object>> changes = diff(m, before, values);
             updateMaster(m, id, version, values, actor);
+            freezeForm(m, id, formVersion);
             for (Map.Entry<String, List<Map<String, Object>>> e : lines.entrySet()) {
                 LedgerModel c = childModel(m, e.getKey());
                 Long oldCount = jdbc.queryForObject("select count(*) from \"" + c.table() + "\" where parent_id = ?", Long.class, id);
@@ -458,6 +469,42 @@ public class GenericCrudService {
     }
 
     // —— 校验 ——
+
+    /** 记录级校验：当前行（字段编码键，含子表行）与本次报文合并后交给各 RecordValidator；返回需冻结的表单版本。 */
+    private Integer recordCheck(LedgerModel m, JsonNode body, Map<String, Object> currentRaw, Long org, ActorContext actor,
+                                Map<String, Object> values) {
+        if (recordValidators.isEmpty()) return null;
+        Map<String, Object> current = null;
+        if (currentRaw != null) {
+            current = new LinkedHashMap<>(LedgerRows.toRow(m, currentRaw, f -> true));
+            long id = ((Number) currentRaw.get("id")).longValue();
+            for (LedgerModel c : children(m.concept().code())) {
+                List<Map<String, Object>> lines = new ArrayList<>();
+                for (Map<String, Object> r : jdbc.queryForList("select * from \"" + c.table() + "\" where parent_id = ? order by line_no", id)) {
+                    lines.add(LedgerRows.toRow(c, r, f -> true));
+                }
+                current.put(LedgerModel.childKey(c.concept()), lines);
+            }
+        }
+        Integer frozen = null;
+        for (RecordValidator v : recordValidators) {
+            RecordValidator.Outcome o = v.validate(new RecordValidator.Context(m.concept().code(), body, current, org, actor));
+            if (o == null) continue;
+            if (o.formVersion() != null) frozen = o.formVersion();
+            o.overrides().forEach((code, node) -> {
+                FieldDef f = m.field(code);
+                if (f == null) return;
+                String err = node == null || node.isNull() ? null : check(f, node, actor);
+                if (err != null) throw validationFailed(Map.of(code, err));
+                values.put(code, node == null || node.isNull() ? null : convert(f, node));
+            });
+        }
+        return frozen;
+    }
+
+    private void freezeForm(LedgerModel m, long id, Integer formVersion) {
+        if (formVersion != null) jdbc.update("update \"" + m.table() + "\" set schema_version = ? where id = ?", formVersion, id);
+    }
 
     private static final Set<String> SYSTEM_INPUT = Set.of("id", "orgId", "status", "version", "createdBy", "createdAt", "updatedBy",
         "updatedAt", "lineNo", "parentId");

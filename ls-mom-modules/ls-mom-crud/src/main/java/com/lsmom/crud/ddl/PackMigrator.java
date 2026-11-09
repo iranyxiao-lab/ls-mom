@@ -25,6 +25,14 @@ public class PackMigrator {
     private final JdbcTemplate jdbc;
     private final DataSource dataSource;
 
+    private com.lsmom.core.schema.SchemaFingerprintService fingerprints;
+
+    /** 迁移成功后记录新的表结构指纹，否则下次启动会把台账表当成手工 DDL 漂移而拒绝启动。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFingerprints(com.lsmom.core.schema.SchemaFingerprintService fingerprints) {
+        this.fingerprints = fingerprints;
+    }
+
     public PackMigrator(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
         this.dataSource = jdbc.getDataSource();
@@ -61,6 +69,7 @@ public class PackMigrator {
             jdbc.update("""
                 update meta_ddl_script s set status = 'APPLIED', applied_at = h.installed_on
                   from pack_schema_history h where h.version = s.id::text and h.success and s.status = 'PENDING'""");
+            if (r.migrationsExecuted > 0 && fingerprints != null) fingerprints.record("pack-" + r.targetSchemaVersion, "pack-migrate");
             return r;
         } catch (RuntimeException e) {
             String msg = rootMessage(e);

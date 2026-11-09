@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.local/schema/list.schema.json",
+  "title": "LS ListSchema",
+  "type": "object",
+  "required": ["viewType", "formCode", "version", "conceptCode", "columns"],
+  "additionalProperties": false,
+  "properties": {
+    "viewType": { "const": "LIST" },
+    "formCode": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "conceptCode": { "type": "string" },
+    "title": { "type": "string", "maxLength": 100 },
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "type": "string", "maxLength": 64 },
+          {
+            "type": "object",
+            "required": ["key"],
+            "additionalProperties": false,
+            "properties": {
+              "key": { "type": "string", "maxLength": 64 },
+              "width": { "type": "integer", "minimum": 40, "maximum": 800 },
+              "fixed": { "enum": ["left", "right"] }
+            }
+          }
+        ]
+      }
+    },
+    "filters": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+    "defaultSort": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field"],
+        "additionalProperties": false,
+        "properties": { "field": { "type": "string" }, "dir": { "enum": ["asc", "desc"] } }
+      }
+    },
+    "rowActions": { "type": "array", "items": { "$ref": "form.schema.json#/$defs/action" } },
+    "batchActions": { "type": "array", "items": { "$ref": "form.schema.json#/$defs/action" } },
+    "export": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "enabled": { "type": "boolean" }, "maxRows": { "type": "integer", "minimum": 1 } }
+    }
+  }
+}

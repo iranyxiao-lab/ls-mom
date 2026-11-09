@@ -127,7 +127,7 @@ public class GenericCrudController {
             x.put("writable", actor.hasPermission(f.textProp("writePermission")) && !f.stateField());
             if (f.options() != null) x.put("options", f.options());
             if (f.refConcept() != null) x.put("refConcept", f.refConcept());
-            for (String p : List.of("dictType", "maxLength", "minimum", "maximum", "scale", "optionLabels", "ext")) {
+            for (String p : List.of("dictType", "maxLength", "minimum", "maximum", "scale", "optionLabels", "ext", "readPermission", "writePermission")) {
                 if (f.props().containsKey(p)) x.put(p, f.props().get(p));
             }
             out.add(x);

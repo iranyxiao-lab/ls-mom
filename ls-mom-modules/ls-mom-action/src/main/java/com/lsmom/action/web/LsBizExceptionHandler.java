@@ -38,7 +38,7 @@ public class LsBizExceptionHandler {
             case "UNAUTHENTICATED" -> 401;
             case "ACCESS_DENIED" -> 403;
             case "NOT_FOUND", "OPERATION_NOT_FOUND", "CONCEPT_NOT_FOUND" -> 404;
-            case "VERSION_CONFLICT", "CONCURRENT_MODIFICATION", "IDEMPOTENCY_CONFLICT" -> 409;
+            case "VERSION_CONFLICT", "CONCURRENT_MODIFICATION", "IDEMPOTENCY_CONFLICT", "FORM_VERSION_IMMUTABLE" -> 409;
             default -> 422;
         };
     }

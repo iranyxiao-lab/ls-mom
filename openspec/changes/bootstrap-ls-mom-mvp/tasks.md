@@ -68,16 +68,16 @@
 
 ## 8. 表单 Schema、渲染器与设计器（P2）
 
-- [ ] 8.1 定义 LS FormSchema/ListSchema/DetailSchema/PrintSchema/MobileSchema 的 JSON Schema 与 Java/TS 类型；验证示例 Schema 通过校验、缺失字段绑定被拒
-- [ ] 8.2 实现后端按冻结版本的服务端校验（类型、必填、范围、正则、字典、引用过滤、CEL 规则）与动作只绑定已发布 Operation 校验；验证引用越过滤与绑定草稿 Operation 两个场景
-- [ ] 8.3 实现字段策略合并算法 Java/TS 双实现与共享用例集；验证 `readonly:["*"]`＋显式 editable 用例两端一致
-- [ ] 8.4 实现前端 `SchemaForm`/`SchemaDetail`/打印/移动视图渲染器及 MVP 全部控件（含用户/部门/班组/设备/工作项/物料/点位/通用引用、子表、附件、计算字段）；验证控件单测与无头 vitest 通过
-- [ ] 8.5 引入并冻结 form-create-designer（Vue3/Element Plus），实现 `fc-adapter` 双向转换与扩展面板（Concept 绑定、Operation 动作、节点策略），记录单向边界；验证 LS→FC→LS 往返等价测试
-- [ ] 8.6 实现设计器工作区：Schema 差异区、桌面/移动/详情/打印预览（使用运行时渲染器）、按角色与节点的权限模拟、≥50 步撤销重做；验证 Playwright 无头 E2E 拖拽主子表并发布
-- [ ] 8.7 实现组件注册表（版本、输入输出、权限、兼容版本）并拒绝任何脚本内容；验证 FORM-08 粘贴脚本无法发布
-- [ ] 8.8 实现表单版本不可变、历史按旧版只读渲染、编辑旧草稿的迁移策略、发布时与 Concept/Flow/Operation/Rule/打印模板的兼容性校验；验证 FORM-07 与节点策略引用被删字段场景
-- [ ] 8.9 性能验证：200 字段表单拖拽响应 ≤300ms（无头浏览器性能测试）
-- [ ] 8.10 编写 `docs/form-schema.md` 与 `docs/form-designer-adapter.md`；验证文档中的示例 Schema 可直接被校验器接受
+- [x] 8.1 定义 LS FormSchema/ListSchema/DetailSchema/PrintSchema/MobileSchema 的 JSON Schema 与 Java/TS 类型；验证示例 Schema 通过校验、缺失字段绑定被拒
+- [x] 8.2 实现后端按冻结版本的服务端校验（类型、必填、范围、正则、字典、引用过滤、CEL 规则）与动作只绑定已发布 Operation 校验；验证引用越过滤与绑定草稿 Operation 两个场景
+- [x] 8.3 实现字段策略合并算法 Java/TS 双实现与共享用例集；验证 `readonly:["*"]`＋显式 editable 用例两端一致
+- [x] 8.4 实现前端 `SchemaForm`/`SchemaDetail`/打印/移动视图渲染器及 MVP 全部控件（含用户/部门/班组/设备/工作项/物料/点位/通用引用、子表、附件、计算字段）；验证控件单测与无头 vitest 通过
+- [x] 8.5 引入并冻结 form-create-designer（Vue3/Element Plus），实现 `fc-adapter` 双向转换与扩展面板（Concept 绑定、Operation 动作、节点策略），记录单向边界；验证 LS→FC→LS 往返等价测试
+- [x] 8.6 实现设计器工作区：Schema 差异区、桌面/移动/详情/打印预览（使用运行时渲染器）、按角色与节点的权限模拟、≥50 步撤销重做；验证 Playwright 无头 E2E 拖拽主子表并发布
+- [x] 8.7 实现组件注册表（版本、输入输出、权限、兼容版本）并拒绝任何脚本内容；验证 FORM-08 粘贴脚本无法发布
+- [x] 8.8 实现表单版本不可变、历史按旧版只读渲染、编辑旧草稿的迁移策略、发布时与 Concept/Flow/Operation/Rule/打印模板的兼容性校验；验证 FORM-07 与节点策略引用被删字段场景
+- [x] 8.9 性能验证：200 字段表单拖拽响应 ≤300ms（无头浏览器性能测试）
+- [x] 8.10 编写 `docs/form-schema.md` 与 `docs/form-designer-adapter.md`；验证文档中的示例 Schema 可直接被校验器接受
 
 ## 9. Flowable 协同引擎（P3）
 

@@ -216,6 +216,8 @@ xss:
   # 排除链接
   excludeUrls:
     - /system/notice
+    # LS 视图（表单设计）接口：由 ScriptGuard 显式拒绝脚本内容，不能被过滤器悄悄改写后放行
+    - /api/form/**
 
 --- # 分布式锁 lock4j 全局配置
 lock4j:

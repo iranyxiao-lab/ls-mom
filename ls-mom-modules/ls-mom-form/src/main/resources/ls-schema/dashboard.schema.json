@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.local/schema/dashboard.schema.json",
+  "title": "LS 看板绑定",
+  "description": "看板只绑定已发布 Metric 与命名 Query，不接受任何 SQL。",
+  "type": "object",
+  "required": ["viewType", "formCode", "version", "widgets"],
+  "additionalProperties": false,
+  "properties": {
+    "viewType": { "const": "DASHBOARD" },
+    "formCode": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "conceptCode": { "type": "string" },
+    "title": { "type": "string", "maxLength": 100 },
+    "widgets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "title"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "enum": ["metricCard", "trend", "bar", "pie", "table"] },
+          "title": { "type": "string", "maxLength": 100 },
+          "metric": { "type": "string", "maxLength": 160 },
+          "query": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$" },
+          "dimensions": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+          "span": { "type": "integer", "minimum": 1, "maximum": 24 }
+        },
+        "oneOf": [{ "required": ["metric"] }, { "required": ["query"] }]
+      }
+    }
+  }
+}

@@ -36,6 +36,9 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 19 | `ruoyi-admin/src/main/resources/application.yml` | springdoc 分组「5.工作流模块」改为「5.LS-MOM」（`com.lsmom`），`api-docs.version: openapi_3_1` | Warm-Flow 已移除；Operation 以 OpenAPI 3.1 描述 | 5.9 |
 | 20 | `ruoyi-admin/src/main/resources/application.yml` | `spring.flyway.out-of-order: true` | 各模块按版本段共用历史表，低段新脚本可能晚于高段脚本发布 | 7.1 |
 | 21 | `plus-ui/src/router/index.ts` | 新增隐藏路由 `/lsmom/ledger/:concept`（通用台账列表页） | 菜单可直接指向任一已发布台账 | 7.7 |
+| 22 | `ruoyi-admin/src/main/resources/application.yml` | `xss.excludeUrls` 增加 `/api/form/**` | 上游过滤器会把 `<script>` 剥成纯文本后放行；视图接口改由 ScriptGuard 原样检查并拒绝（FORM-08） | 8.7 |
+| 23 | `plus-ui/src/router/index.ts` | 新增隐藏路由 `/lsmom/form-designer/:code?`（表单设计器） | 设计器页面入口 | 8.6 |
+| 24 | `plus-ui/pnpm-workspace.yaml` | `overrides` 固定 form-create 及其间接依赖版本；`core-js-pure` 安装脚本不放行 | 冻结设计器版本，依赖均发布满 14 天 | 8.5 |
 
 ## 生产前必须替换的上游密钥
 

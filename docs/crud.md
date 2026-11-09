@@ -42,3 +42,9 @@
 ## 前端
 
 `plus-ui/src/components/SchemaTable`：按 ListSchema 生成列、筛选、排序与分页，行/批量动作绑定已发布 Operation（经 `/api/op` 执行），导出提交异步任务。页面路由 `/lsmom/ledger/<Concept 编码>`，菜单可直接指向。
+
+## 表结构指纹
+
+启动时核心迁移会比对数据库结构与最近记录的指纹，发现未经迁移脚本的变更（手工 DDL）时按 `lsmom.schema.drift-mode` 处理，生产环境为 `FAIL`（拒绝启动）。台账发布经 `PackMigrator` 执行的 DDL 是经评审的迁移，执行成功后会立即记录新的指纹，因此不会被误判为漂移。
+
+如果数据库里确实出现了漂移（例如有人手工改表），先把变更补成迁移脚本或从备份恢复；只为排障临时放行时，可设置环境变量 `LSMOM_SCHEMA_DRIFT_MODE=WARN` 启动，处理完后恢复为 `FAIL`。

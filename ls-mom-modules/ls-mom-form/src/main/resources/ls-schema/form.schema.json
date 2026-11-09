@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.local/schema/form.schema.json",
+  "title": "LS FormSchema",
+  "description": "录入表单：字段绑定 Concept 字段编码，布局引用字段，动作只绑定已发布 Operation。产品存储只保存本格式。",
+  "type": "object",
+  "required": ["viewType", "formCode", "version", "conceptCode", "layout", "fields"],
+  "additionalProperties": false,
+  "properties": {
+    "viewType": { "const": "FORM" },
+    "formCode": { "$ref": "#/$defs/code" },
+    "version": { "type": "integer", "minimum": 1 },
+    "conceptCode": { "type": "string", "minLength": 3, "maxLength": 128 },
+    "title": { "type": "string", "maxLength": 100 },
+    "labelWidth": { "type": "integer", "minimum": 40, "maximum": 400 },
+    "layout": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+    "subTables": { "type": "array", "items": { "$ref": "#/$defs/subTable" } },
+    "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
+    "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+    "nodePolicies": { "type": "object", "additionalProperties": { "$ref": "#/$defs/policy" } },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "strategy": { "enum": ["PROMPT", "KEEP", "UPGRADE"] }, "note": { "type": "string", "maxLength": 500 } }
+    }
+  },
+  "$defs": {
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$", "maxLength": 128 },
+    "fieldKey": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]{0,47}$" },
+    "widget": {
+      "enum": [
+        "input", "textarea", "number", "money", "date", "datetime", "switch", "select", "radio", "checkbox", "cascader", "remoteSelect",
+        "dict", "rate",
+        "userRef", "deptRef", "teamRef", "assetRef", "workRef", "materialRef", "pointRef", "conceptRef",
+        "attachment", "image", "file", "sourceRef", "confirm",
+        "readonlyText", "computed", "expression", "registered"
+      ]
+    },
+    "node": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["field", "subTable", "group", "row", "col", "tabs", "tab", "collapse", "panel", "divider", "text", "description",
+            "metricCard", "relatedSummary", "relatedList"]
+        },
+        "key": { "type": "string", "maxLength": 64 },
+        "title": { "type": "string", "maxLength": 100 },
+        "span": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "text": { "type": "string", "maxLength": 2000 },
+        "metric": { "type": "string", "maxLength": 160 },
+        "concept": { "type": "string", "maxLength": 128 },
+        "via": { "type": "string", "maxLength": 64 },
+        "columns": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+        "collapsed": { "type": "boolean" },
+        "children": { "type": "array", "items": { "$ref": "#/$defs/node" } }
+      }
+    },
+    "option": {
+      "type": "object",
+      "required": ["value", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": ["string", "number", "boolean"] },
+        "label": { "type": "string", "maxLength": 100 },
+        "children": { "type": "array", "items": { "$ref": "#/$defs/option" } }
+      }
+    },
+    "filter": {
+      "type": "object",
+      "required": ["field", "op"],
+      "additionalProperties": false,
+      "properties": {
+        "field": { "type": "string", "maxLength": 64 },
+        "op": { "enum": ["eq", "ne", "gt", "ge", "lt", "le", "in", "like", "startsWith"] },
+        "value": {}
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": ["key", "widget"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/fieldKey" },
+        "label": { "type": "string", "maxLength": 100 },
+        "widget": { "$ref": "#/$defs/widget" },
+        "required": { "type": "boolean" },
+        "readonly": { "type": "boolean" },
+        "hidden": { "type": "boolean" },
+        "default": {},
+        "placeholder": { "type": "string", "maxLength": 200 },
+        "help": { "type": "string", "maxLength": 500 },
+        "span": { "type": "integer", "minimum": 1, "maximum": 24 },
+        "minLength": { "type": "integer", "minimum": 0 },
+        "maxLength": { "type": "integer", "minimum": 1, "maximum": 100000 },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "precision": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "unit": { "type": "string", "maxLength": 20 },
+        "pattern": { "type": "string", "maxLength": 500 },
+        "patternMessage": { "type": "string", "maxLength": 200 },
+        "dictType": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,99}$" },
+        "options": { "type": "array", "items": { "$ref": "#/$defs/option" } },
+        "multiple": { "type": "boolean" },
+        "maxCount": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "accept": { "type": "string", "maxLength": 200 },
+        "ref": {
+          "type": "object",
+          "required": ["concept"],
+          "additionalProperties": false,
+          "properties": {
+            "concept": { "type": "string", "maxLength": 128 },
+            "filter": { "type": "array", "items": { "$ref": "#/$defs/filter" } },
+            "labelField": { "type": "string", "maxLength": 64 }
+          }
+        },
+        "computed": {
+          "type": "object",
+          "required": ["expression"],
+          "additionalProperties": false,
+          "properties": { "expression": { "type": "string", "maxLength": 2000 } }
+        },
+        "component": {
+          "type": "object",
+          "required": ["code", "version"],
+          "additionalProperties": false,
+          "properties": { "code": { "type": "string", "maxLength": 128 }, "version": { "type": "string", "maxLength": 32 }, "props": { "type": "object" } }
+        }
+      }
+    },
+    "subTable": {
+      "type": "object",
+      "required": ["key", "conceptCode", "fields"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "$ref": "#/$defs/fieldKey" },
+        "label": { "type": "string", "maxLength": 100 },
+        "conceptCode": { "type": "string", "maxLength": 128 },
+        "minRows": { "type": "integer", "minimum": 0 },
+        "maxRows": { "type": "integer", "minimum": 1, "maximum": 1000 },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["level", "assert", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "maxLength": 160 },
+        "level": { "enum": ["L0", "L1", "L2"] },
+        "when": { "type": "string", "maxLength": 2000 },
+        "assert": { "type": "string", "maxLength": 2000 },
+        "field": { "type": "string", "maxLength": 64 },
+        "message": { "type": "string", "maxLength": 500 }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["key", "label", "operation"],
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]{0,47}$" },
+        "label": { "type": "string", "maxLength": 50 },
+        "operation": { "type": "string", "maxLength": 160 },
+        "style": { "enum": ["primary", "default", "danger", "warning", "success"] },
+        "confirm": { "type": "string", "maxLength": 200 }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "readonly": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+        "editable": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+        "hidden": { "type": "array", "items": { "type": "string", "maxLength": 64 } },
+        "required": { "type": "array", "items": { "type": "string", "maxLength": 64 } }
+      }
+    }
+  }
+}
