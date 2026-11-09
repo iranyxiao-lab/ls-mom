@@ -1,0 +1,16 @@
+LS-MOM 工业底座
+Copyright (c) 2026 LS-MOM 项目组
+
+本产品包含以下第三方开源软件，其版权归各自作者所有，按各自许可证使用：
+
+1. RuoYi-Vue-Plus 5.6.2
+   https://github.com/dromara/RuoYi-Vue-Plus
+   Copyright (c) 2019 RuoYi-Vue-Plus
+   MIT License — 见 licenses/RuoYi-Vue-Plus-MIT.LICENSE
+
+2. plus-ui 5.6.2-v2.6.2
+   https://gitee.com/JavaLionLi/plus-ui
+   Copyright (c) 2019 RuoYi-Vue-Plus
+   MIT License — 见 licenses/plus-ui-MIT.LICENSE
+
+其余 Maven 与 npm 依赖的许可证清单由构建生成的 SBOM（CycloneDX）提供。

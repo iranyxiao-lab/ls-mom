@@ -50,3 +50,29 @@ nbdist/
 !*/build/*.xml
 
 .flattened-pom.xml
+
+######################################################################
+# LS-MOM
+
+# Node / Frontend
+node_modules/
+dist/
+.pnpm-store/
+coverage/
+storybook-static/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime data
+deploy/data/
+deploy/backup/
+acceptance/runs/**/video/

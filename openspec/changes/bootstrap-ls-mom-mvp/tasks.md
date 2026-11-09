@@ -5,8 +5,8 @@
 ## 1. 仓库初始化与 GitHub 托管（P0）
 
 - [x] 1.1 在项目根执行 `git init`，添加 `.gitignore`（Java/Node/IDE/.env/数据卷）与 `.gitattributes`，提交现有 OpenSpec 规划；验证 `git log` 有首个提交且 `git status` 干净
-- [ ] 1.2 选定 RuoYi-Vue-Plus 5.X 最新 Spring Boot 3.x 稳定 tag 与对应 plus-ui 版本，记录到 `docs/upstream-patches.md`；以未修改快照单独提交并添加 `upstream` 远程；验证 `mvn -q -DskipTests package` 在快照上成功
-- [ ] 1.3 编写 README（产品定位、模块图、快速启动、RuoYi MIT 版权与致谢）和 `LICENSE`／`NOTICE`；验证 README 中的快速启动命令在后续 3.x 完成后可照做
+- [x] 1.2 选定 RuoYi-Vue-Plus 5.X 最新 Spring Boot 3.x 稳定 tag 与对应 plus-ui 版本，记录到 `docs/upstream-patches.md`；以未修改快照单独提交并添加 `upstream` 远程；验证 `mvn -q -DskipTests package` 在快照上成功
+- [x] 1.3 编写 README（产品定位、模块图、快速启动、RuoYi MIT 版权与致谢）和 `LICENSE`／`NOTICE`；验证 README 中的快速启动命令在后续 3.x 完成后可照做
 - [ ] 1.4 由用户完成 GitHub 登录（安装 `gh` 并 `gh auth login`，或提供 PAT 由用户自行配置凭据助手，令牌不写入仓库），创建私有仓库 `ls-mom` 并推送 `main`；验证 `git ls-remote origin main` 返回与本地相同的提交
 - [ ] 1.5 配置 `main` 分支保护（需 CI 通过、禁止强推）；验证对 `main` 强推被拒绝
 
