@@ -31,7 +31,7 @@ class SchemaGuardMigrationStrategyTest {
     @Test
     void recordsFingerprintWhenMigrationsExecuted() {
         result.migrationsExecuted = 2;
-        new SchemaGuardMigrationStrategy(fingerprints, properties).migrate(flyway);
+        new SchemaGuardMigrationStrategy(fingerprints, properties, null).migrate(flyway);
         verify(fingerprints).record(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("core-migrate"));
         verify(fingerprints, never()).diffAgainstLatest();
     }
@@ -39,7 +39,7 @@ class SchemaGuardMigrationStrategyTest {
     @Test
     void recordsFingerprintWhenNeverRecorded() {
         when(fingerprints.latestRecorded()).thenReturn(Optional.empty());
-        new SchemaGuardMigrationStrategy(fingerprints, properties).migrate(flyway);
+        new SchemaGuardMigrationStrategy(fingerprints, properties, null).migrate(flyway);
         verify(fingerprints).record(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.eq("core-migrate"));
     }
 
@@ -48,7 +48,7 @@ class SchemaGuardMigrationStrategyTest {
         when(fingerprints.latestRecorded()).thenReturn(Optional.of(List.of("col a")));
         when(fingerprints.diffAgainstLatest()).thenReturn(List.of("+ col public.t.x text"));
         properties.setDriftMode(SchemaDriftProperties.DriftMode.WARN);
-        assertThatCode(() -> new SchemaGuardMigrationStrategy(fingerprints, properties).migrate(flyway))
+        assertThatCode(() -> new SchemaGuardMigrationStrategy(fingerprints, properties, null).migrate(flyway))
             .doesNotThrowAnyException();
     }
 
@@ -57,7 +57,7 @@ class SchemaGuardMigrationStrategyTest {
         when(fingerprints.latestRecorded()).thenReturn(Optional.of(List.of("col a")));
         when(fingerprints.diffAgainstLatest()).thenReturn(List.of("+ col public.t.x text"));
         properties.setDriftMode(SchemaDriftProperties.DriftMode.FAIL);
-        assertThatThrownBy(() -> new SchemaGuardMigrationStrategy(fingerprints, properties).migrate(flyway))
+        assertThatThrownBy(() -> new SchemaGuardMigrationStrategy(fingerprints, properties, null).migrate(flyway))
             .isInstanceOf(SchemaDriftException.class)
             .hasMessageContaining("+ col public.t.x text");
     }
@@ -67,7 +67,7 @@ class SchemaGuardMigrationStrategyTest {
         when(fingerprints.latestRecorded()).thenReturn(Optional.of(List.of("col a")));
         when(fingerprints.diffAgainstLatest()).thenReturn(List.of());
         properties.setDriftMode(SchemaDriftProperties.DriftMode.FAIL);
-        assertThatCode(() -> new SchemaGuardMigrationStrategy(fingerprints, properties).migrate(flyway))
+        assertThatCode(() -> new SchemaGuardMigrationStrategy(fingerprints, properties, null).migrate(flyway))
             .doesNotThrowAnyException();
     }
 }

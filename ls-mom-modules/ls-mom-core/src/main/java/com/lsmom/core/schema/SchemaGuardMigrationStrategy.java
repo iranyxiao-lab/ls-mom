@@ -24,9 +24,18 @@ public class SchemaGuardMigrationStrategy implements FlywayMigrationStrategy {
 
     private final SchemaFingerprintService fingerprints;
     private final SchemaDriftProperties properties;
+    private final DemoSeedRunner demoSeed;
 
     @Override
     public void migrate(Flyway flyway) {
+        migrateAndCheckDrift(flyway);
+        // 种子只写数据、不改结构，放在漂移校验之后执行
+        if (demoSeed != null) {
+            demoSeed.run();
+        }
+    }
+
+    private void migrateAndCheckDrift(Flyway flyway) {
         MigrateResult result = flyway.migrate();
         String version = String.valueOf(flyway.info().current() == null ? "none" : flyway.info().current().getVersion());
 

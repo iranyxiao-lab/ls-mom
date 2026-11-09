@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Flyway.class)
 @ConditionalOnProperty(prefix = "spring.flyway", name = "enabled", havingValue = "true", matchIfMissing = true)
-@EnableConfigurationProperties(SchemaDriftProperties.class)
+@EnableConfigurationProperties({SchemaDriftProperties.class, DemoSeedProperties.class})
 public class SchemaGuardConfiguration {
 
     @Bean
@@ -25,8 +25,14 @@ public class SchemaGuardConfiguration {
     }
 
     @Bean
+    public DemoSeedRunner demoSeedRunner(DataSource dataSource, DemoSeedProperties properties) {
+        return new DemoSeedRunner(dataSource, properties);
+    }
+
+    @Bean
     public SchemaGuardMigrationStrategy schemaGuardMigrationStrategy(SchemaFingerprintService fingerprints,
-                                                                     SchemaDriftProperties properties) {
-        return new SchemaGuardMigrationStrategy(fingerprints, properties);
+                                                                     SchemaDriftProperties properties,
+                                                                     DemoSeedRunner demoSeedRunner) {
+        return new SchemaGuardMigrationStrategy(fingerprints, properties, demoSeedRunner);
     }
 }

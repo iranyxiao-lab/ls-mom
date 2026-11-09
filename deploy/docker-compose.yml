@@ -105,6 +105,12 @@ services:
       # 管理端点（/actuator）Basic 认证账号，供容器健康检查与监控使用
       MONITOR_USERNAME: ${MONITOR_USERNAME:-lsmom-monitor}
       MONITOR_PASSWORD: ${MONITOR_PASSWORD:-lsmom-local-only}
+      # 演示种子（组织、角色、演示账号、字典、对象存储配置）；生产部署设为 false
+      LSMOM_SEED_DEMO_ENABLED: ${LSMOM_SEED_DEMO_ENABLED:-true}
+      LSMOM_SEED_DEMO_S3_ENDPOINT: seaweedfs:8333
+      LSMOM_SEED_DEMO_S3_ACCESSKEY: ${S3_ACCESS_KEY:-lsmom}
+      LSMOM_SEED_DEMO_S3_SECRETKEY: ${S3_SECRET_KEY:-lsmom-local-only}
+      LSMOM_SEED_DEMO_S3_BUCKET: ${S3_BUCKET:-lsmom}
     volumes:
       - applogs:/app/logs
     healthcheck:
