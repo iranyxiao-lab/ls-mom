@@ -1,0 +1,9 @@
+code: ls.production.outputQty
+name: 产出数量
+concept: ls.production.ProductionOutput
+description: 产出记录的数量合计（不同单位请按单位分组查看），按记录时间统计
+measure: { fn: sum, field: quantity }
+timeField: recordedAt
+grains: [DAY, WEEK, MONTH]
+dimensions: [unit, orgId]
+drillColumns: [workItem, quantity, unit, recordedAt, batchNo]

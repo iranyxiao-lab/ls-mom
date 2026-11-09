@@ -1,0 +1,7 @@
+name: 文字需求转为两条生产工作
+steps:
+  - create: { concept: ls.production.ProductionRequest, as: r, values: { title: 周三前完成 A 线清洗与 200 件组装, period: WEEK, quantity: 200, unit: 件 } }
+  - expectError: { code: INVALID_TRANSITION, op: { code: ls.production.ProductionRequest.convert, target: r, input: { works: [{ title: A 线清洗 }] } } }
+  - op: { code: ls.production.ProductionRequest.submit, target: r }
+  - op: { code: ls.production.ProductionRequest.convert, target: r, input: { works: [{ title: A 线清洗 }, { title: 200 件组装, quantity: 200, unit: 件 }] } }
+  - expect: { concept: ls.production.ProductionRequest, target: r, status: CONVERTED, values: { workCount: 2 } }

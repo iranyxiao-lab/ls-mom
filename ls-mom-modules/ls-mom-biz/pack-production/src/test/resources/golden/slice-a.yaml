@@ -1,0 +1,34 @@
+# 切片 A 黄金场景数据集：无 BOM / 工艺路线 / 仓库的轻生产。
+# 由 SliceAGoldenScenariosTest 加载，驱动 DOM-01（完整闭环）、DOM-02（约束 Profile 宽严切换）、DOM-03（不核销 + 交接班双方确认）。
+name: 切片 A：无 BOM 轻生产
+teams: [甲班, 乙班]
+people:
+  - { key: leader, name: 周主任, org: workshop }
+  - { key: teamLead, name: 吴班长, org: 甲班 }
+  - { key: receiver, name: 王班长, org: 乙班 }
+  - { key: op1, name: 郑师傅, org: 甲班 }
+  - { key: op2, name: 孙师傅, org: 甲班 }
+request:
+  title: 周三前完成 A 线清洗与 200 件组装
+  period: WEEK
+  by: leader
+  works:
+    - { key: clean, title: A 线清洗, team: 甲班, shift: DAY, assignee: op1, line: A 线 }
+    - { key: assemble, title: 200 件组装, quantity: 200, unit: 件, team: 甲班, shift: DAY, assignee: op2, line: A 线 }
+reports:
+  - { work: clean, by: op1, progress: 100, laborMinutes: 240, remark: 清洗完成, consumption: [{ name: 清洗剂, qty: 50, unit: kg }] }
+  - { work: assemble, by: op2, progress: 60, laborMinutes: 300, outputQty: 120, outputUnit: 件, consumption: [{ name: 螺丝, qty: 480, unit: 个 }] }
+outputs:
+  - { work: assemble, quantity: 120, unit: 件, batchNo: B20261110, by: op2 }
+materials:
+  # 只有投料、没有领用：默认不核销，不应报库存差异
+  - { work: assemble, kind: FEED, material: 螺丝, quantity: 480, unit: 个, by: op2 }
+  - { work: clean, kind: FEED, material: 清洗剂, quantity: 50, unit: kg, by: op1 }
+  - { work: clean, kind: RETURN, material: 清洗剂, quantity: 5, unit: kg, by: op1 }
+confirm: { works: [clean], by: leader }
+handover: { from: 甲班, to: 乙班, shift: DAY, by: teamLead, receiver: receiver }
+expect:
+  done: [clean]
+  movedToReceiver: [assemble]
+  laborMinutes: 540
+  outputQty: 120

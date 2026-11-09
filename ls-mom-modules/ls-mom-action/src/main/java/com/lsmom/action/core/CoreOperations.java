@@ -245,9 +245,9 @@ public final class CoreOperations {
     }
 
     @Component
-    @LsOperation(code = "ls.core.DocumentLink.attach", concept = "ls.core.DocumentLink", name = "关联附件", risk = Risk.C0,
+    @LsOperation(code = "ls.core.DocumentLink.attach", concept = "ls.core.DocumentLink", name = "关联附件", risk = Risk.C0, version = 2,
         permission = "", inputSchema = """
-        {"type":"object","required":["ossId","objectType","objectId"],"properties":{"ossId":{"type":"integer"},
+        {"type":"object","required":["ossId","objectType","objectId"],"properties":{"ossId":{"type":["integer","string"],"pattern":"^[0-9]{1,19}$"},
           "objectType":{"type":"string"},"objectId":{"type":"string"},"purpose":{"type":"string"},
           "classification":{"enum":["PUBLIC","INTERNAL","CONFIDENTIAL","SECRET"]},"orgUnitId":{"type":"integer"}}}""")
     public static class AttachDocument implements OperationHandler {

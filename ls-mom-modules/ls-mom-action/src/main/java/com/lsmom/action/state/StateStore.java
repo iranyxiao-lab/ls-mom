@@ -14,5 +14,10 @@ public interface StateStore {
         return Map.of();
     }
 
+    /** 该主体是否是对象的当前承办人（如工作的有效分派人）；承办人即使数据域只有"仅本人"也可办理。 */
+    default boolean assignedTo(String id, Long party) {
+        return false;
+    }
+
     StateSnapshot write(String id, int expectedVersion, String from, String to, Map<String, Object> changes);
 }

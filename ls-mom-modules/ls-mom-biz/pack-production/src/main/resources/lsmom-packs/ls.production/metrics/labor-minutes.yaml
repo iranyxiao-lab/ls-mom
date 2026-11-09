@@ -1,0 +1,12 @@
+code: ls.production.laborMinutes
+name: 人工工时
+concept: ls.core.WorkReport
+description: 已提交填报的人工工时（分钟）合计，按提交时间统计
+unit: 分钟
+measure: { fn: sum, field: laborMinutes }
+filters:
+  - { field: status, op: eq, value: SUBMITTED }
+timeField: submittedAt
+grains: [DAY, WEEK, MONTH]
+dimensions: [reporterParty]
+drillColumns: [workItemId, reporterParty, laborMinutes, progress, submittedAt]

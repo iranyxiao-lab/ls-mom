@@ -1,0 +1,8 @@
+code: ls.production.ShiftPlan
+displayName: 班次安排
+description: 工作安排到哪个班组、哪天、哪个班次；只做人工安排，不做自动排程优化
+fields:
+  - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work, required: true, props: { unique: true, queryable: true } }
+  - { code: team, displayName: 班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
+  - { code: shiftDate, displayName: 日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
+  - { code: shift, displayName: 班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { queryable: true } }

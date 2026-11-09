@@ -1,0 +1,13 @@
+code: ls.production.workload
+name: 生产工作量
+concept: ls.core.Work
+description: 生产类工作（不含已取消），按创建时间统计
+unit: 条
+measure: { fn: count }
+filters:
+  - { field: workType, op: eq, value: PRODUCTION }
+  - { field: status, op: ne, value: CANCELLED }
+timeField: createdAt
+grains: [DAY, WEEK, MONTH]
+dimensions: [status, orgUnitId]
+drillColumns: [code, title, status, orgUnitId, plannedEnd, actualEnd]

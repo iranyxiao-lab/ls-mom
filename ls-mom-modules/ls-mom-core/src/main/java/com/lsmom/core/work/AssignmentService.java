@@ -100,6 +100,26 @@ public class AssignmentService {
         return new AssignResult(listActive(workItemId), conflicts);
     }
 
+    /**
+     * 把工作及其有效分派整体挪到新时段（班次调整）。先按新时段检查各资源冲突：Profile 为阻断时抛 ASSIGNMENT_CONFLICT，
+     * 否则写入并返回冲突供提示。
+     */
+    @Transactional
+    public List<Conflict> reschedule(long workItemId, LocalDateTime start, LocalDateTime end) {
+        WorkItem work = works.get(workItemId);
+        List<AssignTarget> moved = listActive(workItemId).stream()
+            .map(a -> new AssignTarget(a.resourceType(), a.resourceRef(), a.role(), start, end)).toList();
+        List<Conflict> conflicts = findConflicts(workItemId, moved);
+        if (!conflicts.isEmpty() && profiles.get(work.constraintProfile()).conflictMode() == ConstraintProfile.ConflictMode.BLOCK) {
+            throw new LsBizException("ASSIGNMENT_CONFLICT", "资源时间冲突：" + conflicts.get(0).workCode() + " "
+                + conflicts.get(0).workTitle(), Map.of("conflicts", conflicts));
+        }
+        works.reschedule(workItemId, start, end);
+        jdbc.update("update core_work_assignment set planned_start = ?, planned_end = ? where work_item_id = ? and status = 'ACTIVE'",
+            start, end, workItemId);
+        return conflicts;
+    }
+
     public List<Assignment> listActive(long workItemId) {
         return jdbc.query("select * from core_work_assignment where work_item_id = ? and status = 'ACTIVE' order by id", MAPPER, workItemId);
     }

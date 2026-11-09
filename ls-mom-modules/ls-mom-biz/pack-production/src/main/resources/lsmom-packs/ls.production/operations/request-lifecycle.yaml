@@ -1,0 +1,52 @@
+code: ls.production.ProductionRequest.lifecycle
+concept: ls.production.ProductionRequest
+displayName: 生产需求状态
+states: [DRAFT, OPEN, CONVERTED, CLOSED, CANCELLED]
+initial: DRAFT
+transitions:
+  - operation: ls.production.ProductionRequest.submit
+    name: 发布需求
+    from: [DRAFT]
+    to: OPEN
+    permission: "ls:production:request"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: ls.production.ProductionRequest.convert
+    name: 转为工作
+    from: [OPEN, CONVERTED]
+    to: CONVERTED
+    permission: "ls:production:request"
+    risk: C1
+    inputSchema:
+      type: object
+      required: [works]
+      properties:
+        works:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required: [title]
+            properties:
+              title: { type: string, minLength: 1, maxLength: 200 }
+              quantity: { type: number, minimum: 0 }
+              unit: { type: string, maxLength: 32 }
+              line: { type: string, maxLength: 100 }
+              teamId: { type: integer }
+              shiftDate: { type: string, format: date }
+              shift: { enum: [DAY, EVENING, NIGHT] }
+  - operation: ls.production.ProductionRequest.close
+    name: 关闭需求
+    from: [CONVERTED]
+    to: CLOSED
+    permission: "ls:production:request"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: ls.production.ProductionRequest.cancel
+    name: 取消需求
+    from: [DRAFT, OPEN]
+    to: CANCELLED
+    permission: "ls:production:request"
+    risk: C1
+    inputSchema: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } }

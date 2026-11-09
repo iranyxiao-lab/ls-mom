@@ -46,6 +46,22 @@ public final class SafeSqlBuilder {
     private final DataScope scope;
     private final Predicate<String> readable;
     private final RefResolver refs;
+    private String privateStatus;
+    private Long viewer;
+
+    /** 草稿私有：该状态的记录只对创建人可见。 */
+    public SafeSqlBuilder privateDraft(String status, Long viewerParty) {
+        this.privateStatus = status;
+        this.viewer = viewerParty;
+        return this;
+    }
+
+    public static String privateDraftCondition(String alias, String status, Long viewerParty, List<Object> args) {
+        args.add(status);
+        if (viewerParty == null) return "(" + alias + ".\"status\" <> ?)";
+        args.add(viewerParty);
+        return "(" + alias + ".\"status\" <> ? or " + alias + ".\"created_by\" = ?)";
+    }
 
     public SafeSqlBuilder(LedgerModel model, DataScope scope, Predicate<String> readable, RefResolver refs) {
         this.model = model;
@@ -82,6 +98,7 @@ public final class SafeSqlBuilder {
         parts.add(alias + ".\"del_flag\" = '0'");
         String sc = scopeCondition(alias, scope, args);
         if (sc != null) parts.add(sc);
+        if (privateStatus != null) parts.add(privateDraftCondition(alias, privateStatus, viewer, args));
         for (QuerySpec.Filter f : filters) parts.add(condition(alias, f, args));
         return String.join(" and ", parts);
     }

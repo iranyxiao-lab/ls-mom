@@ -144,7 +144,7 @@ public class PackInstaller {
                 steps.add("规则 " + i.code());
                 snapshot(m, PackDefinitions.Kind.RULE, i, false, baseline);
             }
-            for (PackContents.Item i : c.views()) installView(m, i, by, steps, baseline);
+            // 指标先于视图：看板视图校验时要求所绑定的指标已发布
             for (PackContents.Item i : c.metrics()) {
                 if (unchanged(m, PackDefinitions.Kind.METRIC, i)) {
                     keep(m, PackDefinitions.Kind.METRIC, i, baseline);
@@ -154,6 +154,7 @@ public class PackInstaller {
                 steps.add("指标 " + i.code() + " v" + v.version());
                 snapshot(m, PackDefinitions.Kind.METRIC, i, false, baseline);
             }
+            for (PackContents.Item i : c.views()) installView(m, i, by, steps, baseline);
             for (PackContents.Item i : c.flows()) {
                 if (unchanged(m, PackDefinitions.Kind.FLOW, i)) {
                     keep(m, PackDefinitions.Kind.FLOW, i, baseline);

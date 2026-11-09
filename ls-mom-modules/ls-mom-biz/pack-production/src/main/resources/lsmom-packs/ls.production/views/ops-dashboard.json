@@ -1,0 +1,18 @@
+{
+  "viewType": "DASHBOARD",
+  "formCode": "ls.production.opsDashboard",
+  "version": 1,
+  "title": "生产经营看板",
+  "widgets": [
+    { "type": "metricCard", "title": "本月生产工作量", "metric": "ls.production.workload", "range": "thisMonth", "span": 4 },
+    { "type": "metricCard", "title": "本月按期完成率", "metric": "ls.production.onTimeRate", "range": "thisMonth", "span": 4 },
+    { "type": "metricCard", "title": "本月异常数", "metric": "ls.core.issueCount", "range": "thisMonth", "span": 4 },
+    { "type": "metricCard", "title": "本月产出", "metric": "ls.production.outputQty", "range": "thisMonth", "span": 4 },
+    { "type": "metricCard", "title": "本月人工工时（分钟）", "metric": "ls.production.laborMinutes", "range": "thisMonth", "span": 4 },
+    { "type": "metricCard", "title": "设备占用", "metric": "ls.production.equipmentBusy", "range": "all", "span": 4 },
+    { "type": "trend", "title": "生产工作量趋势", "metric": "ls.production.workload", "grain": "DAY", "range": "last30Days", "span": 12 },
+    { "type": "bar", "title": "工作状态分布", "metric": "ls.production.workload", "dimensions": ["status"], "range": "thisMonth", "span": 12 },
+    { "type": "bar", "title": "产出按单位", "metric": "ls.production.outputQty", "dimensions": ["unit"], "range": "thisMonth", "span": 12 },
+    { "type": "table", "title": "设备状态", "metric": "ls.production.equipmentBusy", "dimensions": ["resourceRef"], "range": "all", "span": 12 }
+  ]
+}

@@ -121,11 +121,11 @@
 
 ## 13. 轻生产 Pack 与生产运营工作台（P4）
 
-- [ ] 13.1 实现 ProductionRequest、ShiftPlan、ProductionOutput、MaterialRecord、ShiftHandover、ProductionContext 的 Concept、表单、Operation 与迁移（默认不核销）；验证投料无领用不报错
-- [ ] 13.2 实现需求转工作、班次安排冲突处理、交接班双方确认与未完成事项流转；验证交接班双方确认与草稿不可见场景
-- [ ] 13.3 前端实现生产需求板、工作板、分派台、移动填报（拍照证据、草稿）、交接班页面；验证 Playwright 无头移动视口 E2E 填报
-- [ ] 13.4 实现经营看板指标（工作量、按期完成率、异常数、产出、人工、设备状态）；验证钻取明细与指标数值一致
-- [ ] 13.5 编写切片 A 黄金场景数据集并自动化 DOM-01/DOM-02/DOM-03；验证场景测试通过
+- [x] 13.1 实现 ProductionRequest、ShiftPlan、ProductionOutput、MaterialRecord、ShiftHandover、ProductionContext 的 Concept、表单、Operation 与迁移（默认不核销）；验证投料无领用不报错
+- [x] 13.2 实现需求转工作、班次安排冲突处理、交接班双方确认与未完成事项流转；验证交接班双方确认与草稿不可见场景
+- [x] 13.3 前端实现生产需求板、工作板、分派台、移动填报（拍照证据、草稿）、交接班页面；验证 Playwright 无头移动视口 E2E 填报
+- [x] 13.4 实现经营看板指标（工作量、按期完成率、异常数、产出、人工、设备状态）；验证钻取明细与指标数值一致
+- [x] 13.5 编写切片 A 黄金场景数据集并自动化 DOM-01/DOM-02/DOM-03；验证场景测试通过
 
 ## 14. 设备、质量与通用台账样板（P4）
 

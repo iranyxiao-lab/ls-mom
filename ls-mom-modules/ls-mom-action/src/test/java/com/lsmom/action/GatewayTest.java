@@ -185,6 +185,22 @@ class GatewayTest {
     }
 
     @Test
+    void 仅本人数据域_可办理分派给自己的工作_不能办理别人的() {
+        CoreFixture.Plant p = f.core.plant();
+        Party op = f.core.employee("操作工", p.teamA());
+        Party other = f.core.employee("另一个操作工", p.teamA());
+        String w = f.newWork(admin, p.teamA(), "分派给操作工");
+        f.step("ls.core.Work.ready", admin, "ls.core.Work", w, "{}");
+        f.step("ls.core.Work.assign", admin, "ls.core.Work", w, "{\"targets\":[{\"resourceType\":\"PARTY\",\"resourceRef\":\"" + op.id() + "\"}]}");
+        ActorContext self = f.human(op, DataScopeLevel.SELF, "lsmom:work:execute");
+        assertThat(f.step("ls.core.Work.start", self, "ls.core.Work", w, "{}").status()).isEqualTo("IN_PROGRESS");
+        assertThat(f.step("ls.core.Work.submitReport", self, "ls.core.Work", w, "{\"progress\":50}").status()).isNotNull();
+        ActorContext stranger = f.human(other, DataScopeLevel.SELF, "lsmom:work:execute");
+        assertThatThrownBy(() -> f.step("ls.core.Work.block", stranger, "ls.core.Work", w, "{\"reason\":\"x\"}"))
+            .extracting("code").isEqualTo("ACCESS_DENIED");
+    }
+
+    @Test
     void 代理执行记录代理主体() {
         CoreFixture.Plant p = f.core.plant();
         Party boss = f.core.employee("车间主任", p.workshop());

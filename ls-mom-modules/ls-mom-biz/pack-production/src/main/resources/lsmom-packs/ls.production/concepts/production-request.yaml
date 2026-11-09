@@ -1,0 +1,11 @@
+code: ls.production.ProductionRequest
+displayName: 生产需求
+description: 月 / 周 / 日 / 临时生产需求，只需描述，可转为一条或多条生产工作
+fields:
+  - { code: title, displayName: 需求描述, dataType: STRING, required: true, props: { queryable: true, label: true, maxLength: 200 } }
+  - { code: period, displayName: 需求周期, dataType: ENUM, required: true, options: [MONTH, WEEK, DAY, TEMP], props: { queryable: true } }
+  - { code: quantity, displayName: 数量, dataType: DECIMAL }
+  - { code: unit, displayName: 单位, dataType: STRING, props: { maxLength: 32 } }
+  - { code: dueDate, displayName: 期望完成日期, dataType: DATE, props: { queryable: true, sortable: true } }
+  - { code: description, displayName: 补充说明, dataType: TEXT }
+  - { code: workCount, displayName: 已转工作数, dataType: INTEGER }

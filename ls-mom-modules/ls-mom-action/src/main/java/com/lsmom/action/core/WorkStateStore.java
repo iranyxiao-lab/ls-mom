@@ -20,6 +20,11 @@ public class WorkStateStore implements StateStore {
     }
 
     @Override
+    public boolean assignedTo(String id, Long party) {
+        return party != null && works.assignedTo(Long.parseLong(id), party);
+    }
+
+    @Override
     public String concept() {
         return "ls.core.Work";
     }

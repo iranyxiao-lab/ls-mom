@@ -1,0 +1,25 @@
+code: ls.production.ShiftPlan.lifecycle
+concept: ls.production.ShiftPlan
+displayName: 班次安排状态
+states: [DRAFT, ACTIVE]
+initial: DRAFT
+transitions:
+  - operation: ls.production.ShiftPlan.activate
+    name: 生效
+    from: [DRAFT]
+    to: ACTIVE
+    permission: "ls:production:schedule"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: ls.production.ShiftPlan.move
+    name: 调整班次
+    from: [ACTIVE]
+    to: ACTIVE
+    permission: "ls:production:schedule"
+    risk: C1
+    inputSchema:
+      type: object
+      properties:
+        teamId: { type: integer }
+        shiftDate: { type: string, format: date }
+        shift: { enum: [DAY, EVENING, NIGHT] }

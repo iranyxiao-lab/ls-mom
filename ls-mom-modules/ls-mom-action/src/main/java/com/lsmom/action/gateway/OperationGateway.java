@@ -167,8 +167,11 @@ public class OperationGateway {
         if (req.targetId() != null && stores.has(op.concept())) {
             before = stores.of(op.concept()).load(req.targetId());
             ctx.target(before.id(), before.version(), before.status(), before.orgUnitId());
-            if (!actor.dataScope().all() && !actor.dataScope().allowsOrg(before.orgUnitId())
-                && !(actor.dataScope().partyId() != null && actor.dataScope().partyId().equals(before.ownerParty()))) {
+            // "仅本人"只看本人创建或分派给本人的对象，不按组织放行
+            boolean orgOk = actor.dataScope().level() != com.lsmom.core.org.DataScopeLevel.SELF && actor.dataScope().allowsOrg(before.orgUnitId());
+            if (!actor.dataScope().all() && !orgOk
+                && !(actor.dataScope().partyId() != null && actor.dataScope().partyId().equals(before.ownerParty()))
+                && !stores.of(op.concept()).assignedTo(before.id(), actor.effectiveParty())) {
                 throw new LsBizException("ACCESS_DENIED", "目标对象不在你的数据范围内", Map.of("targetId", req.targetId()));
             }
         } else if (transition != null) {

@@ -1,0 +1,38 @@
+code: ls.production.ShiftHandover.lifecycle
+concept: ls.production.ShiftHandover
+displayName: 交接班状态
+states: [DRAFT, PUBLISHED, COMPLETED]
+initial: DRAFT
+transitions:
+  - operation: ls.production.ShiftHandover.generate
+    name: 生成摘要草稿
+    from: [DRAFT]
+    to: DRAFT
+    guards: [ls.production.handoverOwner]
+    permission: "ls:production:handover"
+    risk: C0
+    inputSchema: { type: object }
+  - operation: ls.production.ShiftHandover.publish
+    name: 交班确认
+    from: [DRAFT]
+    to: PUBLISHED
+    guards: [ls.production.handoverOwner]
+    permission: "ls:production:handover"
+    risk: C1
+    inputSchema: { type: object, properties: { summary: { type: string, maxLength: 4000 } } }
+  - operation: ls.production.ShiftHandover.accept
+    name: 接班确认
+    from: [PUBLISHED]
+    to: COMPLETED
+    guards: [ls.production.handoverReceiver]
+    permission: "ls:production:handover"
+    risk: C1
+    inputSchema: { type: object, properties: { note: { type: string, maxLength: 2000 } } }
+  - operation: ls.production.ShiftHandover.returnBack
+    name: 退回交班人
+    from: [PUBLISHED]
+    to: DRAFT
+    guards: [ls.production.handoverReceiver]
+    permission: "ls:production:handover"
+    risk: C1
+    inputSchema: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } }

@@ -1,0 +1,4 @@
+name: 投料无领用也能记录（默认不核销）
+steps:
+  - create: { concept: ls.production.MaterialRecord, as: m, values: { kind: FEED, material: 清洗剂, quantity: 50, unit: kg } }
+  - expect: { concept: ls.production.MaterialRecord, target: m, values: { kind: FEED, unit: kg } }

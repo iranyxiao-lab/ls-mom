@@ -1,0 +1,26 @@
+code: ls.production.ShiftHandover
+displayName: 交接班
+description: 汇总当班工作、未完成事项、异常、DCS 摘要与附件；交班人确认后发布，接班人确认后完成。草稿只有交班人可见
+fields:
+  - { code: fromTeam, displayName: 交班班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
+  - { code: toTeam, displayName: 接班班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
+  - { code: shiftDate, displayName: 日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
+  - { code: shift, displayName: 交班班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { queryable: true } }
+  - { code: summary, displayName: 交班摘要, dataType: TEXT }
+  - { code: issueSummary, displayName: 异常摘要, dataType: TEXT }
+  - { code: dcsSummary, displayName: DCS 摘要, dataType: TEXT }
+  - { code: publishedAt, displayName: 交班确认时间, dataType: DATETIME }
+  - { code: publishedBy, displayName: 交班人, dataType: REF, refConcept: ls.core.Party }
+  - { code: acceptedAt, displayName: 接班确认时间, dataType: DATETIME }
+  - { code: acceptedBy, displayName: 接班人, dataType: REF, refConcept: ls.core.Party }
+  - { code: acceptNote, displayName: 接班意见, dataType: TEXT }
+children:
+  - code: ls.production.ShiftHandoverItem
+    displayName: 交接事项
+    fields:
+      - { code: kind, displayName: 类型, dataType: ENUM, required: true, options: [UNFINISHED, DONE, ISSUE, NOTE] }
+      - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work }
+      - { code: issueId, displayName: 异常, dataType: INTEGER }
+      - { code: title, displayName: 事项, dataType: STRING, required: true, props: { maxLength: 200 } }
+      - { code: workStatus, displayName: 当前状态, dataType: STRING, props: { maxLength: 32 } }
+      - { code: note, displayName: 说明, dataType: TEXT }

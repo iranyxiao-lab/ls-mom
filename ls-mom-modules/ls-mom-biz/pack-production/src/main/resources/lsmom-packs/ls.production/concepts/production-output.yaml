@@ -1,0 +1,11 @@
+code: ls.production.ProductionOutput
+displayName: 产出记录
+description: 产出数量、单位、时间、人员、说明与可选批次
+fields:
+  - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work, required: true, props: { queryable: true } }
+  - { code: quantity, displayName: 数量, dataType: DECIMAL, required: true }
+  - { code: unit, displayName: 单位, dataType: STRING, required: true, props: { maxLength: 32 } }
+  - { code: recordedAt, displayName: 记录时间, dataType: DATETIME, required: true, props: { queryable: true, sortable: true } }
+  - { code: operator, displayName: 人员, dataType: REF, refConcept: ls.core.Party }
+  - { code: batchNo, displayName: 批次, dataType: STRING, props: { queryable: true, maxLength: 64 } }
+  - { code: note, displayName: 说明, dataType: TEXT }

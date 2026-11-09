@@ -1,0 +1,17 @@
+code: ls.production.onTimeRate
+name: 生产按期完成率
+concept: ls.core.Work
+description: 已完成且有计划结束时间的生产工作中，实际结束不晚于计划结束的比例；按计划结束时间统计
+unit: "%"
+measure:
+  fn: ratio
+  numerator:
+    - { field: actualEnd, op: le, valueField: plannedEnd }
+filters:
+  - { field: workType, op: eq, value: PRODUCTION }
+  - { field: status, op: eq, value: DONE }
+  - { field: plannedEnd, op: notNull }
+timeField: plannedEnd
+grains: [DAY, WEEK, MONTH]
+dimensions: [orgUnitId]
+drillColumns: [code, title, orgUnitId, plannedEnd, actualEnd]

@@ -1,0 +1,24 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.production.requestForm",
+  "version": 1,
+  "conceptCode": "ls.production.ProductionRequest",
+  "title": "生产需求",
+  "layout": [
+    { "type": "field", "key": "title" },
+    { "type": "field", "key": "period" },
+    { "type": "field", "key": "quantity" },
+    { "type": "field", "key": "unit" },
+    { "type": "field", "key": "dueDate" },
+    { "type": "field", "key": "description" }
+  ],
+  "fields": [
+    { "key": "title", "label": "需求描述", "widget": "input", "required": true, "placeholder": "如：周三前完成 A 线清洗与 200 件组装" },
+    { "key": "period", "label": "需求周期", "widget": "select", "required": true,
+      "options": [{ "label": "月", "value": "MONTH" }, { "label": "周", "value": "WEEK" }, { "label": "日", "value": "DAY" }, { "label": "临时", "value": "TEMP" }] },
+    { "key": "quantity", "label": "数量", "widget": "number" },
+    { "key": "unit", "label": "单位", "widget": "input" },
+    { "key": "dueDate", "label": "期望完成日期", "widget": "date" },
+    { "key": "description", "label": "补充说明", "widget": "textarea" }
+  ]
+}

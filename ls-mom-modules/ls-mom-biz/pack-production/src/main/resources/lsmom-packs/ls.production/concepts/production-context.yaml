@@ -1,0 +1,9 @@
+code: ls.production.ProductionContext
+displayName: 生产工作上下文
+description: 生产工作的来源需求、计划数量与产线（由需求转工作时生成）
+fields:
+  - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work, required: true, props: { unique: true, queryable: true } }
+  - { code: request, displayName: 来源需求, dataType: REF, refConcept: ls.production.ProductionRequest, props: { queryable: true } }
+  - { code: plannedQty, displayName: 计划数量, dataType: DECIMAL }
+  - { code: unit, displayName: 单位, dataType: STRING, props: { maxLength: 32 } }
+  - { code: line, displayName: 产线 / 工位, dataType: STRING, props: { queryable: true, maxLength: 100 } }

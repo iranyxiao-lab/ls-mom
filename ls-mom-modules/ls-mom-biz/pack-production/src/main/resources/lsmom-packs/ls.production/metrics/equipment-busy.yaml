@@ -1,0 +1,11 @@
+code: ls.production.equipmentBusy
+name: 设备占用
+concept: ls.core.WorkAssignment
+description: 当前有效分派到设备的工作数，按设备分组即各设备状态（有数即占用中）
+unit: 项
+measure: { fn: count }
+filters:
+  - { field: resourceType, op: eq, value: EQUIPMENT }
+  - { field: status, op: eq, value: ACTIVE }
+dimensions: [resourceRef]
+drillColumns: [workItemId, resourceRef, plannedStart, plannedEnd]

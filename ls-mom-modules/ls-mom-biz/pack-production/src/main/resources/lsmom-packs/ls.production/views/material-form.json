@@ -1,0 +1,30 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.production.materialForm",
+  "version": 1,
+  "conceptCode": "ls.production.MaterialRecord",
+  "title": "物料记录",
+  "layout": [
+    { "type": "field", "key": "kind" },
+    { "type": "field", "key": "material" },
+    { "type": "field", "key": "quantity" },
+    { "type": "field", "key": "unit" },
+    { "type": "field", "key": "workItem" },
+    { "type": "field", "key": "recordedAt" },
+    { "type": "field", "key": "fromLocation" },
+    { "type": "field", "key": "toLocation" },
+    { "type": "field", "key": "note" }
+  ],
+  "fields": [
+    { "key": "kind", "label": "类型", "widget": "select", "required": true,
+      "options": [{ "label": "领用", "value": "ISSUE" }, { "label": "投料", "value": "FEED" }, { "label": "退料", "value": "RETURN" }, { "label": "转移", "value": "TRANSFER" }] },
+    { "key": "material", "label": "物料", "widget": "input", "required": true },
+    { "key": "quantity", "label": "数量", "widget": "number", "required": true },
+    { "key": "unit", "label": "单位", "widget": "input", "required": true },
+    { "key": "workItem", "label": "工作", "widget": "workRef" },
+    { "key": "recordedAt", "label": "记录时间", "widget": "datetime" },
+    { "key": "fromLocation", "label": "来源位置", "widget": "input" },
+    { "key": "toLocation", "label": "去向位置", "widget": "input" },
+    { "key": "note", "label": "说明", "widget": "textarea" }
+  ]
+}

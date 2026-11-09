@@ -21,17 +21,40 @@ function seedPassword(user) {
   return row.split('|')[4].trim();
 }
 
-export async function open({ width = 1600, height = 1000 } = {}) {
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width, height } });
+/** 无头登录。user 为种子账号（默认 admin）；mobile=true 时模拟手机（触屏、移动 UA）。 */
+export async function open({ width = 1600, height = 1000, user = 'admin', mobile = false, browser: shared } = {}) {
+  const browser = shared ?? (await chromium.launch({ headless: true }));
+  const context = await browser.newContext(
+    mobile
+      ? {
+          viewport: { width: 390, height: 844 },
+          isMobile: true,
+          hasTouch: true,
+          deviceScaleFactor: 2,
+          userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36'
+        }
+      : { viewport: { width, height } }
+  );
+  const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(BASE + '/login');
-  await page.waitForSelector('input[type="password"]', { timeout: 30000 });
-  await page.locator('input[type="text"][autocomplete="off"]').first().fill('admin');
-  await page.locator('input[type="password"]').fill(seedPassword('admin'));
-  await page.locator('input[type="password"]').press('Enter');
-  await page.waitForURL((u) => !u.pathname.includes('login'), { timeout: 30000 });
+  // 登录页初始化（租户、记住我）偶尔会覆盖刚填的值，失败时重填重试
+  for (let attempt = 1; ; attempt++) {
+    await page.waitForSelector('input[type="password"]', { timeout: 30000 });
+    await page.waitForLoadState('networkidle').catch(() => undefined);
+    await page.locator('input[type="text"][autocomplete="off"]').first().fill(user);
+    await page.locator('input[type="password"]').fill(seedPassword(user));
+    await page.locator('input[type="password"]').press('Enter');
+    try {
+      await page.waitForURL((u) => !u.pathname.includes('login'), { timeout: 20000 });
+      break;
+    } catch (e) {
+      const shown = await page.locator('.el-message, .el-message-box, .el-form-item__error').allTextContents();
+      if (attempt >= 3) throw new Error(`${user} 登录失败：${shown.join(' | ') || e.message}`);
+      await page.goto(BASE + '/login');
+    }
+  }
   /** 以当前登录身份调用后端接口（同源，经 nginx 反代）。 */
   const api = (method, url, body) =>
     page.evaluate(
@@ -46,7 +69,7 @@ export async function open({ width = 1600, height = 1000 } = {}) {
       },
       [method, url, body, CLIENT_ID, API]
     );
-  return { browser, page, api, errors };
+  return { browser, context, page, api, errors };
 }
 
 export function check(cond, message) {

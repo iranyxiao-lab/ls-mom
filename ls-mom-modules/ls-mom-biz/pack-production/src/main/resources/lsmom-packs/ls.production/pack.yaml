@@ -1,0 +1,48 @@
+# 轻生产标准 Pack：无 BOM / 工艺路线 / 仓库也能闭环的"需求 → 工作 → 分派 → 填报 → 确认 → 交接班 / 看板"
+code: ls.production
+version: 1.0.0
+name: 轻生产
+description: 生产需求、班次安排、产出与物料记录（默认不核销）、交接班与经营看板
+standard: true
+owner: { name: LS 标准产品组 }
+requester: { name: 轻生产场景（切片 A） }
+reviewDue: 2027-12-31
+contents:
+  concepts:
+    - ls.production.ProductionRequest
+    - ls.production.ProductionContext
+    - ls.production.ShiftPlan
+    - ls.production.ProductionOutput
+    - ls.production.MaterialRecord
+    - ls.production.ShiftHandover
+  operations:
+    - ls.production.ProductionRequest.submit
+    - ls.production.ProductionRequest.convert
+    - ls.production.ProductionRequest.close
+    - ls.production.ProductionRequest.cancel
+    - ls.production.ShiftPlan.activate
+    - ls.production.ShiftPlan.move
+    - ls.production.ShiftHandover.generate
+    - ls.production.ShiftHandover.publish
+    - ls.production.ShiftHandover.accept
+    - ls.production.ShiftHandover.returnBack
+  views:
+    - ls.production.requestForm
+    - ls.production.outputForm
+    - ls.production.materialForm
+    - ls.production.opsDashboard
+  metrics:
+    - ls.production.workload
+    - ls.production.onTimeRate
+    - ls.production.outputQty
+    - ls.production.laborMinutes
+    - ls.production.equipmentBusy
+entries:
+  - { name: 生产需求板, path: /production/requests }
+  - { name: 工作板, path: /production/board }
+  - { name: 分派台, path: /production/dispatch }
+  - { name: 移动填报, path: /production/report }
+  - { name: 交接班, path: /production/handover }
+  - { name: 经营看板, path: /production/dashboard }
+  - { name: 产出记录, path: /lsmom/ledger/ls.production.ProductionOutput }
+  - { name: 物料记录, path: /lsmom/ledger/ls.production.MaterialRecord }

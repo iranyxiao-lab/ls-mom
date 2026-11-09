@@ -1,0 +1,25 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.production.outputForm",
+  "version": 1,
+  "conceptCode": "ls.production.ProductionOutput",
+  "title": "产出记录",
+  "layout": [
+    { "type": "field", "key": "workItem" },
+    { "type": "field", "key": "quantity" },
+    { "type": "field", "key": "unit" },
+    { "type": "field", "key": "recordedAt" },
+    { "type": "field", "key": "operator" },
+    { "type": "field", "key": "batchNo" },
+    { "type": "field", "key": "note" }
+  ],
+  "fields": [
+    { "key": "workItem", "label": "工作", "widget": "workRef", "required": true },
+    { "key": "quantity", "label": "数量", "widget": "number", "required": true },
+    { "key": "unit", "label": "单位", "widget": "input", "required": true },
+    { "key": "recordedAt", "label": "记录时间", "widget": "datetime", "required": true },
+    { "key": "operator", "label": "人员", "widget": "userRef" },
+    { "key": "batchNo", "label": "批次", "widget": "input" },
+    { "key": "note", "label": "说明", "widget": "textarea" }
+  ]
+}

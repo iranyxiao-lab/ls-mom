@@ -49,6 +49,12 @@ public class PackConfiguration {
     }
 
     @Bean
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "lsmom.pack.standard.enabled", havingValue = "true", matchIfMissing = true)
+    public StandardPacks standardPacks(PackInstaller installer, PackStore store) {
+        return new StandardPacks(installer, store);
+    }
+
+    @Bean
     public PackLifecycle packLifecycle(JdbcTemplate jdbc, PackStore store, PackGate gate) {
         return new PackLifecycle(jdbc, store, gate);
     }

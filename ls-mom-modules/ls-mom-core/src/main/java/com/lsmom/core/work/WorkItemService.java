@@ -141,7 +141,7 @@ public class WorkItemService {
     }
 
     /** 数据域条件：仅本人口径按创建人或分派给本人过滤，其余按组织集合过滤。 */
-    static void appendScope(StringBuilder sql, List<Object> args, DataScope scope) {
+    public static void appendScope(StringBuilder sql, List<Object> args, DataScope scope) {
         if (scope.all()) return;
         if (scope.level() == com.lsmom.core.org.DataScopeLevel.SELF && scope.partyId() != null) {
             sql.append(" and (w.created_by_party = ? or exists (select 1 from core_work_assignment a where a.work_item_id = w.id")
@@ -187,6 +187,26 @@ public class WorkItemService {
             if (now.status().terminal()) throw new LsBizException("WORK_CLOSED", "已结束的工作不能调整优先级");
             throw new LsBizException("CONCURRENT_MODIFICATION", "工作已被他人修改，请刷新后重试", Map.of("currentVersion", now.version()));
         }
+        return get(id);
+    }
+
+    /** 主体是否是该工作的有效分派人（PARTY 分派）。 */
+    public boolean assignedTo(long id, long party) {
+        Integer n = jdbc.queryForObject("""
+            select count(*) from core_work_assignment where work_item_id = ? and status = 'ACTIVE' and resource_type = 'PARTY'
+               and resource_ref = ?""", Integer.class, id, String.valueOf(party));
+        return n != null && n > 0;
+    }
+
+    /** 调整计划时间（班次调整等，非状态字段）。已结束的工作不能调整。 */
+    @Transactional
+    public WorkItem reschedule(long id, LocalDateTime plannedStart, LocalDateTime plannedEnd) {
+        if (plannedStart != null && plannedEnd != null && !plannedEnd.isAfter(plannedStart)) {
+            throw LsBizException.validation(Map.of("plannedEnd", "计划结束必须晚于计划开始"));
+        }
+        int n = jdbc.update("update core_work_item set planned_start = ?, planned_end = ?, version = version + 1, updated_at = now()"
+            + " where id = ? and status not in ('DONE', 'CANCELLED')", plannedStart, plannedEnd, id);
+        if (n == 0) throw new LsBizException("WORK_CLOSED", "已结束的工作不能调整计划");
         return get(id);
     }
 
