@@ -31,6 +31,7 @@ JSON Schema 采用 2020-12，位于 `ls-mom-form/src/main/resources/ls-schema/`�
 | `POLICY_FIELD_INVALID` | 节点策略只能引用表单字段 |
 | `FIELD_NOT_QUERYABLE` / `FIELD_NOT_SORTABLE` | 列表筛选/排序只能用 Concept 声明可筛选/可排序的字段 |
 | `DASHBOARD_SQL_FORBIDDEN` / `DASHBOARD_BINDING_MISSING` | 看板任何位置出现 SQL 都被拒，组件必须绑定 `metric` 或 `query` |
+| `DASHBOARD_METRIC_NOT_FOUND` / `DASHBOARD_QUERY_NOT_FOUND` / `DASHBOARD_DIMENSION_INVALID` / `DASHBOARD_GRAIN_INVALID` / `DASHBOARD_GRAIN_REQUIRED` | 指标须已发布、命名 Query 须已登记；维度与时间粒度只能取指标口径声明的；趋势图须设粒度（口径见 [metrics.md](metrics.md)） |
 | `FORM_SCRIPT_FORBIDDEN` | 任何位置出现脚本（`<script>`、`javascript:`、`on*=`、`function(`、`=>`、`eval`、`${`……）或脚本类键（`onClick`、`handler`……）都被拒 |
 
 接口：`POST /api/form/validate` 只校验不保存；保存草稿与发布都会重新校验。
@@ -178,8 +179,13 @@ Java（`FieldPolicy`）与 TS（`resolveFieldPolicy`）两端实现，共享用�
 ```
 
 ```json lsview
-{ "viewType": "DASHBOARD", "formCode": "acme.tool.board", "version": 1,
-  "widgets": [{ "type": "metricCard", "title": "借出", "metric": "acme.tool.loanCount" }] }
+{ "viewType": "DASHBOARD", "formCode": "acme.tool.board", "version": 1, "title": "质量看板",
+  "widgets": [
+    { "type": "metricCard", "title": "本周异常数", "metric": "ls.core.issueCount", "range": "thisWeek", "span": 6 },
+    { "type": "trend", "title": "按期完成率", "metric": "ls.core.workOnTimeRate", "grain": "WEEK", "range": "last30Days", "span": 12 },
+    { "type": "bar", "title": "异常按严重度", "metric": "ls.core.issueCount", "dimensions": ["severity"], "range": "thisMonth", "span": 6 },
+    { "type": "table", "title": "各组织未关闭异常", "query": "ls.core.openIssuesByOrg", "params": { "severity": "HIGH" }, "span": 24 }
+  ] }
 ```
 
 ## 注册组件

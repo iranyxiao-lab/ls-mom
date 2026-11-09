@@ -54,5 +54,17 @@ export const flowApi = {
     data<{ code: string; label: string; type: string; refConcept?: string }[]>(
       request({ url: `/api/flow/concepts/${enc(concept)}/fields`, method: 'get' })
     ),
+  complete: (taskId: string, body: { action: 'APPROVE' | 'REJECT' | 'RESUBMIT'; comment?: string; input?: Record<string, unknown> | null }) =>
+    data<{ taskId: string; outcome: string }>(request({ url: `/api/flow/tasks/${enc(taskId)}/complete`, method: 'post', data: body })),
+  returnTask: (taskId: string, target: string, reason?: string) =>
+    data<{ taskId: string; target: string }>(request({ url: `/api/flow/tasks/${enc(taskId)}/return`, method: 'post', data: { target, reason } })),
+  transfer: (taskId: string, toParty: number, comment?: string) =>
+    data<{ taskId: string; assignee: number }>(
+      request({ url: `/api/flow/tasks/${enc(taskId)}/transfer`, method: 'post', data: { toParty, comment } })
+    ),
+  urge: (taskId: string) => data<{ taskId: string; urgedAt: string }>(request({ url: `/api/flow/tasks/${enc(taskId)}/urge`, method: 'post' })),
+  withdraw: (instanceId: number, reason?: string) =>
+    data<unknown>(request({ url: `/api/flow/instances/${instanceId}/withdraw`, method: 'post', data: { reason } })),
+  readCc: (bizTaskId: number) => data<void>(request({ url: `/api/flow/cc/${bizTaskId}/read`, method: 'post' })),
   me: () => data<{ partyId: number; orgUnitId?: number }>(request({ url: '/api/flow/me', method: 'get' }))
 };

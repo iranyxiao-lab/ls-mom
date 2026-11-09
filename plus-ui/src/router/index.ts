@@ -98,6 +98,18 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/lsmom/flow-designer/index.vue'),
         name: 'FlowDesigner',
         meta: { title: '流程配置', icon: 'tree' }
+      },
+      {
+        path: 'dashboard/:code',
+        component: () => import('@/views/lsmom/dashboard/index.vue'),
+        name: 'LsDashboard',
+        meta: { title: '看板', icon: 'chart' }
+      },
+      {
+        path: 'workbench',
+        component: () => import('@/views/lsmom/workbench/index.vue'),
+        name: 'LsWorkbench',
+        meta: { title: '协同工作中心', icon: 'job' }
       }
     ]
   },

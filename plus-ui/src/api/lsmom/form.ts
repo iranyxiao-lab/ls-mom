@@ -37,11 +37,13 @@ export const formApi = {
   refSearch: (body: { ref: RefSpec; keyword?: string; ids?: number[]; orgId?: number; model?: Record<string, unknown> }) =>
     data<RefOption[]>(request({ url: '/api/form/ref/search', method: 'post', data: body })),
   components: () => data<any[]>(request({ url: '/api/form/components', method: 'get' })),
-  saveDraft: (schema: AnyViewSchema, note?: string) => data<CheckResult>(request({ url: '/api/form/drafts', method: 'post', data: { schema, note } })),
+  saveDraft: (schema: AnyViewSchema, note?: string) =>
+    data<CheckResult>(request({ url: '/api/form/drafts', method: 'post', data: { schema, note } })),
   validate: (schema: AnyViewSchema) => data<CheckResult>(request({ url: '/api/form/validate', method: 'post', data: schema })),
   derive: (code: string) => data<ViewVersion>(request({ url: `/api/form/views/${enc(code)}/derive`, method: 'post' })),
   check: (code: string, version: number) => data<CheckResult>(request({ url: `/api/form/views/${enc(code)}/${version}/check`, method: 'get' })),
-  publish: (code: string, version: number) => data<PublishResult>(request({ url: `/api/form/views/${enc(code)}/${version}/publish`, method: 'post' })),
+  publish: (code: string, version: number) =>
+    data<PublishResult>(request({ url: `/api/form/views/${enc(code)}/${version}/publish`, method: 'post' })),
   review: (id: number, approve: boolean) => data<void>(request({ url: `/api/form/changesets/${id}/review`, method: 'post', data: { approve } })),
   apply: (id: number) => data<unknown>(request({ url: `/api/form/changesets/${id}/apply`, method: 'post' })),
   dict: (type: string) =>

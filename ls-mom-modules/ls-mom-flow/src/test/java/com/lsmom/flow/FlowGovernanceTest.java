@@ -29,6 +29,19 @@ class FlowGovernanceTest {
     }
 
     @Test
+    void 同一发起动作只能对应一条已发布流程_停用后可发布新流程() {
+        FlowDefinition first = f.standardFlow(s);
+        f.runtime.publish(first, 1L);
+        FlowDefinition second = f.flow(first.toJson().toString().replace(".loanApproval\"", ".loanApprovalB\""));
+        assertThat(f.registry.validate(second)).extracting(FlowRegistry.Issue::code).contains("FLOW_START_CONFLICT");
+        assertThat(f.registry.retire(first.code())).isEqualTo(1);
+        assertThat(f.registry.validate(second)).extracting(FlowRegistry.Issue::code).doesNotContain("FLOW_START_CONFLICT");
+        f.runtime.publish(second, 1L);
+        String id = f.submitLoan(s, s.applicant(), "L-RT1");
+        assertThat(f.instance(s, id).flowCode()).isEqualTo(second.code());
+    }
+
+    @Test
     void 超时未办理_办理人收到提醒且上级负责人收到升级待办() {
         f.runtime.publish(f.loanFlow(s, """
             [{"key":"deptAudit","type":"AUDIT","name":"车间审核","assignee":{"strategy":"DEPT_LEADER","of":"INITIATOR"},"operation":"%s.audit",

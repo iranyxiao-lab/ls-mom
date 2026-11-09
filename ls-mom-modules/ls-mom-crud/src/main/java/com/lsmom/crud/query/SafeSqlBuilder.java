@@ -135,7 +135,7 @@ public final class SafeSqlBuilder {
             + " and r.\"del_flag\" = '0' and " + cond + (sc == null ? "" : " and " + sc) + ")";
     }
 
-    private static String expression(String col, DataType type, QuerySpec.Filter f, List<Object> args) {
+    public static String expression(String col, DataType type, QuerySpec.Filter f, List<Object> args) {
         Function<Object, Object> conv = v -> convert(f.field(), type, v);
         switch (f.op()) {
             case "isNull" -> {

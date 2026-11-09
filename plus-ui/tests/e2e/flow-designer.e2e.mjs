@@ -6,11 +6,12 @@
  */
 import { open, check, BASE } from './lib.mjs';
 
+let code = null;
 const { browser, page, api, errors } = await open({ width: 1700, height: 1000 });
 const shot = process.env.LSMOM_E2E_SHOT;
 try {
+  code = 'acme.flowui' + Date.now().toString(36) + '.issueApproval';
   const me = (await api('GET', '/api/flow/me')).data;
-  const code = 'acme.flowui' + Date.now().toString(36) + '.issueApproval';
   await page.goto(`${BASE}/lsmom/flow-designer/${encodeURIComponent(code)}?concept=ls.core.Issue`);
   await page.locator('[data-testid="flow-designer"]').waitFor({ timeout: 30000 });
   await page.waitForTimeout(500);
@@ -138,5 +139,7 @@ try {
   console.log('页面消息：', await page.locator('.el-message').allTextContents());
   throw e;
 } finally {
+  // 停用本次发布的流程，避免与其他用例争用同一发起动作
+  if (code) await api('POST', `/api/flow/definitions/${encodeURIComponent(code)}/retire`).catch(() => undefined);
   await browser.close();
 }

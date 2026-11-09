@@ -93,6 +93,14 @@ public class FlowRegistry {
             return issues;
         }
         op(d, d.startOn(), "/startOn", true, issues);
+        if (d.startOn() != null && d.code() != null) {
+            // 同一业务动作只能发起一条流程，否则提交时无法确定走哪条
+            jdbc.queryForList("""
+                select code from meta_flow where kind = 'APPROVAL' and status = 'PUBLISHED' and definition ->> 'startOn' = ? and code <> ?
+                order by code limit 1""", String.class, d.startOn(), d.code()).stream().findFirst()
+                .ifPresent(other -> issues.add(new Issue("/startOn", "FLOW_START_CONFLICT",
+                    "发起动作 " + d.startOn() + " 已被流程 " + other + " 使用；请先停用该流程或改用其他发起动作")));
+        }
         if (d.callbacks() == null || d.callbacks().approved() == null) {
             issues.add(new Issue("/callbacks/approved", "CALLBACK_REQUIRED", "必须声明审批通过（onApproved）对应的 Operation"));
         }
@@ -361,6 +369,11 @@ public class FlowRegistry {
     public Optional<Version> published(String code) {
         return jdbc.query("select * from meta_flow where code = ? and kind = 'APPROVAL' and status = 'PUBLISHED'", (rs, i) -> map(rs), code)
             .stream().findFirst();
+    }
+
+    /** 停用流程：已发布版本置为 RETIRED，之后业务提交不再发起；在途实例按启动时的版本继续。 */
+    public int retire(String code) {
+        return jdbc.update("update meta_flow set status = 'RETIRED' where code = ? and kind = 'APPROVAL' and status = 'PUBLISHED'", code);
     }
 
     /** 由某个业务 Operation 发起的已发布流程。 */

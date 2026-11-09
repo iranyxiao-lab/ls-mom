@@ -93,9 +93,19 @@ public class FlowConfiguration {
     public FlowRuntime flowRuntime(JdbcTemplate jdbc, ProcessEngine engine, FlowRegistry registry, FlowInstances instances, FlowCallbacks callbacks,
                                    ApprovalEvidence evidence, AssigneeResolver assignees, OperationGateway gateway, OperationAudit audit,
                                    StateStores stores, CelRuleEngine cel, EventPublisher events, LeaderResolver leaders, FormRegistry forms,
-                                   ConceptRegistry concepts, TaskSync sync, PlatformTransactionManager txm, Clock clock) {
-        return new FlowRuntime(jdbc, engine, registry, instances, callbacks, evidence, assignees, gateway, audit, stores, cel, events, leaders,
+                                   ConceptRegistry concepts, TaskSync sync, PlatformTransactionManager txm, Clock clock,
+                                   @Value("${lsmom.flow.urge-min-age-minutes:0}") long urgeMinAge) {
+        FlowRuntime r = new FlowRuntime(jdbc, engine, registry, instances, callbacks, evidence, assignees, gateway, audit, stores, cel, events, leaders,
             forms, concepts, sync, txm, clock);
+        r.setUrgeMinAge(java.time.Duration.ofMinutes(urgeMinAge));
+        return r;
+    }
+
+    @Bean
+    public com.lsmom.flow.runtime.WorkCenter workCenter(JdbcTemplate jdbc, FlowRuntime runtime, FlowRegistry registry, FormRegistry forms,
+                                                        ConceptRegistry concepts, com.lsmom.crud.GenericCrudService crud, OperationGateway gateway,
+                                                        com.lsmom.action.timeline.TimelineService timeline, Clock clock) {
+        return new com.lsmom.flow.runtime.WorkCenter(jdbc, runtime, registry, forms, concepts, crud, gateway, timeline, clock);
     }
 
     @Bean

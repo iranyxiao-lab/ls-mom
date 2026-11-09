@@ -38,9 +38,37 @@ export type Widget =
   | 'registered';
 
 export const WIDGETS: readonly Widget[] = [
-  'input', 'textarea', 'number', 'money', 'date', 'datetime', 'switch', 'select', 'radio', 'checkbox', 'cascader', 'remoteSelect', 'dict',
-  'rate', 'userRef', 'deptRef', 'teamRef', 'assetRef', 'workRef', 'materialRef', 'pointRef', 'conceptRef', 'attachment', 'image', 'file',
-  'sourceRef', 'confirm', 'readonlyText', 'computed', 'expression', 'registered'
+  'input',
+  'textarea',
+  'number',
+  'money',
+  'date',
+  'datetime',
+  'switch',
+  'select',
+  'radio',
+  'checkbox',
+  'cascader',
+  'remoteSelect',
+  'dict',
+  'rate',
+  'userRef',
+  'deptRef',
+  'teamRef',
+  'assetRef',
+  'workRef',
+  'materialRef',
+  'pointRef',
+  'conceptRef',
+  'attachment',
+  'image',
+  'file',
+  'sourceRef',
+  'confirm',
+  'readonlyText',
+  'computed',
+  'expression',
+  'registered'
 ] as const;
 
 export type NodeType =
@@ -236,7 +264,23 @@ export interface DashboardSchema {
   version: number;
   conceptCode?: string;
   title?: string;
-  widgets: { type: 'metricCard' | 'trend' | 'bar' | 'pie' | 'table'; title: string; metric?: string; query?: string; dimensions?: string[] }[];
+  widgets: DashboardWidget[];
+}
+
+export type DashboardRange = 'today' | 'thisWeek' | 'last7Days' | 'thisMonth' | 'last30Days' | 'all';
+
+/** 看板组件：只绑定已发布指标（metric）或已登记命名 Query（query），不接受 SQL。 */
+export interface DashboardWidget {
+  type: 'metricCard' | 'trend' | 'bar' | 'pie' | 'table';
+  title: string;
+  metric?: string;
+  query?: string;
+  dimensions?: string[];
+  grain?: 'DAY' | 'WEEK' | 'MONTH';
+  range?: DashboardRange;
+  params?: Record<string, unknown>;
+  description?: string;
+  span?: number;
 }
 
 export type AnyViewSchema = FormSchema | ListViewSchema | DetailSchema | PrintSchema | MobileSchema | DashboardSchema;

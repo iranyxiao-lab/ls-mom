@@ -47,6 +47,8 @@ public class ViewSchemaValidator {
     private final CelRuleEngine cel;
     private final ComponentRegistry components;
     private final Map<ViewType, Schema> schemas = new EnumMap<>(ViewType.class);
+    private com.lsmom.crud.metric.MetricRegistry metrics;
+    private com.lsmom.crud.metric.NamedQueryRegistry queries;
 
     public ViewSchemaValidator(ConceptRegistry concepts, OperationRegistry operations, CelRuleEngine cel, ComponentRegistry components) {
         this.concepts = concepts;
@@ -60,6 +62,13 @@ public class ViewSchemaValidator {
             s.initializeValidators();
             schemas.put(t, s);
         }
+    }
+
+    /** 看板绑定目录：装配后校验看板引用的指标已发布、命名 Query 已登记，维度与粒度在口径内。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setDashboardCatalog(com.lsmom.crud.metric.MetricRegistry metrics, com.lsmom.crud.metric.NamedQueryRegistry queries) {
+        this.metrics = metrics;
+        this.queries = queries;
     }
 
     /** 校验结果：问题列表（空为通过）与该视图引用的 Concept 字段（发布时写入字段使用索引）。 */
@@ -411,6 +420,30 @@ public class ViewSchemaValidator {
                 JsonNode w = ws.get(i);
                 if (!w.has("metric") && !w.has("query")) issue("/widgets/" + i, "DASHBOARD_BINDING_MISSING", "看板组件必须绑定 Metric 或命名查询");
                 if (SQL.matcher(w.toString()).find()) issue("/widgets/" + i, "DASHBOARD_SQL_FORBIDDEN", "看板不允许直接写 SQL，请使用 Metric 或命名查询");
+                String p = "/widgets/" + i;
+                if (w.has("metric") && metrics != null) {
+                    var m = metrics.latest(w.get("metric").asText());
+                    if (m.isEmpty()) {
+                        issue(p + "/metric", "DASHBOARD_METRIC_NOT_FOUND", "指标未发布：" + w.get("metric").asText());
+                        continue;
+                    }
+                    var d = m.get().definition();
+                    JsonNode dims = w.path("dimensions");
+                    for (int k = 0; k < dims.size(); k++) {
+                        if (!d.dimensions().contains(dims.get(k).asText())) {
+                            issue(p + "/dimensions/" + k, "DASHBOARD_DIMENSION_INVALID", "维度不在指标口径内：" + dims.get(k).asText());
+                        }
+                    }
+                    String grain = w.path("grain").asText(null);
+                    if (grain != null && !d.grains().contains(grain)) issue(p + "/grain", "DASHBOARD_GRAIN_INVALID", "指标不支持粒度 " + grain);
+                    if ("trend".equals(w.path("type").asText()) && grain == null) issue(p + "/grain", "DASHBOARD_GRAIN_REQUIRED", "趋势图须设置时间粒度");
+                    if (w.has("range") && d.timeField() == null && !"all".equals(w.path("range").asText())) {
+                        issue(p + "/range", "DASHBOARD_RANGE_INVALID", "指标没有时间字段，不能设置时间范围");
+                    }
+                }
+                if (w.has("query") && queries != null && !queries.exists(w.get("query").asText())) {
+                    issue(p + "/query", "DASHBOARD_QUERY_NOT_FOUND", "命名 Query 未登记：" + w.get("query").asText());
+                }
             }
         }
     }

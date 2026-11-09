@@ -6,8 +6,10 @@
  */
 import { open, check } from './lib.mjs';
 
+let code = null;
 const { browser, api, errors } = await open();
 try {
+  code = 'acme.flowlive' + Date.now().toString(36) + '.issueAudit';
   const me = await api('GET', '/system/user/getInfo');
   const userId = me.data.user.userId;
   const orgs = await api('GET', '/api/flow/me');
@@ -15,7 +17,6 @@ try {
   check(party, '当前登录用户映射到 Party ' + party + '（用户 ' + userId + '）');
   const org = orgs.data.orgUnitId;
 
-  const code = 'acme.flowlive' + Date.now().toString(36) + '.issueAudit';
   const i = 'ls.core.Issue.';
   const def = {
     code,
@@ -104,5 +105,7 @@ try {
   check(rec.code === 200 && mine.length === 0, `对账：检查 ${rec.data.checkedInstances} 个实例，本次实例无差异`);
   check(errors.length === 0, '页面无脚本错误');
 } finally {
+  // 停用本次发布的流程，避免与其他用例争用同一发起动作
+  if (code) await api('POST', `/api/flow/definitions/${encodeURIComponent(code)}/retire`).catch(() => undefined);
   await browser.close();
 }

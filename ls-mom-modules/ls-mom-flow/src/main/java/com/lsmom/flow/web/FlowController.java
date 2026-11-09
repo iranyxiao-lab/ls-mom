@@ -158,6 +158,12 @@ public class FlowController {
         return R.ok(m);
     }
 
+    @SaCheckPermission("lsmom:flow:publish")
+    @PostMapping("/definitions/{code}/retire")
+    public R<Integer> retire(@PathVariable String code) {
+        return R.ok(registry.retire(code));
+    }
+
     // ---------- 待办与办理 ----------
 
     @GetMapping("/todo")

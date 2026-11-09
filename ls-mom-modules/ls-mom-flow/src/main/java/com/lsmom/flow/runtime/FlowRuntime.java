@@ -75,6 +75,12 @@ public class FlowRuntime implements FlowHooks, OperationListener {
     public static final String V_TASK_BY = "ls_by";
     public static final int MAX_START_ATTEMPTS = 5;
     public static final java.time.Duration URGE_INTERVAL = java.time.Duration.ofMinutes(30);
+    /** 待办生成后多久才允许催办（lsmom.flow.urge-min-age-minutes，默认 0）。 */
+    private java.time.Duration urgeMinAge = java.time.Duration.ZERO;
+
+    public void setUrgeMinAge(java.time.Duration d) {
+        this.urgeMinAge = d == null ? java.time.Duration.ZERO : d;
+    }
 
     /** 写入业务时间线的全部事件类型（docs/flow-integration.md 与此一致，由 FlowDocTest 校验）。 */
     public static final java.util.Set<String> TIMELINE_EVENTS = java.util.Set.of("ls.flow.started", "ls.flow.task.approved",
@@ -454,8 +460,15 @@ public class FlowRuntime implements FlowHooks, OperationListener {
             }
             engine.getTaskService().setAssignee(task.getId(), String.valueOf(toParty));
             refreshCandidates(task.getId());
-            notice("TRANSFER", toParty, task.getId(), inst, actor.effectiveParty(), "转办给你：" + task.getName());
-            event("ls.flow.task.transferred", inst, actor.effectiveParty(), withTarget(payload(task, comment, "转办"), String.valueOf(toParty)));
+            notice("TRANSFER", toParty, task.getId(), inst, actor.effectiveParty(), "转办给你：" + task.getName()
+                + (comment == null || comment.isBlank() ? "" : "（" + comment + "）"));
+            jdbc.update("""
+                insert into biz_task_transfer (task_id, biz_type, biz_id, node_name, from_party, to_party, reason, created_at)
+                values (?, ?, ?, ?, ?, ?, ?, ?)""", task.getId(), inst.bizType(), inst.bizId(), task.getName(), actor.effectiveParty(), toParty,
+                comment, now());
+            Map<String, Object> p = withTarget(payload(task, comment, "转办"), String.valueOf(toParty));
+            p.put("targetName", jdbc.queryForList("select name from core_party where id = ?", String.class, toParty).stream().findFirst().orElse(""));
+            event("ls.flow.task.transferred", inst, actor.effectiveParty(), p);
             return Map.of("taskId", task.getId(), "assignee", toParty);
         });
     }
@@ -471,6 +484,11 @@ public class FlowRuntime implements FlowHooks, OperationListener {
             LocalDateTime last = jdbc.query("select last_urged_at from biz_task where task_id = ? for update",
                 (rs, i) -> rs.getObject(1, LocalDateTime.class), task.getId()).stream().filter(Objects::nonNull).findFirst().orElse(null);
             LocalDateTime now = now();
+            LocalDateTime created = jdbc.queryForObject("select created_at from biz_task where task_id = ?", LocalDateTime.class, task.getId());
+            if (!urgeMinAge.isZero() && created != null && created.plus(urgeMinAge).isAfter(now)) {
+                throw new LsBizException("URGE_TOO_EARLY", "待办生成未满 " + urgeMinAge.toMinutes() + " 分钟，暂不能催办",
+                    Map.of("nextAllowedAt", created.plus(urgeMinAge).toString()));
+            }
             if (last != null && last.plus(URGE_INTERVAL).isAfter(now)) {
                 throw new LsBizException("URGE_TOO_FREQUENT", "催办太频繁，请 " + java.time.Duration.between(now, last.plus(URGE_INTERVAL)).toMinutes()
                     + " 分钟后再试", Map.of("nextAllowedAt", last.plus(URGE_INTERVAL).toString()));
@@ -705,7 +723,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
         }
     }
 
-    private static TaskView view(java.sql.ResultSet rs) throws java.sql.SQLException {
+    public static TaskView view(java.sql.ResultSet rs) throws java.sql.SQLException {
         List<Long> cands;
         try {
             cands = List.of(new com.fasterxml.jackson.databind.ObjectMapper().readValue(rs.getString("candidates"), Long[].class));
