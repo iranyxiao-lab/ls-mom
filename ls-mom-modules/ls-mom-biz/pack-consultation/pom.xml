@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lsmom</groupId>
+        <artifactId>ls-mom-biz</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>pack-consultation</artifactId>
+
+    <description>意见咨询 Pack</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-action</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-flow</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-meta</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+</project>

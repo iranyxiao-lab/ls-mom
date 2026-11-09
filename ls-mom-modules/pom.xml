@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.dromara</groupId>
+        <artifactId>ruoyi-vue-plus</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <groupId>com.lsmom</groupId>
+    <artifactId>ls-mom-modules</artifactId>
+    <packaging>pom</packaging>
+
+    <description>LS-MOM 自研模块</description>
+
+    <modules>
+        <module>ls-mom-core</module>
+        <module>ls-mom-meta</module>
+        <module>ls-mom-action</module>
+        <module>ls-mom-crud</module>
+        <module>ls-mom-form</module>
+        <module>ls-mom-flow</module>
+        <module>ls-mom-pack</module>
+        <module>ls-mom-ai</module>
+        <module>ls-mom-mcp</module>
+        <module>ls-mom-dcs</module>
+        <module>ls-mom-biz</module>
+    </modules>
+</project>

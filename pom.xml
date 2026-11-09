@@ -345,6 +345,7 @@
         <module>ruoyi-common</module>
         <module>ruoyi-extend</module>
         <module>ruoyi-modules</module>
+        <module>ls-mom-modules</module>
     </modules>
     <packaging>pom</packaging>
 

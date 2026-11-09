@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lsmom</groupId>
+        <artifactId>ls-mom-modules</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <groupId>com.lsmom</groupId>
+    <artifactId>ls-mom-biz</artifactId>
+    <packaging>pom</packaging>
+
+    <description>LS-MOM 标准业务 Pack</description>
+
+    <modules>
+        <module>pack-production</module>
+        <module>pack-asset</module>
+        <module>pack-quality</module>
+        <module>pack-training</module>
+        <module>pack-consultation</module>
+    </modules>
+</project>

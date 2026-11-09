@@ -23,6 +23,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 6 | `ruoyi-admin/pom.xml` | 启用 `org.postgresql:postgresql` 驱动 | 同上 | 2.1 |
 | 7 | `script/sql/**/*workflow*`、`script/leave/` | 删除各数据库的工作流建表与菜单脚本、请假示例 | 同补丁 3 | 2.1 |
 | 8 | `plus-ui/src/views/workflow/`、`plus-ui/src/api/workflow/`、`plus-ui/src/components/Process/` | 删除工作流页面、接口与审批组件 | 同补丁 3；LS-MOM 协同中心另行实现 | 2.1 |
+| 9 | `pom.xml`、`ruoyi-admin/pom.xml` | 根 pom 增加 `ls-mom-modules` 模块；admin 依赖全部 LS-MOM 模块与标准 Pack | 接入自研模块；LS-MOM 组件经 `com.lsmom` 自动配置装配，不改上游启动类 | 2.2 |
 
 ## 合并上游更新的方法
 
