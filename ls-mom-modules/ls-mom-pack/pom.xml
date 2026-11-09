@@ -19,5 +19,59 @@
             <artifactId>ls-mom-meta</artifactId>
             <version>${revision}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-crud</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-form</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-flow</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-action</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-crud</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-form</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-flow</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

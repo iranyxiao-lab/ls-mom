@@ -1,0 +1,13 @@
+{
+  "viewType": "LIST",
+  "formCode": "acme.visitor.visitList",
+  "version": 1,
+  "conceptCode": "acme.visitor.Visit",
+  "columns": ["visitorName", "company", "hostName", "visitDate", "status"],
+  "filters": ["visitorName", "company"],
+  "defaultSort": [{ "field": "visitDate", "dir": "desc" }],
+  "rowActions": [
+    { "key": "checkIn", "label": "签到", "operation": "acme.visitor.Visit.checkIn" },
+    { "key": "checkOut", "label": "签退", "operation": "acme.visitor.Visit.checkOut" }
+  ]
+}

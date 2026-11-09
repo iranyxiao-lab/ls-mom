@@ -110,6 +110,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/lsmom/workbench/index.vue'),
         name: 'LsWorkbench',
         meta: { title: '协同工作中心', icon: 'job' }
+      },
+      {
+        path: 'apps',
+        component: () => import('@/views/lsmom/app-center/index.vue'),
+        name: 'LsAppCenter',
+        meta: { title: '协同应用中心', icon: 'component' }
       }
     ]
   },

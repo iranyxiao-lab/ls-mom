@@ -268,6 +268,9 @@ spring:
     # 某模块新增的低段脚本可能晚于其他模块的高段脚本发布，必须允许乱序执行
     out-of-order: true
 lsmom:
+  pack:
+    # 直接安装 Pack 只在沙箱 / 升级演练环境开启；正式环境经 ChangeSet 审批发布
+    direct-install: ${LSMOM_PACK_DIRECT_INSTALL:false}
   schema:
     # 开发环境发现漂移只告警；生产环境在 application-prod.yml 中改为 fail
     drift-mode: warn

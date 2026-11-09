@@ -10,10 +10,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HexFormat;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * 计算与记录表结构指纹。
@@ -83,12 +83,33 @@ public class SchemaFingerprintService {
         if (recorded.isEmpty()) {
             return List.of();
         }
-        Set<String> expected = new LinkedHashSet<>(recorded.get());
-        Set<String> actual = new LinkedHashSet<>(snapshot());
+        Map<String, String> expected = normalized(recorded.get());
+        Map<String, String> actual = normalized(snapshot());
         List<String> diff = new ArrayList<>();
-        expected.stream().filter(l -> !actual.contains(l)).forEach(l -> diff.add("- " + l));
-        actual.stream().filter(l -> !expected.contains(l)).forEach(l -> diff.add("+ " + l));
+        expected.forEach((k, l) -> {
+            if (!actual.containsKey(k)) diff.add("- " + l);
+        });
+        actual.forEach((k, l) -> {
+            if (!expected.containsKey(k)) diff.add("+ " + l);
+        });
         return diff;
+    }
+
+    private static Map<String, String> normalized(List<String> lines) {
+        Map<String, String> m = new LinkedHashMap<>();
+        lines.forEach(l -> m.putIfAbsent(normalize(l), l));
+        return m;
+    }
+
+    /**
+     * 比较用的规范形式：索引定义去掉类型转换、括号与空白。pg_dump/pg_restore 后 PostgreSQL 会以等价但不同的写法
+     * 输出部分索引谓词（如 {@code ANY ((ARRAY['A'::varchar])::text[])} 与 {@code ANY (ARRAY[('A'::varchar)::text])}），
+     * 不能因此误判为漂移。
+     */
+    static String normalize(String line) {
+        if (!line.startsWith("idx ")) return line;
+        String s = line.substring(4).replaceAll("::[a-z_][a-z0-9_ ]*(\\[\\])?", "");
+        return "idx " + s.replaceAll("[()\\s]", "");
     }
 
     static String sha256(String text) {

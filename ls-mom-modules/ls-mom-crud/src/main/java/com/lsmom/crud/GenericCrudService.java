@@ -71,6 +71,13 @@ public class GenericCrudService {
     private final Clock clock;
     private final CrudProperties props;
     private List<RecordValidator> recordValidators = List.of();
+    private com.lsmom.meta.pack.PackGate packGate;
+
+    /** 所属 Pack 停用后通用台账接口不可访问（数据保留，经 Pack 只读导出）。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPackGate(com.lsmom.meta.pack.PackGate packGate) {
+        this.packGate = packGate;
+    }
 
     public GenericCrudService(JdbcTemplate jdbc, ConceptRegistry concepts, GenericWritePolicy policy, OperationRegistry operations,
                               IdempotencyStore idempotency, OperationAudit audit, EventPublisher events, PartyService parties,
@@ -370,6 +377,12 @@ public class GenericCrudService {
     /** Agent 拒绝（并审计）与功能权限。 */
     void guard(ActorContext actor, String concept, String action, String targetId, Object body) {
         String op = permission(concept, action);
+        if (packGate != null) {
+            String root = Optional.ofNullable(concepts.find(concept).map(ConceptDef::parentConcept).orElse(null)).orElse(concept);
+            packGate.disabledPackOf(root).ifPresent(p -> {
+                throw new LsBizException("PACK_DISABLED", concept + " 所属 Pack " + p + " 已停用", Map.of("pack", p));
+            });
+        }
         if (actor.type() == ActorContext.ActorType.AGENT) {
             String msg = "Agent 不能调用通用台账接口，请使用包装后的 Operation";
             audit.writeIndependently(new OperationAudit.Entry(op, actor, concept, targetId, null, "FAILED", "AGENT_FORBIDDEN", msg,

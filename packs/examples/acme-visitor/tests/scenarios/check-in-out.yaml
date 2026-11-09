@@ -1,0 +1,8 @@
+name: 访客登记、签到、签退
+steps:
+  - create: { concept: acme.visitor.Visit, as: v, values: { visitorName: 测试访客, company: 某供应商, hostName: 张工, visitDate: "2026-11-10" } }
+  - expectError: { code: INVALID_TRANSITION, op: { code: acme.visitor.Visit.checkOut, target: v } }
+  - op: { code: acme.visitor.Visit.checkIn, target: v }
+  - expect: { concept: acme.visitor.Visit, target: v, status: CHECKED_IN }
+  - op: { code: acme.visitor.Visit.checkOut, target: v }
+  - expect: { concept: acme.visitor.Visit, target: v, status: CHECKED_OUT, values: { hostName: 张工 } }

@@ -1,0 +1,21 @@
+{
+  "viewType": "FORM",
+  "formCode": "acme.visitor.visitForm",
+  "version": 1,
+  "conceptCode": "acme.visitor.Visit",
+  "title": "访客登记",
+  "layout": [
+    { "type": "field", "key": "visitorName" },
+    { "type": "field", "key": "company" },
+    { "type": "field", "key": "hostName" },
+    { "type": "field", "key": "visitDate" },
+    { "type": "field", "key": "purpose" }
+  ],
+  "fields": [
+    { "key": "visitorName", "label": "访客姓名", "widget": "input", "required": true },
+    { "key": "company", "label": "来访单位", "widget": "input" },
+    { "key": "hostName", "label": "被访人", "widget": "input", "required": true },
+    { "key": "visitDate", "label": "来访日期", "widget": "date", "required": true },
+    { "key": "purpose", "label": "事由", "widget": "textarea" }
+  ]
+}

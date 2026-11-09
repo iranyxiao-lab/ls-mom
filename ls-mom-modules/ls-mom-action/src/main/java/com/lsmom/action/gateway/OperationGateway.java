@@ -61,6 +61,13 @@ public class OperationGateway {
     private final EventPublisher events;
     private final TransactionTemplate tx;
     private List<com.lsmom.action.api.OperationListener> listeners = List.of();
+    private com.lsmom.meta.pack.PackGate packGate;
+
+    /** 所属 Pack 停用后其 Operation 不可执行（含 Agent 工具调用）。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPackGate(com.lsmom.meta.pack.PackGate packGate) {
+        this.packGate = packGate;
+    }
 
     public OperationGateway(OperationRegistry registry, StateMachineRegistry machines, StateStores stores, GuardRegistry guards,
                             InputSchemaValidator schemas, List<FieldPolicyCheck> fieldPolicies, List<TransitionEffect> effects,
@@ -94,6 +101,16 @@ public class OperationGateway {
             throw e;
         }
         final OperationDefinition def = op;
+        if (packGate != null) {
+            Optional<String> off = packGate.disabledPackOf(def.concept());
+            if (off.isPresent()) {
+                LsBizException e = new LsBizException("PACK_DISABLED", "「" + def.name() + "」所属 Pack " + off.get() + " 已停用",
+                    Map.of("pack", off.get()));
+                audit.writeIndependently(new OperationAudit.Entry(code, actor, def.concept(), req.targetId(), null, "FAILED", e.getCode(),
+                    e.getMessage(), digest, summary, elapsed(started), req.idempotencyKey()));
+                throw e;
+            }
+        }
         String[] auditTarget = {req.targetId()};
         try {
             OperationResult result = tx.execute(status -> {

@@ -1,0 +1,8 @@
+code: acme.visitor.Visit
+displayName: 访客登记
+fields:
+  - { code: visitorName, displayName: 访客姓名, dataType: STRING, required: true, props: { queryable: true, maxLength: 50 } }
+  - { code: company, displayName: 来访单位, dataType: STRING, props: { queryable: true } }
+  - { code: hostName, displayName: 被访人, dataType: STRING, required: true }
+  - { code: visitDate, displayName: 来访日期, dataType: DATE, required: true, props: { sortable: true } }
+  - { code: purpose, displayName: 事由, dataType: TEXT }

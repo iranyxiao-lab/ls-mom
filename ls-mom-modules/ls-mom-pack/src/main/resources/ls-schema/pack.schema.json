@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.dev/schema/pack.schema.json",
+  "title": "LS-MOM Pack 清单（pack.yaml）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code", "version", "name", "owner", "requester", "reviewDue"],
+  "properties": {
+    "code": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+$", "maxLength": 64, "description": "Pack 编码，同时是其中 Concept / Operation 的命名空间前缀" },
+    "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "语义化版本 主.次.修订" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "description": { "type": "string", "maxLength": 1000 },
+    "standard": { "type": "boolean", "description": "标准 Pack（平台随版本发布）；客户 Pack 为 false" },
+    "owner": { "$ref": "#/$defs/person", "description": "业务负责人：复审与下线通知发给此人" },
+    "requester": { "$ref": "#/$defs/person", "description": "需求提出人" },
+    "reviewDue": { "type": "string", "format": "date", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "下次复审日期" },
+    "dependsOn": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "version"],
+        "properties": {
+          "code": { "type": "string", "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+$" },
+          "version": { "type": "string", "minLength": 1, "description": "版本范围，如 >=1.0.0 <2.0.0、^1.2.0、~1.2.0、1.x、1.2.3" }
+        }
+      }
+    },
+    "contents": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "声明包含的定义编码；安装器核对与目录中的文件一致",
+      "properties": {
+        "concepts": { "$ref": "#/$defs/codes" },
+        "operations": { "$ref": "#/$defs/codes" },
+        "views": { "$ref": "#/$defs/codes" },
+        "flows": { "$ref": "#/$defs/codes" },
+        "rules": { "$ref": "#/$defs/codes" },
+        "metrics": { "$ref": "#/$defs/codes" }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "description": "协同应用中心中的 Pack 入口",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "path"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "path": { "type": "string", "pattern": "^/[A-Za-z0-9/_:.?=&%-]*$" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "party": { "type": "string", "maxLength": 64, "description": "人员编码（core_party.code），用于发送通知" }
+      }
+    },
+    "codes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+  }
+}

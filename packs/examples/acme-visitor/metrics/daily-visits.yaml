@@ -1,0 +1,11 @@
+code: acme.visitor.dailyVisits
+name: 访客数
+concept: acme.visitor.Visit
+description: 已签到的访客（含已签退），按登记时间统计
+unit: 人次
+measure: { fn: count }
+filters:
+  - { field: status, op: in, value: [CHECKED_IN, CHECKED_OUT] }
+timeField: createdAt
+grains: [DAY, WEEK, MONTH]
+dimensions: [company]

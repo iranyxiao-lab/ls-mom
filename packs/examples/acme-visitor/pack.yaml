@@ -1,0 +1,15 @@
+# 访客登记：一个最小的客户 Pack（不依赖其他 Pack）
+code: acme.visitor
+version: 1.0.0
+name: 访客登记
+description: 门卫登记来访人员，到访签到、离开签退，统计每日访客数
+owner: { name: 行政部王经理 }
+requester: { name: 安保队长 }
+reviewDue: 2027-06-30
+contents:
+  concepts: [acme.visitor.Visit]
+  operations: [acme.visitor.Visit.checkIn, acme.visitor.Visit.checkOut]
+  views: [acme.visitor.visitForm, acme.visitor.visitList]
+  metrics: [acme.visitor.dailyVisits]
+entries:
+  - { name: 访客台账, path: /lsmom/ledger/acme.visitor.Visit }

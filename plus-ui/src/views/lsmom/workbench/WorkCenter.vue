@@ -186,7 +186,15 @@ const OUTCOME: Record<string, string> = {
 };
 const STATUS: Record<string, string> = { RUNNING: '进行中', APPROVED: '已通过', REJECTED: '已驳回', WITHDRAWN: '已撤回', CANCELED: '已取消' };
 const STATUS_TYPE: Record<string, any> = { RUNNING: 'primary', APPROVED: 'success', REJECTED: 'danger', WITHDRAWN: 'info', CANCELED: 'info' };
-const NOTICE: Record<string, string> = { REMIND: '提醒', URGE: '催办', CC: '抄送', ESCALATE: '升级', EXCEPTION: '异常', TRANSFER: '转办' };
+const NOTICE: Record<string, string> = {
+  REMIND: '提醒',
+  URGE: '催办',
+  CC: '抄送',
+  ESCALATE: '升级',
+  EXCEPTION: '异常',
+  TRANSFER: '转办',
+  PACK_REVIEW: 'Pack 复审'
+};
 
 const tab = ref('todo');
 const loading = ref(false);

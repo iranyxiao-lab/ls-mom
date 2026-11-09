@@ -5,7 +5,9 @@ import com.lsmom.meta.concept.ConceptRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.Ordered;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,13 +34,35 @@ public class MetricConfiguration {
         return new NamedQueryRegistry(jdbc, validator, txm);
     }
 
+    /** 在核心 Concept 登记（CoreConceptRegistrar，Order 100）之后执行：空库首次启动时指标引用的核心对象才存在。 */
     @Bean
-    public SmartInitializingSingleton metricCatalogRegistrar(MetricRegistry metrics, NamedQueryRegistry queries, ObjectProvider<NamedQueryDef> defs) {
-        return () -> {
+    public ApplicationRunner metricCatalogRegistrar(MetricRegistry metrics, NamedQueryRegistry queries, ObjectProvider<NamedQueryDef> defs) {
+        return new MetricCatalogRegistrar(metrics, queries, defs);
+    }
+
+    static final class MetricCatalogRegistrar implements ApplicationRunner, Ordered {
+
+        private final MetricRegistry metrics;
+        private final NamedQueryRegistry queries;
+        private final ObjectProvider<NamedQueryDef> defs;
+
+        MetricCatalogRegistrar(MetricRegistry metrics, NamedQueryRegistry queries, ObjectProvider<NamedQueryDef> defs) {
+            this.metrics = metrics;
+            this.queries = queries;
+            this.defs = defs;
+        }
+
+        @Override
+        public int getOrder() {
+            return 220;
+        }
+
+        @Override
+        public void run(ApplicationArguments args) {
             for (NamedQueryDef d : CoreMetrics.queries()) queries.register(d);
             defs.orderedStream().forEach(queries::register);
             for (MetricDefinition m : CoreMetrics.metrics()) metrics.publish(m, null);
             log.info("已登记命名 Query {} 个、内置指标 {} 个", queries.list().size(), CoreMetrics.metrics().size());
-        };
+        }
     }
 }

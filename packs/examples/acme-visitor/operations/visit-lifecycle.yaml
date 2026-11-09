@@ -1,0 +1,20 @@
+code: acme.visitor.Visit.lifecycle
+concept: acme.visitor.Visit
+displayName: 访客状态
+states: [DRAFT, CHECKED_IN, CHECKED_OUT]
+initial: DRAFT
+transitions:
+  - operation: acme.visitor.Visit.checkIn
+    name: 签到
+    from: [DRAFT]
+    to: CHECKED_IN
+    permission: "acme:visitor:checkin"
+    risk: C1
+    inputSchema: { type: object }
+  - operation: acme.visitor.Visit.checkOut
+    name: 签退
+    from: [CHECKED_IN]
+    to: CHECKED_OUT
+    permission: "acme:visitor:checkin"
+    risk: C1
+    inputSchema: { type: object }
