@@ -12,7 +12,7 @@
 
 ## 2. 工程改造与模块骨架（P0）
 
-- [ ] 2.1 关闭多租户、切换默认数据源为 PostgreSQL 16，移除 `ruoyi-workflow`（Warm-Flow）模块、前端页面与菜单种子并记录补丁；验证应用启动后无 Warm-Flow 表与菜单
+- [x] 2.1 关闭多租户、切换默认数据源为 PostgreSQL 16，移除 `ruoyi-workflow`（Warm-Flow）模块、前端页面与菜单种子并记录补丁；验证应用启动后无 Warm-Flow 表与菜单
 - [ ] 2.2 创建 `ls-mom-modules` 下 core/meta/crud/form/flow/action/pack/ai/dcs/mcp 与 `ls-mom-biz` 各 Pack 子模块的空骨架，接入 `ruoyi-admin`；验证 `mvn package` 成功
 - [ ] 2.3 编写 ArchUnit 测试强制 D4 依赖方向（core 不依赖 Pack、ai/mcp 不触达 Mapper、crud/form/flow 不依赖 biz）；验证人为加入违规引用时测试失败
 - [ ] 2.4 引入 Flyway：核心迁移目录 `db/migration/core`，启动时结构校验（漂移在生产 profile 拒绝启动）；验证手工 `ALTER TABLE` 后 prod profile 启动失败

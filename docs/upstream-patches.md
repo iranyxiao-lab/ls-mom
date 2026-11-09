@@ -17,6 +17,12 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | --- | --- | --- | --- | --- |
 | 1 | `README.md`、`LICENSE` | 上游文件移至 `docs/upstream/`、`licenses/`，根目录改为 LS-MOM 自己的 README、LICENSE、NOTICE | 产品自有说明，同时保留 MIT 声明 | 1.3 |
 | 2 | `.gitignore` | 在上游内容后追加 LS-MOM 段（前端、密钥、运行数据） | 防止提交凭据与构建产物 | 1.1 |
+| 3 | `ruoyi-modules/ruoyi-workflow/`、`pom.xml`、`ruoyi-modules/pom.xml`、`ruoyi-admin/pom.xml` | 删除 Warm-Flow 工作流模块及 `warm-flow.*` 依赖管理 | 流程引擎改用 Flowable 7，避免双引擎（D2） | 2.1 |
+| 4 | `ruoyi-admin/src/main/resources/application.yml` | 删除 `warm-flow` 配置段与相关白名单/XSS 排除路径；`tenant.enable=false` | 去除 Warm-Flow；单客户单库关闭多租户（D1） | 2.1 |
+| 5 | `ruoyi-admin/src/main/resources/application-dev.yml` | 主数据源改为 PostgreSQL（`DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD`），Redis 地址与密码改为环境变量，监控客户端与 SnailJob 默认关闭（`MONITOR_ENABLED`、`SNAIL_JOB_ENABLED`） | 默认数据库为 PostgreSQL 16，Compose 通过环境变量注入 | 2.1 |
+| 6 | `ruoyi-admin/pom.xml` | 启用 `org.postgresql:postgresql` 驱动 | 同上 | 2.1 |
+| 7 | `script/sql/**/*workflow*`、`script/leave/` | 删除各数据库的工作流建表与菜单脚本、请假示例 | 同补丁 3 | 2.1 |
+| 8 | `plus-ui/src/views/workflow/`、`plus-ui/src/api/workflow/`、`plus-ui/src/components/Process/` | 删除工作流页面、接口与审批组件 | 同补丁 3；LS-MOM 协同中心另行实现 | 2.1 |
 
 ## 合并上游更新的方法
 

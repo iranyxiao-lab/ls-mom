@@ -76,3 +76,6 @@ Thumbs.db
 deploy/data/
 deploy/backup/
 acceptance/runs/**/video/
+
+# 本地工具索引
+.codegraph/
