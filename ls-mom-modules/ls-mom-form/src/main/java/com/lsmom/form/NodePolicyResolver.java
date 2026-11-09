@@ -10,7 +10,12 @@ import java.util.Optional;
  */
 public interface NodePolicyResolver {
 
-    record Binding(String formCode, int formVersion, String node) {
+    /** policy 为节点自带的策略差异（流程节点配置）；为空时取表单 nodePolicies[node]。 */
+    record Binding(String formCode, int formVersion, String node, com.fasterxml.jackson.databind.JsonNode policy) {
+
+        public Binding(String formCode, int formVersion, String node) {
+            this(formCode, formVersion, node, null);
+        }
     }
 
     Optional<Binding> resolve(OperationContext ctx);

@@ -37,7 +37,7 @@ public class FormFieldPolicyCheck implements FieldPolicyCheck {
 
     public void enforce(NodePolicyResolver.Binding b, JsonNode input) {
         JsonNode form = forms.get(b.formCode(), b.formVersion()).schema();
-        JsonNode policy = form.path("nodePolicies").get(b.node());
+        JsonNode policy = b.policy() != null && !b.policy().isNull() ? b.policy() : form.path("nodePolicies").get(b.node());
         Map<String, FieldPolicy.Access> access = FieldPolicy.resolve(form, policy);
         Map<String, String> errors = new LinkedHashMap<>();
         if (input != null) {

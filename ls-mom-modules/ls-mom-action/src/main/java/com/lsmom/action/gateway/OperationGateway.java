@@ -54,12 +54,13 @@ public class OperationGateway {
     private final StateStores stores;
     private final GuardRegistry guards;
     private final InputSchemaValidator schemas;
-    private final List<FieldPolicyCheck> fieldPolicies;
+    private List<FieldPolicyCheck> fieldPolicies;
     private final Map<String, TransitionEffect> effects = new HashMap<>();
     private final IdempotencyStore idempotency;
     private final OperationAudit audit;
     private final EventPublisher events;
     private final TransactionTemplate tx;
+    private List<com.lsmom.action.api.OperationListener> listeners = List.of();
 
     public OperationGateway(OperationRegistry registry, StateMachineRegistry machines, StateStores stores, GuardRegistry guards,
                             InputSchemaValidator schemas, List<FieldPolicyCheck> fieldPolicies, List<TransitionEffect> effects,
@@ -69,7 +70,7 @@ public class OperationGateway {
         this.stores = stores;
         this.guards = guards;
         this.schemas = schemas;
-        this.fieldPolicies = fieldPolicies;
+        this.fieldPolicies = List.copyOf(fieldPolicies);
         effects.forEach(e -> this.effects.put(e.operation(), e));
         this.idempotency = idempotency;
         this.audit = audit;
@@ -214,12 +215,44 @@ public class OperationGateway {
                 actor.actorParty(), actor.onBehalfOf(), key + "#" + (++n), pe.payload()));
             eventIds.add(e.eventId().toString());
         }
-        return new OperationResult(op.code(), ctx.targetId(), ctx.targetVersion(), ctx.targetStatus(), data,
+        OperationResult result = new OperationResult(op.code(), ctx.targetId(), ctx.targetVersion(), ctx.targetStatus(), data,
             List.copyOf(ctx.warnings()), eventIds, false, req.simulate());
+        for (com.lsmom.action.api.OperationListener l : listeners) l.afterSuccess(ctx, result);
+        return result;
+    }
+
+    /** 成功后扩展点（模块在自身装配时调用 {@link #addListener}，避免与网关形成循环依赖）。 */
+    public void setListeners(List<com.lsmom.action.api.OperationListener> listeners) {
+        this.listeners = listeners == null ? List.of() : List.copyOf(listeners);
+    }
+
+    /** 追加字段策略检查（测试装配用；生产由 Spring 注入全部实现）。 */
+    public void addFieldPolicy(FieldPolicyCheck check) {
+        List<FieldPolicyCheck> l = new ArrayList<>(fieldPolicies);
+        l.add(check);
+        fieldPolicies = List.copyOf(l);
+    }
+
+    /** 追加扩展点（测试装配与模块自注册用）。 */
+    public void addListener(com.lsmom.action.api.OperationListener listener) {
+        List<com.lsmom.action.api.OperationListener> l = new ArrayList<>(listeners);
+        l.add(listener);
+        listeners = List.copyOf(l);
     }
 
     public void registerEffect(TransitionEffect effect) {
         effects.put(effect.operation(), effect);
+    }
+
+    /** Operation 的输入 Schema（未注册返回空对象）。 */
+    public JsonNode operationSchema(String code) {
+        return registry.find(code).map(OperationDefinition::inputSchema).filter(java.util.Objects::nonNull)
+            .orElse(JsonNodeFactory.instance.objectNode());
+    }
+
+    /** 迁移尚无效果时注册（模块按配置补充效果，不覆盖已有实现）。 */
+    public void registerEffectIfAbsent(TransitionEffect effect) {
+        effects.putIfAbsent(effect.operation(), effect);
     }
 
     private static Map<String, Object> withInput(Map<String, Object> payload, JsonNode input) {

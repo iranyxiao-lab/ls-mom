@@ -81,24 +81,24 @@
 
 ## 9. Flowable 协同引擎（P3）
 
-- [ ] 9.1 集成 Flowable 7 嵌入式引擎（`flowable` schema、关闭脚本引擎、受限表达式上下文）与 `OperationServiceTask`；验证引擎表仅出现在 `flowable` schema
-- [ ] 9.2 实现 `biz_flow_instance`、`biz_task`、`biz_flow_callback_log` 与全局事件监听器同步待办；验证任务完成后读模型状态更新
-- [ ] 9.3 实现回调 → 命名 Operation（幂等键 `procInstId:taskId:event`）与启动/完成失败的 `PENDING_RETRY` 重试；验证重复回调只迁移一次（FLOW-07）
-- [ ] 9.4 实现 `AssigneeResolver` 全部命名策略与"无人可办"异常待办；验证离职候选人场景
-- [ ] 9.5 实现提交、通过、退回（发起人/指定节点）、再提交、确认、归档、撤回（经业务 Operation 判定）、转办、催办（频率限制）、抄送；验证 FLOW-01、FLOW-03 测试
-- [ ] 9.6 实现或签/会签/条件分支/并行模板；验证 FLOW-02 或签与会签测试
-- [ ] 9.7 实现节点字段策略服务端强制与任务办理人双重校验；验证 FLOW-05 越权改字段与非办理人办理被拒
-- [ ] 9.8 实现超时提醒与升级（Flowable 定时边界事件→Operation）；验证超时升级测试（时钟可注入）
-- [ ] 9.9 实现流程/表单版本冻结与在途实例保持旧版本；验证 FLOW-06
-- [ ] 9.10 实现受控审批模式的批准证据（批准人、时间、输入摘要、数据版本、实例）与失效判定守卫；验证批准后数据被改须重审
-- [ ] 9.11 实现 `FlowReconcileJob` 对账与读模型重建；验证人为删除 `biz_task` 行后对账可重建
-- [ ] 9.12 编写 `docs/flow-integration.md`（单一业务状态原则、回调约定、对账）；验证文档与实现的事件名一致
+- [x] 9.1 集成 Flowable 7 嵌入式引擎（`flowable` schema、关闭脚本引擎、受限表达式上下文）与 `OperationServiceTask`；验证引擎表仅出现在 `flowable` schema
+- [x] 9.2 实现 `biz_flow_instance`、`biz_task`、`biz_flow_callback_log` 与全局事件监听器同步待办；验证任务完成后读模型状态更新
+- [x] 9.3 实现回调 → 命名 Operation（幂等键 `procInstId:taskId:event`）与启动/完成失败的 `PENDING_RETRY` 重试；验证重复回调只迁移一次（FLOW-07）
+- [x] 9.4 实现 `AssigneeResolver` 全部命名策略与"无人可办"异常待办；验证离职候选人场景
+- [x] 9.5 实现提交、通过、退回（发起人/指定节点）、再提交、确认、归档、撤回（经业务 Operation 判定）、转办、催办（频率限制）、抄送；验证 FLOW-01、FLOW-03 测试
+- [x] 9.6 实现或签/会签/条件分支/并行模板；验证 FLOW-02 或签与会签测试
+- [x] 9.7 实现节点字段策略服务端强制与任务办理人双重校验；验证 FLOW-05 越权改字段与非办理人办理被拒
+- [x] 9.8 实现超时提醒与升级（Flowable 定时边界事件→Operation）；验证超时升级测试（时钟可注入）
+- [x] 9.9 实现流程/表单版本冻结与在途实例保持旧版本；验证 FLOW-06
+- [x] 9.10 实现受控审批模式的批准证据（批准人、时间、输入摘要、数据版本、实例）与失效判定守卫；验证批准后数据被改须重审
+- [x] 9.11 实现 `FlowReconcileJob` 对账与读模型重建；验证人为删除 `biz_task` 行后对账可重建
+- [x] 9.12 编写 `docs/flow-integration.md`（单一业务状态原则、回调约定、对账）；验证文档与实现的事件名一致
 
 ## 10. 流程设计器（P3）
 
-- [ ] 10.1 实现 `meta_flow` 流程配置模型与 `BpmnTemplateGenerator`（固定模板，生成 BPMN 2.0）；验证生成 XML 可部署且节点与配置一致
-- [ ] 10.2 实现 `BpmnSafetyScanner`（拒绝 scriptTask、class/delegateExpression、任意 expression、外部 URL），覆盖设计器产物与代码库流程；验证 FLOW-08 含脚本任务部署被拒
-- [ ] 10.3 实现发布校验：节点表单引用、策略字段存在、办理人可解析、`onApproved/onRejected` 必填；验证缺少回调与角色无成员两个场景
+- [x] 10.1 实现 `meta_flow` 流程配置模型与 `BpmnTemplateGenerator`（固定模板，生成 BPMN 2.0）；验证生成 XML 可部署且节点与配置一致
+- [x] 10.2 实现 `BpmnSafetyScanner`（拒绝 scriptTask、class/delegateExpression、任意 expression、外部 URL），覆盖设计器产物与代码库流程；验证 FLOW-08 含脚本任务部署被拒
+- [x] 10.3 实现发布校验：节点表单引用、策略字段存在、办理人可解析、`onApproved/onRejected` 必填；验证缺少回调与角色无成员两个场景
 - [ ] 10.4 前端实现审批流树形配置器（节点卡片、条件、并行、或签/会签、服务节点仅选已发布 Operation、节点表单策略编辑），不提供 XML 导入；验证 Playwright 无头 E2E 配置并发布一条流程
 - [ ] 10.5 实现 LogicFlow 只读预览与版本差异高亮；验证 v1/v2 差异显示新增会签节点
 

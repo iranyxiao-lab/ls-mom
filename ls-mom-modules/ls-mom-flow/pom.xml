@@ -13,6 +13,11 @@
 
     <description>Flowable 适配、待办读模型、流程版本与对账</description>
 
+    <properties>
+        <!-- Flowable 7.2.0（2025-08，适配 Spring Boot 3.5）；8.x 需要 Boot 4，不在当前基线 -->
+        <flowable.version>7.2.0</flowable.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.lsmom</groupId>
@@ -28,6 +33,40 @@
             <groupId>com.lsmom</groupId>
             <artifactId>ls-mom-form</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <!-- 嵌入式 Flowable 7（不引入 Boot 自动配置、IDM、事件注册等，引擎由 FlowEngineConfiguration 手工装配） -->
+        <dependency>
+            <groupId>org.flowable</groupId>
+            <artifactId>flowable-spring</artifactId>
+            <version>${flowable.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-action</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-crud</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-form</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
