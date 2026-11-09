@@ -33,6 +33,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 16 | `plus-ui/package.json`、`plus-ui/vitest.config.ts`（新增） | 增加 `vitest`、`@vitest/browser-playwright`、`playwright` 与 `test`（无头）/`test:browser` 脚本 | 前端单元与组件测试在真实浏览器中无头运行 | 3.3 |
 | 17 | `plus-ui/.gitignore` | 不再忽略 `pnpm-lock.yaml`，锁文件入库 | CI 与镜像构建使用 `--frozen-lockfile`，依赖可复现 | 3.3 |
 | 18 | `ruoyi-admin/src/main/resources/application.yml` | `captcha.enable` 改为 `${CAPTCHA_ENABLED:true}` | 自动化验收环境可关闭登录验证码；默认与生产保持开启 | 3.4 |
+| 19 | `ruoyi-admin/src/main/resources/application.yml` | springdoc 分组「5.工作流模块」改为「5.LS-MOM」（`com.lsmom`），`api-docs.version: openapi_3_1` | Warm-Flow 已移除；Operation 以 OpenAPI 3.1 描述 | 5.9 |
 
 ## 生产前必须替换的上游密钥
 

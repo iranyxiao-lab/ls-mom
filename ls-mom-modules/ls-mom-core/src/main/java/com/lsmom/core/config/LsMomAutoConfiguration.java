@@ -3,6 +3,7 @@ package com.lsmom.core.config;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * LS-MOM 模块统一装配入口。
@@ -13,5 +14,6 @@ import org.springframework.context.annotation.ComponentScan;
 @AutoConfiguration
 @ComponentScan(basePackages = "com.lsmom")
 @MapperScan(basePackages = "com.lsmom.**.mapper")
+@EnableScheduling
 public class LsMomAutoConfiguration {
 }

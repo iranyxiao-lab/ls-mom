@@ -176,6 +176,20 @@ public class WorkItemService {
         return get(id);
     }
 
+    /** 调整优先级（非状态字段，带乐观锁）。 */
+    @Transactional
+    public WorkItem changePriority(long id, int expectedVersion, int priority) {
+        if (priority < 1 || priority > 5) throw LsBizException.validation(Map.of("priority", "优先级为 1～5"));
+        int n = jdbc.update("update core_work_item set priority = ?, version = version + 1, updated_at = now() where id = ? and version = ?"
+            + " and status not in ('DONE', 'CANCELLED')", priority, id, expectedVersion);
+        if (n == 0) {
+            WorkItem now = get(id);
+            if (now.status().terminal()) throw new LsBizException("WORK_CLOSED", "已结束的工作不能调整优先级");
+            throw new LsBizException("CONCURRENT_MODIFICATION", "工作已被他人修改，请刷新后重试", Map.of("currentVersion", now.version()));
+        }
+        return get(id);
+    }
+
     private static final java.util.Set<String> TRANSITION_COLUMNS = java.util.Set.of(
         "block_reason", "actual_start", "actual_end", "progress", "form_code", "form_version", "flow_version", "schema_version");
 }

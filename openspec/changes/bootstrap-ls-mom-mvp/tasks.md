@@ -16,7 +16,7 @@
 - [x] 2.2 创建 `ls-mom-modules` 下 core/meta/crud/form/flow/action/pack/ai/dcs/mcp 与 `ls-mom-biz` 各 Pack 子模块的空骨架，接入 `ruoyi-admin`；验证 `mvn package` 成功
 - [x] 2.3 编写 ArchUnit 测试强制 D4 依赖方向（core 不依赖 Pack、ai/mcp 不触达 Mapper、crud/form/flow 不依赖 biz）；验证人为加入违规引用时测试失败
 - [x] 2.4 引入 Flyway：核心迁移目录 `db/migration/core`，启动时结构校验（漂移在生产 profile 拒绝启动）；验证手工 `ALTER TABLE` 后 prod profile 启动失败
-- [ ] 2.5 实现全链路 `trace_id`（请求过滤器生成/透传、MDC、异步与 Outbox 传播）；验证集成测试中请求日志、审计、Outbox 记录的 trace_id 一致
+- [x] 2.5 实现全链路 `trace_id`（请求过滤器生成/透传、MDC、异步与 Outbox 传播）；验证集成测试中请求日志、审计、Outbox 记录的 trace_id 一致
 
 ## 3. 部署环境与 CI（P0）
 
@@ -38,16 +38,16 @@
 
 ## 5. 元数据内核与 Operation Gateway（P1）
 
-- [ ] 5.1 建立 `meta_concept/meta_view/meta_operation/meta_flow/meta_rule/meta_metric/meta_pack/meta_change_set` 表与 Java 模型，核心对象启动时自注册；验证启动后可查询 `ls.core.Work` 且标记为核心显式表
-- [ ] 5.2 实现编码不可变/不可复用、字段 DEPRECATED 流程、字段使用方反查、`ls.core` 命名空间污染检测；验证 spec `meta/concept-registry` 全部场景
-- [ ] 5.3 实现 `@LsOperation`＋`OperationHandler` 注册与 meta 对账（不一致启动失败）、`POST /api/op/{code}` 管道（权限→数据域→Schema→字段策略→守卫→状态机→写入→事件，单事务）；验证守卫失败整体回滚测试
-- [ ] 5.4 实现表驱动 `StateMachineExecutor` 与 `TransitionOperationHandler`，WorkItem/Issue 状态全部改由 Operation 推进；验证非法迁移返回允许动作列表
-- [ ] 5.5 实现幂等表、乐观锁版本校验、`op_audit` 追加写（含失败记录、代理主体）；验证重复提交只产生一次事件、并发编辑冲突、失败审计三项测试
-- [ ] 5.6 实现 C0/C1/C2 风险分级：C1/C2 状态字段禁止通用更新；验证通用接口改 WorkItem 状态被拒绝
-- [ ] 5.7 实现 DomainEvent＋Outbox 同事务写入、`SKIP LOCKED` 投递 Worker、退避重试、补偿列表与手工重投；验证业务回滚无 Outbox、下游超时进入补偿列表
-- [ ] 5.8 实现外部写入"待同步"状态与补偿（以模拟 ERP 端点验证）；验证外部失败时填报仍为已提交且出现在补偿列表
-- [ ] 5.9 由注册表生成 OpenAPI 3.1；验证新 Operation 出现在 `/v3/api-docs` 且 Schema 一致
-- [ ] 5.10 编写 `docs/operation-gateway.md`（契约格式、风险分级、新增 Operation 步骤）；验证按文档新增一个示例 Operation 可调用
+- [x] 5.1 建立 `meta_concept/meta_view/meta_operation/meta_flow/meta_rule/meta_metric/meta_pack/meta_change_set` 表与 Java 模型，核心对象启动时自注册；验证启动后可查询 `ls.core.Work` 且标记为核心显式表
+- [x] 5.2 实现编码不可变/不可复用、字段 DEPRECATED 流程、字段使用方反查、`ls.core` 命名空间污染检测；验证 spec `meta/concept-registry` 全部场景
+- [x] 5.3 实现 `@LsOperation`＋`OperationHandler` 注册与 meta 对账（不一致启动失败）、`POST /api/op/{code}` 管道（权限→数据域→Schema→字段策略→守卫→状态机→写入→事件，单事务）；验证守卫失败整体回滚测试
+- [x] 5.4 实现表驱动 `StateMachineExecutor` 与 `TransitionOperationHandler`，WorkItem/Issue 状态全部改由 Operation 推进；验证非法迁移返回允许动作列表
+- [x] 5.5 实现幂等表、乐观锁版本校验、`op_audit` 追加写（含失败记录、代理主体）；验证重复提交只产生一次事件、并发编辑冲突、失败审计三项测试
+- [x] 5.6 实现 C0/C1/C2 风险分级：C1/C2 状态字段禁止通用更新；验证通用接口改 WorkItem 状态被拒绝
+- [x] 5.7 实现 DomainEvent＋Outbox 同事务写入、`SKIP LOCKED` 投递 Worker、退避重试、补偿列表与手工重投；验证业务回滚无 Outbox、下游超时进入补偿列表
+- [x] 5.8 实现外部写入"待同步"状态与补偿（以模拟 ERP 端点验证）；验证外部失败时填报仍为已提交且出现在补偿列表
+- [x] 5.9 由注册表生成 OpenAPI 3.1；验证新 Operation 出现在 `/v3/api-docs` 且 Schema 一致
+- [x] 5.10 编写 `docs/operation-gateway.md`（契约格式、风险分级、新增 Operation 步骤）；验证按文档新增一个示例 Operation 可调用
 
 ## 6. 规则与守卫（P2）
 

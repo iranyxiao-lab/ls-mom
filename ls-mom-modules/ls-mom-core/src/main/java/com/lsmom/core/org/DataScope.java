@@ -12,6 +12,15 @@ public record DataScope(boolean all, Set<Long> orgUnitIds, Long partyId, DataSco
         return new DataScope(true, Set.of(), null, DataScopeLevel.ALL);
     }
 
+    /** 多个角色时取并集（任一为全部则全部）。 */
+    public DataScope union(DataScope other) {
+        if (all || other.all) return unrestricted();
+        java.util.Set<Long> ids = new java.util.HashSet<>(orgUnitIds);
+        ids.addAll(other.orgUnitIds);
+        DataScopeLevel lv = level == DataScopeLevel.SELF ? other.level : level;
+        return new DataScope(false, Set.copyOf(ids), partyId != null ? partyId : other.partyId, lv);
+    }
+
     public boolean allowsOrg(Long orgUnitId) {
         return all || (orgUnitId != null && orgUnitIds.contains(orgUnitId));
     }

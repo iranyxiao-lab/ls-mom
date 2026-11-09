@@ -29,7 +29,7 @@ public class DataScopeService {
         }
         Set<Long> ids = new HashSet<>();
         switch (level) {
-            case SELF -> ids.add(primary);
+            case SELF, ORG -> ids.add(primary);
             case TEAM, DEPT_AND_CHILD -> ids.addAll(orgUnits.selfAndDescendantIds(primary));
             case WORKSHOP -> {
                 List<OrgUnit> chain = orgUnits.selfAndAncestors(primary);

@@ -1,0 +1,72 @@
+package com.lsmom.action.core;
+
+import com.lsmom.action.api.OperationContext;
+import com.lsmom.action.guard.Guard;
+import com.lsmom.action.guard.GuardResult;
+import com.lsmom.core.document.DocumentService;
+import com.lsmom.core.error.LsBizException;
+import com.lsmom.core.issue.Issue;
+import com.lsmom.core.issue.IssueService;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
+
+/** 核心对象的 Java 守卫（L3 跨对象约束）。 */
+@Configuration(proxyBeanMethods = false)
+public class CoreGuards {
+
+    public static final String EVIDENCE_REQUIRED = "ls.core.Issue.evidenceRequired";
+    public static final String RECTIFICATION_DONE = "ls.core.Issue.rectificationDone";
+    public static final String VERIFIER_SEPARATION = "ls.core.Issue.verifierSeparation";
+
+    /** 高、严重级别的 Issue 提交时必须附证据（用途 EVIDENCE 的附件）。 */
+    @Bean
+    public Guard issueEvidenceRequired(IssueService issues, DocumentService docs) {
+        return guard(EVIDENCE_REQUIRED, ctx -> {
+            Issue i = issues.get(ctx.targetIdAsLong());
+            if (!List.of("HIGH", "CRITICAL").contains(i.severity())) return GuardResult.pass();
+            boolean hasEvidence = docs.listByObject("ISSUE", String.valueOf(i.id())).stream().anyMatch(d -> "EVIDENCE".equals(d.purpose()));
+            return hasEvidence ? GuardResult.pass()
+                : GuardResult.block("EVIDENCE_REQUIRED", "严重度为 " + i.severity() + " 的异常提交前必须上传现场证据");
+        });
+    }
+
+    @Bean
+    public Guard issueRectificationDone(IssueService issues) {
+        return guard(RECTIFICATION_DONE, ctx -> {
+            try {
+                issues.requireRectificationsDone(ctx.targetIdAsLong());
+                return GuardResult.pass();
+            } catch (LsBizException e) {
+                return GuardResult.block(e.getCode(), e.getMessage(), e.getDetails());
+            }
+        });
+    }
+
+    @Bean
+    public Guard issueVerifierSeparation(IssueService issues) {
+        return guard(VERIFIER_SEPARATION, ctx -> {
+            try {
+                issues.requireVerifierSeparation(ctx.targetIdAsLong(), ctx.actor().effectiveParty());
+                return GuardResult.pass();
+            } catch (LsBizException e) {
+                return GuardResult.block(e.getCode(), e.getMessage());
+            }
+        });
+    }
+
+    static Guard guard(String code, java.util.function.Function<OperationContext, GuardResult> fn) {
+        return new Guard() {
+            @Override
+            public String code() {
+                return code;
+            }
+
+            @Override
+            public GuardResult check(OperationContext ctx) {
+                return fn.apply(ctx);
+            }
+        };
+    }
+}

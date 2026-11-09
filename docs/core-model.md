@@ -254,3 +254,52 @@ DRAFT → READY → ASSIGNED → IN_PROGRESS → PENDING_CONFIRM → DONE
 | `result` | varchar(8) | ALLOWED / DENIED |
 | `reason` | varchar(500) | 拒绝原因 |
 | `trace_id` | varchar(64) | 请求链路编号 |
+
+## 领域事件与 Outbox
+
+业务表保持当前事实；事件用于集成、审计和读模型，不用于重放重建状态。事件与 Outbox 与业务数据同事务写入，业务回滚时一并回滚。
+
+### `core_domain_event`
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `event_id` | uuid | 主键 |
+| `type` | varchar(160) | 事件类型（通常为 Operation 编码） |
+| `version` | int | 事件结构版本 |
+| `occurred_at` | timestamp | 发生时间 |
+| `actor_party` / `on_behalf_of` | bigint | 执行主体与被代理主体 |
+| `subject_concept` / `subject_id` | varchar | 事件主体对象 |
+| `org_unit_id` | bigint | 组织范围 |
+| `trace_id` | varchar(64) | 请求链路编号 |
+| `idempotency_key` | varchar(200) | 幂等键，消费方据此去重 |
+| `payload` | jsonb | 事件内容（迁移的 from/to、原因、输入摘要等） |
+
+### `core_outbox`
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `event_id` | uuid | 事件 |
+| `destination` | varchar(64) | 订阅方（待办、通知、`external:erp`…） |
+| `status` | varchar(12) | PENDING / DELIVERED / DEAD（进入人工补偿列表） |
+| `attempts` | int | 已尝试次数 |
+| `next_attempt_at` | timestamp | 下次投递时间（指数退避） |
+| `last_error` | varchar(1000) | 最近一次失败原因 |
+| `created_at` / `delivered_at` | timestamp | 入队、投递成功时间 |
+
+### `core_outbox_archive`
+
+已投递 Outbox 按保留策略归档的副本，字段同 `core_outbox`：`id`、`event_id`、`destination`、`status`、`attempts`、`next_attempt_at`、`last_error`、`created_at`、`delivered_at`。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` / `event_id` / `destination` / `status` / `attempts` | — | 同 `core_outbox` |
+| `next_attempt_at` / `last_error` / `created_at` / `delivered_at` | — | 同 `core_outbox` |
+
+### `core_consumer_receipt`
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `consumer` | varchar(64) | 消费方 |
+| `idempotency_key` | varchar(255) | 已处理的幂等键（与消费方联合主键） |
+| `processed_at` | timestamp | 处理时间 |

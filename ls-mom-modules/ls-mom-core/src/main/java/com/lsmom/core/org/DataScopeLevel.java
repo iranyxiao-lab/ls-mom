@@ -4,6 +4,8 @@ package com.lsmom.core.org;
 public enum DataScopeLevel {
     /** 仅本人 */
     SELF,
+    /** 本组织（仅主组织，不含下级；对应 RuoYi「本部门」） */
+    ORG,
     /** 本班组（主组织及其下级） */
     TEAM,
     /** 本车间（主组织所在车间及其下级） */

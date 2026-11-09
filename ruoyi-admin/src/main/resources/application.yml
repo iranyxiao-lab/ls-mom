@@ -182,6 +182,8 @@ springdoc:
   api-docs:
     # 是否开启接口文档
     enabled: true
+    # LS-MOM：Operation 与命名 Query 以 OpenAPI 3.1 描述
+    version: openapi_3_1
   info:
     # 标题
     title: '标题：RuoYi-Vue-Plus多租户管理系统_接口文档'
@@ -204,8 +206,8 @@ springdoc:
       packages-to-scan: org.dromara.system
     - group: 4.代码生成模块
       packages-to-scan: org.dromara.generator
-    - group: 5.工作流模块
-      packages-to-scan: org.dromara.workflow
+    - group: 5.LS-MOM
+      packages-to-scan: com.lsmom
 
 # 防止XSS攻击
 xss:
