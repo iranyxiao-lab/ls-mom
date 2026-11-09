@@ -22,7 +22,7 @@ selenium-debug.log
 
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# LS-MOM：锁文件纳入版本控制，保证 CI 与镜像构建可复现
 
 # 编译生成的文件
 auto-imports.d.ts

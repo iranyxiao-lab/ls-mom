@@ -4,8 +4,8 @@ ARG NPM_REGISTRY=https://registry.npmmirror.com
 WORKDIR /src
 ARG PNPM_VERSION=12.15.0
 RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate && pnpm config set registry "${NPM_REGISTRY:-https://registry.npmjs.org}"
-COPY plus-ui/package.json plus-ui/pnpm-workspace.yaml ./
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install
+COPY plus-ui/package.json plus-ui/pnpm-workspace.yaml plus-ui/pnpm-lock.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 COPY plus-ui/ ./
 RUN pnpm build:prod
 

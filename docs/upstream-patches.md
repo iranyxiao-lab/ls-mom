@@ -31,6 +31,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 14 | `plus-ui/pnpm-workspace.yaml`（新增） | `allowBuilds` 放行 esbuild、@parcel/watcher | pnpm 10+ 在 CI/容器中默认拒绝依赖安装脚本 | 3.1 |
 | 15 | `ruoyi-admin/pom.xml` | 移除 `mysql-connector-j` | 只用 PostgreSQL；MySQL 驱动为 GPL-2.0（Universal FOSS Exception 不覆盖闭源分发），许可证门禁拒绝 | 3.3 |
 | 16 | `plus-ui/package.json`、`plus-ui/vitest.config.ts`（新增） | 增加 `vitest`、`@vitest/browser-playwright`、`playwright` 与 `test`（无头）/`test:browser` 脚本 | 前端单元与组件测试在真实浏览器中无头运行 | 3.3 |
+| 17 | `plus-ui/.gitignore` | 不再忽略 `pnpm-lock.yaml`，锁文件入库 | CI 与镜像构建使用 `--frozen-lockfile`，依赖可复现 | 3.3 |
 
 ## 生产前必须替换的上游密钥
 
