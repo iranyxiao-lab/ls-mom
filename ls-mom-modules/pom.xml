@@ -15,6 +15,43 @@
 
     <description>LS-MOM 自研模块</description>
 
+    <properties>
+        <!-- LS-MOM 模块默认执行测试，且不按上游 @Tag 环境过滤 -->
+        <skipTests>false</skipTests>
+        <archunit.version>1.3.0</archunit.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.tngtech.archunit</groupId>
+                <artifactId>archunit-junit5</artifactId>
+                <version>${archunit.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration combine.self="override">
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                    <excludedGroups>exclude</excludedGroups>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <modules>
         <module>ls-mom-core</module>
         <module>ls-mom-meta</module>
@@ -27,5 +64,6 @@
         <module>ls-mom-mcp</module>
         <module>ls-mom-dcs</module>
         <module>ls-mom-biz</module>
+        <module>ls-mom-architecture-test</module>
     </modules>
 </project>
