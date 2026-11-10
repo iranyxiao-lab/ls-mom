@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { ACC, loadCases, type Case, type Scenario } from './lib.ts';
-import { trace, failed } from './trace.ts';
+import { trace, failed, markdown } from './trace.ts';
 import { validateCases } from './validate.ts';
 
 const fx = (d: string) => path.join(ACC, 'tools/fixtures', d);
@@ -130,4 +130,17 @@ test('人工检查表：生成 → 填写 → 导入，结果写入 results.json
   fs.writeFileSync(path.join(dir, 'manual.json'), JSON.stringify({ rows: r.rows, uiChecks: r.uiChecks }));
   assert.deepEqual(collect(dir).rows.map((x) => [x.caseId, x.source, x.result]), [['AC-DEMO-801', 'manual', 'FAILED']]);
   fs.rmSync(dir, { recursive: true });
+});
+
+test('角色旅程：有功能用例的切片必须有旅程；旅程列出角色与经过的 spec', () => {
+  const fn = { ...kase('AC-X-001', '班组长首页'), slice: 'A' };
+  const r = trace([sc('班组长首页')], [fn], p0);
+  assert.deepEqual(r.slicesWithoutJourney, ['A']);
+  assert.ok(failed(r));
+  const j = { ...kase('AC-J-A-001', '班组长首页'), id: 'AC-J-A-001', slice: 'A', journey: 'J-A', roles: ['班组长', '操作工'], covers: ['AC-X-001'] };
+  const ok = trace([sc('班组长首页')], [fn, j], p0);
+  assert.deepEqual(ok.slicesWithoutJourney, []);
+  assert.deepEqual(ok.journeys, [{ id: 'AC-J-A-001', journey: 'J-A', slice: 'A', roles: ['班组长', '操作工'], specs: ['ui/app-shell-navigation'] }]);
+  assert.ok(!failed(ok));
+  assert.match(markdown(ok), /六个切片都有旅程|角色旅程：1 条/);
 });

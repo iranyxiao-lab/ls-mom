@@ -10,6 +10,7 @@
 #
 # 用法：deploy/scripts/upgrade-acceptance.sh [--from <Compose 项目>] [--skip-build] [--keep]
 #   上一版本环境地址：LSMOM_E2E_BASE（默认 http://127.0.0.1:18081）
+#   上一版本镜像标签：LSMOM_PREV_TAG（上一版本环境用 LSMOM_IMAGE_TAG 起的镜像；同版本恢复用它，新版本构建为 local）
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DEPLOY_DIR=$PWD
@@ -25,6 +26,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 FROM_BASE=${LSMOM_E2E_BASE:-http://127.0.0.1:18081}
+PREV_TAG=${LSMOM_PREV_TAG:-local}
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/lsmom-acceptance.XXXXXX")
 STATE=$WORK/state.json
 
@@ -50,18 +52,18 @@ COMPOSE_PROJECT_NAME=$FROM scripts/backup.sh "$WORK/backup"
 
 echo "== 3. [19.4] 同版本恢复到全新环境 lsmom-restore"
 down lsmom-restore
-env $(env_for lsmom-restore 18095 15445) scripts/restore.sh "$WORK/backup" --yes
+env $(env_for lsmom-restore 18095 15445) LSMOM_IMAGE_TAG=$PREV_TAG scripts/restore.sh "$WORK/backup" --yes
 LSMOM_E2E_BASE=http://127.0.0.1:18095 LSMOM_E2E_PROJECT=lsmom-restore LSMOM_E2E_STATE=$STATE MODE=restore e2e upgrade-verify.mjs
 [ "$KEEP" = 1 ] || down lsmom-restore
 
 if [ "$BUILD" = 1 ]; then
   echo "== 4. 构建新版本镜像"
-  docker compose -p "$FROM" build app web >/dev/null
+  LSMOM_IMAGE_TAG=local docker compose -p "$FROM" build app web >/dev/null
 fi
 
 echo "== 5. [19.3] 新版本恢复上一版本备份到 lsmom-upgrade 并升级"
 down lsmom-upgrade
-env $(env_for lsmom-upgrade 18096 15446) RESTORE_ALLOW_UPGRADE=1 scripts/restore.sh "$WORK/backup" --yes
+env $(env_for lsmom-upgrade 18096 15446) LSMOM_IMAGE_TAG=local RESTORE_ALLOW_UPGRADE=1 scripts/restore.sh "$WORK/backup" --yes
 LSMOM_E2E_BASE=http://127.0.0.1:18096 LSMOM_E2E_PROJECT=lsmom-upgrade LSMOM_E2E_STATE=$STATE MODE=upgrade e2e upgrade-verify.mjs
 
 echo "升级与联合恢复验收通过"

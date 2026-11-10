@@ -16,7 +16,13 @@ export interface TraceResult {
   p0MissingAuto: string[];
   p0Unknown: string[];
   bySpec: Record<string, { change: string; scenarios: number; covered: number }>;
+  /** 角色旅程（带 covers 的旅程用例）：切片、参与角色、经过的 spec */
+  journeys: { id: string; journey: string; slice: string; roles: string[]; specs: string[] }[];
+  /** 有功能用例但没有任何旅程的切片（A～F） */
+  slicesWithoutJourney: string[];
 }
+
+export const SLICES = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 export function trace(scenarios: Scenario[], cases: Case[], prio = priorities()): TraceResult {
   const known = new Map(scenarios.map((s) => [key(s.spec, s.requirement, s.scenario), s]));
@@ -46,7 +52,20 @@ export function trace(scenarios: Scenario[], cases: Case[], prio = priorities())
     b.scenarios++;
     if (coveredKeys.has(key(s.spec, s.requirement, s.scenario))) b.covered++;
   }
+  const byId = new Map(cases.map((c) => [c.id, c]));
+  const journeys = cases
+    .filter((c) => c?.journey && (c.covers ?? []).length)
+    .map((c) => ({
+      id: c.id,
+      journey: c.journey!,
+      slice: c.slice ?? '',
+      roles: c.roles,
+      specs: [...new Set([c.ref.spec, ...(c.covers ?? []).map((id) => byId.get(id)?.ref.spec).filter((x): x is string => !!x)])]
+    }));
   return {
+    journeys,
+    // 只要求用例库中出现过的切片（有该切片的功能用例）都有旅程
+    slicesWithoutJourney: SLICES.filter((sl) => cases.some((c) => c?.slice === sl) && !journeys.some((j) => j.slice === sl)),
     scenarios: scenarios.length,
     covered: scenarios.length - uncovered.length,
     uncovered,
@@ -58,7 +77,8 @@ export function trace(scenarios: Scenario[], cases: Case[], prio = priorities())
   };
 }
 
-export const failed = (r: TraceResult) => r.uncovered.length + r.dangling.length + r.p0MissingAuto.length + r.p0Unknown.length > 0;
+export const failed = (r: TraceResult) =>
+  r.uncovered.length + r.dangling.length + r.p0MissingAuto.length + r.p0Unknown.length + r.slicesWithoutJourney.length > 0;
 
 export function markdown(r: TraceResult): string {
   const pct = r.scenarios ? ((r.covered / r.scenarios) * 100).toFixed(1) : '0';
@@ -68,6 +88,7 @@ export function markdown(r: TraceResult): string {
     `- 场景：${r.scenarios}，已覆盖 ${r.covered}（${pct}%），未覆盖 ${r.uncovered.length}`,
     `- 悬空引用：${r.dangling.length}`,
     `- P0 Requirement：${r.p0.length}，缺 AUTO 用例 ${r.p0MissingAuto.length}${r.p0Unknown.length ? `，优先级清单中不存在 ${r.p0Unknown.length}` : ''}`,
+    `- 角色旅程：${r.journeys.length} 条${r.slicesWithoutJourney.length ? `，切片 ${r.slicesWithoutJourney.join('、')} 没有旅程` : '，六个切片都有旅程'}`,
     `- 结论：${failed(r) ? '**未通过**' : '通过'}`,
     ''
   ];
@@ -82,6 +103,13 @@ export function markdown(r: TraceResult): string {
   section('悬空引用', r.dangling.map((d) => `${d.id}（${d.file}）→ ${d.ref}`));
   section('P0 缺 AUTO 用例', r.p0MissingAuto);
   section('优先级清单中不存在的 Requirement', r.p0Unknown);
+  if (r.journeys.length) {
+    lines.push('### 角色旅程', '', '| 编号 | 切片 | 参与角色 | 经过的 spec |', '|---|---|---|---|');
+    for (const j of [...r.journeys].sort((a, b) => a.slice.localeCompare(b.slice) || a.id.localeCompare(b.id)))
+      lines.push(`| ${j.id}（${j.journey}） | ${j.slice} | ${j.roles.join('、')} | ${j.specs.join('、')} |`);
+    lines.push('');
+  }
+  section('没有旅程的切片', r.slicesWithoutJourney);
   lines.push('### 按 spec', '', '| change | spec | 场景 | 已覆盖 |', '|---|---|---|---|');
   for (const [spec, b] of Object.entries(r.bySpec).sort()) lines.push(`| ${b.change} | ${spec} | ${b.scenarios} | ${b.covered} |`);
   return lines.join('\n') + '\n';

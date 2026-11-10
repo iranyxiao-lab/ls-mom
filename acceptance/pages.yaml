@@ -1,0 +1,312 @@
+# 页面清单（acceptance-walkthrough 6.2）：UI 走查按 页面 × 视口 × 主题 生成检查表（node tools/manual.ts generate <run>）。
+# 新增路由或菜单后运行 pnpm pages：有路由但未登记会报"未走查页面"。roles 为主要使用角色（走查时用对应 acc_* 账号）。
+pages:
+- id: P-001
+  path: /401
+  name: 无权限
+  area: '401'
+  roles: [全部角色]
+- id: P-002
+  path: /500
+  name: 服务出错
+  area: '500'
+  roles: [全部角色]
+- id: P-003
+  path: /agent/admin
+  name: Agent 管理
+  area: agent
+  roles: [车间主任, 实施顾问]
+- id: P-004
+  path: /agent/approvals
+  name: Agent 审批
+  area: agent
+  roles: [车间主任, 实施顾问]
+- id: P-005
+  path: /agent/knowledge
+  name: 知识问答
+  area: agent
+  roles: [车间主任, 实施顾问]
+- id: P-006
+  path: /agent/summaries
+  name: 摘要确认
+  area: agent
+  roles: [车间主任, 实施顾问]
+- id: P-007
+  path: /asset/center
+  name: 设备台账
+  area: asset
+  roles: [设备员, 点检员, 维修工]
+- id: P-008
+  path: /asset/defects
+  name: 缺陷与维修
+  area: asset
+  roles: [设备员, 点检员, 维修工]
+- id: P-009
+  path: /asset/inspection
+  name: 点检
+  area: asset
+  roles: [设备员, 点检员, 维修工]
+- id: P-010
+  path: /consultation/admin
+  name: 议题管理
+  area: consultation
+  roles: [员工, 车间主任]
+- id: P-011
+  path: /consultation/handle
+  name: 意见处理
+  area: consultation
+  roles: [员工, 车间主任]
+- id: P-012
+  path: /consultation/topics
+  name: 参与征求
+  area: consultation
+  roles: [员工, 车间主任]
+- id: P-013
+  path: /dcs/alarms
+  name: DCS 报警
+  area: dcs
+  roles: [设备员]
+- id: P-014
+  path: /dcs/points
+  name: 测点
+  area: dcs
+  roles: [设备员]
+- id: P-015
+  path: /index
+  name: 首页
+  area: index
+  roles: [班组长, 车间主任, 操作工]
+- id: P-016
+  path: /login
+  name: 登录
+  area: login
+  roles: [全部角色]
+- id: P-017
+  path: /lsmom/apps
+  name: 协同应用中心
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-018
+  path: /lsmom/dashboard/:code
+  name: 看板
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-019
+  path: /lsmom/flow-designer/:code?
+  name: 流程配置
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-020
+  path: /lsmom/form-designer/:code?
+  name: 表单设计器
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-021
+  path: /lsmom/ledger/:concept
+  name: 台账
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-022
+  path: /lsmom/object/:type/:id
+  name: 对象详情
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-023
+  path: /lsmom/record/:concept/:id(\\d+)
+  name: 详情
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-024
+  path: /lsmom/workbench
+  name: 协同工作中心
+  area: lsmom
+  roles: [实施顾问, 班组长]
+- id: P-025
+  path: /m
+  name: 手机工作台
+  area: m
+  roles: [操作工, 维修工, 点检员]
+- id: P-026
+  path: /m/defect
+  name: 报缺陷
+  area: m
+  roles: [操作工, 维修工, 点检员]
+- id: P-027
+  path: /m/inspect
+  name: 点检
+  area: m
+  roles: [操作工, 维修工, 点检员]
+- id: P-028
+  path: /m/me
+  name: 我的
+  area: m
+  roles: [操作工, 维修工, 点检员]
+- id: P-029
+  path: /m/report/:id(\\d+)
+  name: 报工
+  area: m
+  roles: [操作工, 维修工, 点检员]
+- id: P-030
+  path: /monitor/Admin
+  name: Admin监控
+  area: monitor
+  roles: [系统管理员]
+- id: P-031
+  path: /monitor/cache
+  name: 缓存监控
+  area: monitor
+  roles: [系统管理员]
+- id: P-032
+  path: /monitor/online
+  name: 在线用户
+  area: monitor
+  roles: [系统管理员]
+- id: P-033
+  path: /monitor/snailjob
+  name: 任务调度中心
+  area: monitor
+  roles: [系统管理员]
+- id: P-034
+  path: /monitor/ui-usage
+  name: 体验分析
+  area: monitor
+  roles: [系统管理员]
+- id: P-035
+  path: /offline
+  name: 断网
+  area: offline
+  roles: [全部角色]
+- id: P-036
+  path: /production/board
+  name: 工作板
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-037
+  path: /production/dashboard
+  name: 经营看板
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-038
+  path: /production/dispatch
+  name: 分派台
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-039
+  path: /production/handover
+  name: 交接班
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-040
+  path: /production/report
+  name: 移动填报
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-041
+  path: /production/requests
+  name: 生产需求板
+  area: production
+  roles: [车间主任, 班组长, 操作工]
+- id: P-042
+  path: /quality/nc
+  name: 不符合项
+  area: quality
+  roles: [质检员, 车间主任]
+- id: P-043
+  path: /quality/records
+  name: 质量记录
+  area: quality
+  roles: [质检员, 车间主任]
+- id: P-044
+  path: /register
+  name: /register
+  area: register
+  roles: [系统管理员]
+- id: P-045
+  path: /system/client
+  name: 客户端管理
+  area: system
+  roles: [系统管理员]
+- id: P-046
+  path: /system/config
+  name: 参数设置
+  area: system
+  roles: [系统管理员]
+- id: P-047
+  path: /system/dept
+  name: 部门管理
+  area: system
+  roles: [系统管理员]
+- id: P-048
+  path: /system/dict
+  name: 字典管理
+  area: system
+  roles: [系统管理员]
+- id: P-049
+  path: /system/log/logininfor
+  name: 登录日志
+  area: system
+  roles: [系统管理员]
+- id: P-050
+  path: /system/log/operlog
+  name: 操作日志
+  area: system
+  roles: [系统管理员]
+- id: P-051
+  path: /system/menu
+  name: 菜单管理
+  area: system
+  roles: [系统管理员]
+- id: P-052
+  path: /system/notice
+  name: 通知公告
+  area: system
+  roles: [系统管理员]
+- id: P-053
+  path: /system/oss
+  name: 文件管理
+  area: system
+  roles: [系统管理员]
+- id: P-054
+  path: /system/post
+  name: 岗位管理
+  area: system
+  roles: [系统管理员]
+- id: P-055
+  path: /system/role
+  name: 角色管理
+  area: system
+  roles: [系统管理员]
+- id: P-056
+  path: /system/user
+  name: 用户管理
+  area: system
+  roles: [系统管理员]
+- id: P-057
+  path: /training/admin
+  name: 培训管理
+  area: training
+  roles: [培训管理员, 操作工]
+- id: P-058
+  path: /training/exams
+  name: 我的考试
+  area: training
+  roles: [培训管理员, 操作工]
+- id: P-059
+  path: /training/grading
+  name: 阅卷
+  area: training
+  roles: [培训管理员, 操作工]
+- id: P-060
+  path: /user/prefs
+  name: 偏好设置
+  area: user
+  roles: [全部角色]
+- id: P-061
+  path: /user/profile
+  name: 个人中心
+  area: user
+  roles: [全部角色]
+ignore:
+- {path: /demo/*, reason: 上游演示菜单（测试单表、测试树表），前端菜单分组中不显示}
+- {path: /tenant/*, reason: 单客户单库部署，不启用多租户}
+- {path: /tool/gen, reason: 上游代码生成器，仅开发期使用，不交付给客户}

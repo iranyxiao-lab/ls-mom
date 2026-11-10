@@ -1,0 +1,143 @@
+# 角色旅程（acceptance-walkthrough 5.4，spec quality/functional-walkthrough「角色旅程覆盖六个切片」）。
+# 每条旅程按真实分工切换登录角色，含负向步骤与跨模块一致性断言，可在一键重置后的环境中单独运行；
+# covers 列出旅程串起的功能用例，缺陷回归时重跑同一旅程（tools/defects.ts regressionCases）。
+cases:
+  - id: AC-J-A-PROD-001
+    title: 旅程：无 BOM 生产闭环（需求→工作→分派→报工→确认→交接班→看板）
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 无制造主数据的完整闭环, scenario: DOM-01 验收 }
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 车间主任在需求板登记并发布文字需求，转为两条工作排到甲班本班次，分派给操作工
+      - 操作工在手机端开工、报工并提交确认；车间主任确认完成
+      - 甲班班长生成交接班并确认交班；车间主任确认接班
+      - 管理员查看经营看板的按期完成率并钻取
+      - 负向：二车间主任读取需求、操作工绕过前端转工作、操作工确认自己的工作、交班人自己接班、重复确认
+    expected:
+      - 工作状态、时间轴、审计、事件与同一 trace_id 一致
+      - 未完成的工作进入乙班下一班次；钻取明细包含刚完成的工作
+      - 所有负向步骤被拒，越权调用留有审计
+    mode: AUTO
+    script: acceptance/e2e/journeys/production.spec.ts#[AC-J-A-PROD-001]
+    journey: J-A-PROD
+    covers: [ AC-DOM-LP-001, AC-DOM-LP-002, AC-DOM-LP-005, AC-DOM-LP-006, AC-DOM-LP-008, AC-UI-MF-002 ]
+  - id: AC-J-B-ASSET-001
+    title: 旅程：设备点检发现异常 → 缺陷 → 维修 → 验证关闭
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 维修复用 WorkItem, scenario: 维修到关闭 }
+    slice: B
+    roles: [ 设备员, 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 设备员按计划生成点检；操作工（仅本人数据范围）手机扫码点检，温度超上限，一键生成缺陷并登记
+      - 设备员派维修工作；维修工开始并完成，设备员确认；维修工提交验证，设备员验证通过关闭
+      - 负向：其他操作工提交别人的点检、二车间主任打开一车间缺陷、无验证权限的人验证、重复提交验证
+    expected:
+      - 缺陷关闭；缺陷状态、时间轴、审计、事件与 trace_id 一致；设备时间轴含点检、缺陷、维修、验证
+      - 所有负向步骤被拒，越权调用留有审计
+    mode: AUTO
+    script: acceptance/e2e/journeys/asset-defect.spec.ts#[AC-J-B-ASSET-001]
+    journey: J-B-ASSET
+    covers: [ AC-DOM-AM-002, AC-DOM-AM-003, AC-DOM-AM-004, AC-DOM-AM-005, AC-UI-DE-001 ]
+  - id: AC-J-B-LOAN-001
+    title: 旅程：配置交付工器具借还台账、审批闭环与带在途流程的版本升级
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 动态 Concept 生成受控物理表, scenario: 发布工器具借还台账 }
+    slice: B
+    roles: [ 实施顾问, 系统管理员, 班组长, 车间主任, 设备员 ]
+    dataset: acceptance
+    steps:
+      - 实施顾问从模板生成借还台账草稿；管理员执行授权清单、通过升级演练门禁后批准并发布
+      - 班组长登记借还单；车间主任部门审核；设备员确认归档
+      - 一张借还单停在部门审核时，实施顾问以同一编码生成 v2 并发布升级；在途单据继续办理到归档
+      - 负向：实施顾问自行授权、批准自己的变更；班组长发布变更；操作工登记；二车间主任办理一车间待办；重复办理
+    expected:
+      - 单据、流程实例、待办、审计、事件与 trace_id 一致
+      - 在途实例按升级前的流程版本办理完成；升级后新单据走新版本
+      - 所有负向步骤被拒
+    mode: AUTO
+    script: acceptance/e2e/journeys/toolloan-delivery.spec.ts#[AC-J-B-LOAN-001]
+    journey: J-B-LOAN
+    covers: [ AC-CRUD-GL-001, AC-UI-DU-001 ]
+  - id: AC-J-C-QUALITY-001
+    title: 旅程：质量记录登记与受控不符合项闭环
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 受控质量流程, scenario: 审核节点改描述 }
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 质检员登记来料抽检记录（普通台账流程）
+      - 质检员登记不符合项；车间主任审核并派班长整改；班长整改、上传证据并提交验证；质检员终判关闭
+      - 负向：二车间主任读取、审核时改描述、无证据提交验证、班长终判、重复关闭
+    expected:
+      - 不符合项关闭并记录终判人；状态、时间轴、审计、事件与 trace_id 一致
+      - 所有负向步骤被拒，越权调用留有审计
+    mode: AUTO
+    script: acceptance/e2e/journeys/quality.spec.ts#[AC-J-C-QUALITY-001]
+    journey: J-C-QUALITY
+    covers: [ AC-DOM-QM-001, AC-DOM-QM-003, AC-DOM-QM-004, AC-DOM-QM-005 ]
+  - id: AC-J-D-PACKS-001
+    title: 旅程：培训考试与意见征求
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 培训记录, scenario: 资质查询 }
+    slice: D
+    roles: [ 实施顾问, 车间主任, 操作工, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 实施顾问建课程、题库、考试并提交审批；车间主任审批发布；操作工考试；车间主任阅卷；查询上岗资格
+      - 车间主任发布匿名议题；操作工与班长提交意见；车间主任答复、转整改；截止后确认 LLM 总结草稿
+      - 负向：操作工办理审批、简答超分值、二车间主任读取议题、答复人查看匿名提交人、总结确认前员工查看
+    expected:
+      - 课程状态、流程、待办、审计、事件与 trace_id 一致；及格生成培训记录与有效资格
+      - 匿名意见不暴露提交人；总结发布后员工可见
+      - 所有负向步骤被拒
+    mode: AUTO
+    script: acceptance/e2e/journeys/training-consultation.spec.ts#[AC-J-D-PACKS-001]
+    journey: J-D-PACKS
+    covers: [ AC-PACK-TE-001, AC-PACK-TE-003, AC-PACK-CO-001, AC-PACK-CO-002, AC-PACK-CO-003 ]
+  - id: AC-J-E-DCS-001
+    title: 旅程：DCS 报警去重生成问题草稿并人工确认
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 报警处置策略, scenario: 报警生成草稿 }
+    slice: E
+    roles: [ 设备员, 操作工, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 现场 DCS（模拟器）越限两次并重复送达一次；设备员查看报警上下文并确认问题草稿；再次越限
+      - 负向：操作工查看报警、二车间主任读取报警问题、已发布 Operation 中的 DCS 写入能力
+    expected:
+      - 同一测点只有一条业务报警，次数累计，不新建问题；问题状态、审计、事件与 trace_id 一致
+      - 所有负向步骤被拒；不存在 DCS 写入类能力
+    mode: AUTO
+    script: acceptance/e2e/journeys/dcs-alarm.spec.ts#[AC-J-E-DCS-001]
+    journey: J-E-DCS
+    covers: [ AC-DCS-DI-001, AC-DCS-DI-004, AC-DCS-DI-007 ]
+  - id: AC-J-F-AI-001
+    title: 旅程：LLM 交接班摘要与 Agent 草稿，真人确认发布
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 摘要人工确认, scenario: 交接班摘要 }
+    slice: F
+    roles: [ 实施顾问, 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 班组长交班；实施顾问建摘要助手并签发 Key；Agent 代理车间主任取交接班上下文并草拟带引用的摘要
+      - 车间主任在「摘要确认」页核对引用后发布
+      - 负向：Agent 编造引用、要点无引用、直接发布、调用未授权的写操作
+    expected:
+      - 摘要发布由真人完成、草拟由 Agent 代理车间主任完成，审计含双主体；发布不改原交接班
+      - 所有负向步骤被拒
+    mode: AUTO
+    script: acceptance/e2e/journeys/ai-summary-agent.spec.ts#[AC-J-F-AI-001]
+    journey: J-F-AI
+    covers: [ AC-AI-AG-001, AC-AI-AG-003, AC-AI-AG-010 ]
+  - id: AC-J-UPGRADE-001
+    title: 旅程：带在途流程的版本升级
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 版本冻结, scenario: 在途实例 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长, 车间主任, 设备员 ]
+    dataset: acceptance
+    steps:
+      - 在重置后的验收环境准备标准与客户扩展 Pack、带客户字段的记录、在途审批与附件，并联合备份
+      - 用新版本恢复到全新环境并升级（核心迁移、Pack 1.0→1.1），继续办理在途审批
+    expected:
+      - 客户字段与数据保留，验收测试通过、无漂移；在途流程按旧版本继续办理到归档
+    mode: AUTO
+    script: acceptance/e2e/journeys/upgrade-restore.sh#[J-UPGRADE]
+    journey: J-UPGRADE
+    covers: [ AC-J-B-LOAN-001 ]

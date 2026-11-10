@@ -89,7 +89,8 @@ services:
       dockerfile: deploy/docker/app.Dockerfile
       args:
         MAVEN_MIRROR_URL: ${MAVEN_MIRROR_URL:-}
-    image: lsmom/app:local
+    # LSMOM_IMAGE_TAG：同机并存多个版本（如升级验收的上一版本 prev），默认 local
+    image: lsmom/app:${LSMOM_IMAGE_TAG:-local}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -140,7 +141,7 @@ services:
       dockerfile: deploy/docker/web.Dockerfile
       args:
         NPM_REGISTRY: ${NPM_REGISTRY:-}
-    image: lsmom/web:local
+    image: lsmom/web:${LSMOM_IMAGE_TAG:-local}
     restart: unless-stopped
     depends_on:
       app:

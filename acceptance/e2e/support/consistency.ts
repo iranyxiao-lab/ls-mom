@@ -34,6 +34,10 @@ export interface Expectation {
   /** 业务动作响应里的 X-Trace-Id：须同时出现在审计（及时间轴 / 事件）中 */
   traceId?: string | null;
   metric?: MetricRef & { before: number; delta: number };
+  /** 记录来源：核心表（工作、Issue）不走通用台账，由调用方用专用接口读取 */
+  record?: () => Promise<any>;
+  /** 审计与事件的查看人（默认与 viewer 相同）：业务记录只对业务角色开放时，由有审计权限的人查审计 */
+  auditor?: Session;
 }
 
 export interface Check {
@@ -58,14 +62,17 @@ const data = async (s: Session, method: string, url: string, body?: unknown) => 
 };
 const rows = async (s: Session, query: string, params: Record<string, unknown>) => (await data(s, 'POST', `/api/q/${query}`, params)).rows as any[];
 
-export async function snapshot(viewer: Session, concept: string, id: string | number): Promise<Snapshot> {
+export async function snapshot(viewer: Session, concept: string, id: string | number, opts: { record?: () => Promise<any>; flow?: boolean; auditor?: Session } = {}): Promise<Snapshot> {
+  const auditor = opts.auditor ?? viewer;
   const sid = String(id);
+  const flowOf = data(viewer, 'GET', `/api/flow/biz/${encodeURIComponent(concept)}/${sid}`);
   const [record, flow, timeline, audit, events] = await Promise.all([
-    data(viewer, 'GET', `/api/crud/${encodeURIComponent(concept)}/${sid}`),
-    data(viewer, 'GET', `/api/flow/biz/${encodeURIComponent(concept)}/${sid}`),
+    opts.record ? opts.record() : data(viewer, 'GET', `/api/crud/${encodeURIComponent(concept)}/${sid}`),
+    // 不涉及流程的对象（核心表）读不到流程进度时按"无流程"处理
+    opts.flow === false ? flowOf.catch(() => ({ instances: [], tasks: [] })) : flowOf,
     data(viewer, 'GET', `/api/timeline/${encodeURIComponent(concept)}/${sid}`),
-    rows(viewer, 'ls.audit.objectOperations', { concept, id: sid }),
-    rows(viewer, 'ls.audit.objectEvents', { concept, id: sid })
+    rows(auditor, 'ls.audit.objectOperations', { concept, id: sid }),
+    rows(auditor, 'ls.audit.objectEvents', { concept, id: sid })
   ]);
   // jsonb 列可能以字符串或 { type, value } 返回
   const json = (v: any) => (typeof v === 'string' ? JSON.parse(v) : v && typeof v === 'object' && 'value' in v ? JSON.parse(v.value) : v ?? []);
@@ -86,7 +93,7 @@ export async function metric(viewer: Session, m: MetricRef): Promise<number> {
 const match = (v: string | undefined | null, p: string | RegExp) => (v == null ? false : typeof p === 'string' ? v.includes(p) : p.test(v));
 
 export async function consistency(viewer: Session, concept: string, id: string | number, exp: Expectation): Promise<{ snap: Snapshot; checks: Check[]; failed: Check[] }> {
-  const snap = await snapshot(viewer, concept, id);
+  const snap = await snapshot(viewer, concept, id, { record: exp.record, flow: Boolean(exp.flowStatus || exp.doneNode) || !exp.record, auditor: exp.auditor });
   const checks: Check[] = [];
   const add = (name: string, ok: boolean, detail: string) => checks.push({ name, ok, detail });
   const inst = snap.instances[snap.instances.length - 1];
@@ -117,7 +124,7 @@ export async function consistency(viewer: Session, concept: string, id: string |
   if (exp.traceId) {
     const inAudit = snap.audit.some((x) => x.traceId === exp.traceId);
     const inTimeline = snap.timeline.some((e) => e.traceId === exp.traceId);
-    const traced = await rows(viewer, 'ls.audit.trace', { traceId: exp.traceId });
+    const traced = await rows(exp.auditor ?? viewer, 'ls.audit.trace', { traceId: exp.traceId });
     add('trace_id 一致', inAudit && traced.length > 0, `审计 ${inAudit ? '有' : '无'}、时间轴 ${inTimeline ? '有' : '无'}、追踪 ${traced.length} 条（${exp.traceId}）`);
   }
   if (exp.metric) {

@@ -82,5 +82,6 @@ cases:
     expected:
       - 业务记录、附件、在途流程与 Pack 版本一致可用，在途流程可继续办理
     mode: AUTO
-    script: deploy/scripts/upgrade-acceptance.sh
+    script: acceptance/e2e/journeys/upgrade-restore.sh#[J-RESTORE]
     journey: J-RESTORE
+    covers: [ AC-J-UPGRADE-001 ]

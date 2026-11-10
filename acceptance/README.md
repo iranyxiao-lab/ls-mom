@@ -42,6 +42,27 @@ acceptance/
 `trace` 优先调用 `openspec show <change> --json --type change` 提取场景；机器上没有 openspec CLI（如 CI）时直接解析
 `openspec/changes/<change>/specs/**/spec.md`，两者结果一致（由自测保证）。
 
+## 角色旅程
+
+`e2e/journeys/` 下每条旅程按真实分工切换登录角色走完一个切片的业务闭环，含负向步骤（越权、非办理人办理、绕过前端调接口、
+重复提交、Agent 调用禁止能力）与跨模块一致性断言（`e2e/support/consistency.ts`），可在一键重置后的环境中单独运行；
+旅程用例登记在 `cases/journeys/cases.yaml`，`covers` 列出串起的功能用例（缺陷回归时重跑同一旅程）。`pnpm trace` 列出旅程清单，
+有功能用例但没有旅程的切片判为未通过。
+
+| 旅程 | 切片 | 脚本 |
+|---|---|---|
+| J-A-PROD 无 BOM 生产闭环 | A | `e2e/journeys/production.spec.ts` |
+| J-B-ASSET 点检 → 缺陷 → 维修 → 验证关闭 | B | `e2e/journeys/asset-defect.spec.ts` |
+| J-B-LOAN 配置交付借还台账、审批与带在途流程的版本升级（含两次升级演练，约 15 分钟） | B | `e2e/journeys/toolloan-delivery.spec.ts` |
+| J-C-QUALITY 质量记录与受控不符合项 | C | `e2e/journeys/quality.spec.ts` |
+| J-D-PACKS 培训考试与意见征求 | D | `e2e/journeys/training-consultation.spec.ts` |
+| J-E-DCS 报警去重 → 问题草稿 → 确认 | E | `e2e/journeys/dcs-alarm.spec.ts` |
+| J-F-AI 交接班摘要与 Agent 草稿 | F | `e2e/journeys/ai-summary-agent.spec.ts` |
+| J-UPGRADE / J-RESTORE 带在途流程的平台升级与联合备份恢复 | 平台 | `e2e/journeys/upgrade-restore.sh`（会重置验收环境） |
+
+单独运行一条：`../deploy/scripts/acceptance-reset.sh && ACC_RUN=<run> npx playwright test e2e/journeys/quality.spec.ts`。
+用例里的"今天""当前班次""开考时间"按工厂时区（`ACC_TZ`，默认 `Asia/Shanghai`，与服务端容器一致）生成，与执行机时区无关。
+
 ## 写一条用例
 
 用例放在 `cases/<change>/<spec 路径>/` 下的 YAML 文件里，一个文件可以写多条（`cases:` 列表）：

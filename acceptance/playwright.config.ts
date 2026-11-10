@@ -7,6 +7,10 @@ import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
+// 工厂时区（与服务端容器 TZ 一致）：用例里按"今天""当前班次""开考时间"生成的时间与服务端同一口径，与执行机所在时区无关
+const TZ = process.env.ACC_TZ ?? 'Asia/Shanghai';
+process.env.TZ = TZ;
+
 if (!process.env.ACC_RUN) {
   const d = new Date();
   const p = (n: number) => String(n).padStart(2, '0');
@@ -28,6 +32,7 @@ export default defineConfig({
   use: {
     ...devices['Desktop Chrome'],
     headless: true,
+    timezoneId: TZ,
     baseURL: process.env.ACC_BASE ?? 'http://127.0.0.1:18101',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',

@@ -112,6 +112,16 @@ test('报告：其余达标但有 1 个未关闭 S2 时结论为"不通过"并�
   assert.equal(build(inputs([{ ...s2, state: 'CLOSED' }])).passed, true);
 });
 
+test('报告：只记录的预算（budget 为 null）实测了即达标，未测仍判不通过', () => {
+  const i = inputs([]);
+  i.budgets!.push({ id: 'UI-TIME-REPORT', name: '移动报工（耗时）', kind: 'time', budget: null, actual: 6.2, unit: 's' });
+  const r = build(i);
+  assert.equal(r.passed, true, r.reasons.join('；'));
+  assert.match(markdown(r), /移动报工（耗时） \| 耗时 \| 只记录 \| 6.2s \| — \|/);
+  i.budgets![1].actual = null;
+  assert.ok(build(i).reasons.some((x) => x.includes('移动报工（耗时） 未测s（预算 只记录）')));
+});
+
 test('报告：S3 无处理决定、预算超标、缺陷未同步、P0 未执行都判不通过', () => {
   const s3 = parseDefect(issue(6, 'S3 一般'));
   const i = inputs([s3]);
@@ -199,4 +209,44 @@ test('按映射生成用例：步骤取 WHEN、预期取 THEN/AND，已覆盖场
   assert.deepEqual(r.added.map((c) => [c.id, c.ref.scenario, c.mode, c.steps[0], c.expected[0]]), [['AC-FLOW-WC-002', '会签', 'MANUAL', '三人中两人通过', '节点未完成']]);
   assert.deepEqual(r.unknown, ['不存在']);
   assert.deepEqual(r.missing, []);
+});
+
+test('页面清单比对：新增未登记的路由或菜单报告为未走查页面，忽略清单与已失效登记分开列出', async () => {
+  const { staticRoutes, menuRoutes, compare } = await import('./pages.ts');
+  const src = `export const constantRoutes = [
+    { path: '/redirect', component: Layout, hidden: true, children: [{ path: '/redirect/:path(.*)', component: () => import('x') }] },
+    { path: '/m', component: M, children: [{ path: '', component: () => import('a'), meta: { title: '工作台' } }, { path: 'inspect', component: () => import('b'), meta: { title: '点检' } }] },
+    { path: '/lsmom', component: Layout, children: [{ path: 'apps', component: () => import('c'), meta: { title: '协同应用中心' } }] }
+  ];`;
+  assert.deepEqual(staticRoutes(src).map((r) => [r.path, r.name]), [['/m', '工作台'], ['/m/inspect', '点检'], ['/lsmom/apps', '协同应用中心']]);
+  const menu = (menu_id: number, parent_id: number, path: string, menu_type = 'C', visible = '0') => ({ menu_id, parent_id, menu_name: path, path, component: null, menu_type, visible, status: '0', is_frame: '1' });
+  const menus = [menu(1, 0, 'asset', 'M'), menu(2, 1, 'center'), menu(3, 1, 'hidden', 'C', '1'), menu(4, 0, 'demo', 'M'), menu(5, 4, 'tree'), menu(6, 1, 'newpage')];
+  assert.deepEqual(menuRoutes(menus).map((r) => r.path), ['/asset/center', '/demo/tree', '/asset/newpage']);
+  const routes = [...staticRoutes(src), ...menuRoutes(menus)];
+  const pages = ['/m', '/m/inspect', '/lsmom/apps', '/asset/center', '/asset/removed'].map((p, i) => ({ id: `P-${i}`, path: p, name: p, area: 'x' }));
+  const r = compare(routes, { pages, ignore: [{ path: '/demo/*', reason: '上游演示' }] });
+  assert.deepEqual(r.unlisted.map((x) => x.path), ['/asset/newpage']);
+  assert.deepEqual(r.stale.map((x) => x.path), ['/asset/removed']);
+  assert.equal(r.ignored, 1);
+});
+
+test('准入检查：未完成任务、CI 未全绿或无法确认、门禁仍为只报告时不通过', async () => {
+  const { openTasks, tasksItem, ciItem, gateItem } = await import('./entry-check.ts');
+  assert.deepEqual(openTasks('- [x] 1.1 已完成\n- [ ] 1.2 未完成\n  - [ ] 1.3 子项'), ['1.2 未完成', '1.3 子项']);
+  const t = tasksItem(['a', 'b'], (c) => (c === 'a' ? '- [x] 1.1 好' : '- [ ] 2.1 推送'));
+  assert.equal(t.ok, false);
+  assert.match(t.detail, /b：2\.1 推送/);
+  assert.equal(tasksItem(['a'], () => '- [x] 1.1').ok, true);
+  assert.match(ciItem(null, 'abc1234').detail, /无法确认/);
+  assert.equal(ciItem([], 'abc1234').ok, false);
+  const runs = [
+    { workflowName: 'backend', conclusion: 'success', status: 'completed' },
+    { workflowName: 'frontend', conclusion: 'failure', status: 'completed' },
+    { workflowName: 'frontend', conclusion: 'success', status: 'completed' }
+  ];
+  assert.match(ciItem(runs, 'abc1234').detail, /frontend（failure）/);
+  assert.equal(ciItem(runs.filter((r) => r.conclusion === 'success'), 'abc1234').ok, true);
+  assert.equal(gateItem("ACCEPTANCE_BLOCKING: 'false'", false).ok, false);
+  assert.equal(gateItem("ACCEPTANCE_BLOCKING: 'true'", true).ok, false);
+  assert.equal(gateItem("ACCEPTANCE_BLOCKING: 'true'", false).ok, true);
 });

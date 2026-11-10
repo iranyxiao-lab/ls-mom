@@ -1,6 +1,6 @@
 /**
  * 验收报告（acceptance-walkthrough 3.4）：汇总本轮 runs/<run>/ 下的
- *   results.json（collect.ts）、defects.json（defects.ts sync）、budgets.json（操作与性能预算实测，tools/ops-cost.ts）、
+ *   results.json（collect.ts）、defects.json（defects.ts sync）、budgets.json（操作与性能预算实测，e2e/ux/ops-cost.spec.ts）、
  *   a11y.json（无障碍扫描汇总）、usability.json（可用性测试记录），以及 deferred.yaml（延期项）与覆盖追溯，
  * 生成 report.md 与单文件 report.html，并按准出条件自动判定"通过／不通过"及原因。
  * 运行：node tools/report.ts <run> [--commit <sha>]；结论为"不通过"时退出码 1。
@@ -18,7 +18,8 @@ export interface Budget {
   id: string;
   name: string;
   kind: 'click' | 'time' | 'perf';
-  budget: number;
+  /** null：spec 未规定预算，只记录 */
+  budget: number | null;
   actual: number | null;
   unit: string;
 }
@@ -73,7 +74,7 @@ export interface Report {
 }
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 1000) / 10 : 0);
-const ok = (b: Budget) => b.actual !== null && b.actual <= b.budget;
+const ok = (b: Budget) => b.actual !== null && (b.budget === null || b.actual <= b.budget);
 
 /** 每条用例取最后一次结果（同一 run 中补跑的结果覆盖先前的） */
 function latestOf(rows: ResultRow[]) {
@@ -124,7 +125,7 @@ export function build(i: Inputs): Report {
   if (!i.budgets?.length) reasons.push('没有操作与性能预算实测结果（budgets.json）');
   else {
     const over = i.budgets.filter((b) => !ok(b));
-    if (over.length) reasons.push(`预算未达标：${over.map((b) => `${b.name} ${b.actual ?? '未测'}${b.unit}（预算 ${b.budget}${b.unit}）`).join('、')}`);
+    if (over.length) reasons.push(`预算未达标：${over.map((b) => `${b.name} ${b.actual ?? '未测'}${b.unit}（预算 ${b.budget === null ? '只记录' : b.budget + b.unit}）`).join('、')}`);
   }
   if (!i.a11y) reasons.push('没有无障碍扫描结果（a11y.json）');
   else if (i.a11y.critical + i.a11y.serious > 0) reasons.push(`无障碍扫描有严重问题：critical ${i.a11y.critical}、serious ${i.a11y.serious}`);
@@ -180,7 +181,7 @@ export function markdown(r: Report): string {
   if (!i.budgets?.length) o.push('未实测。');
   else {
     o.push('| 项目 | 类型 | 预算 | 实测 | 结果 |', '|---|---|---|---|---|');
-    for (const b of i.budgets) o.push(`| ${esc(b.name)} | ${{ click: '点击', time: '耗时', perf: '性能' }[b.kind]} | ${b.budget}${b.unit} | ${b.actual ?? '—'}${b.actual === null ? '' : b.unit} | ${ok(b) ? '达标' : '超标'} |`);
+    for (const b of i.budgets) o.push(`| ${esc(b.name)} | ${{ click: '点击', time: '耗时', perf: '性能' }[b.kind]} | ${b.budget === null ? '只记录' : b.budget + b.unit} | ${b.actual ?? '—'}${b.actual === null ? '' : b.unit} | ${b.budget === null ? (b.actual === null ? '未测' : '—') : ok(b) ? '达标' : '超标'} |`);
   }
   o.push('', '## 无障碍', '', i.a11y ? `扫描 ${i.a11y.pages} 个页面状态：critical ${i.a11y.critical}，serious ${i.a11y.serious}` : '未扫描。');
   o.push('', '## 可用性测试', '');

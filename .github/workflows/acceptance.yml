@@ -1,7 +1,7 @@
 name: acceptance
 
 # 验收覆盖门禁（acceptance-walkthrough 1.4）：每次提交校验用例格式、比对 spec 场景覆盖，把摘要写进运行摘要并评论到 PR。
-# 迁移期只报告不阻断（ACCEPTANCE_BLOCKING=false）；用例补齐到 100% 后改为 true 切换为阻断（见 acceptance/README.md）。
+# 用例已覆盖全部场景（100%），门禁为阻断（ACCEPTANCE_BLOCKING=true）：未覆盖、悬空、P0 缺 AUTO、切片缺旅程时 CI 失败。
 on:
   push:
     branches: [main]
@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 env:
-  ACCEPTANCE_BLOCKING: 'false'
+  ACCEPTANCE_BLOCKING: 'true'
 
 defaults:
   run:

@@ -32,7 +32,8 @@ interface StepRecord {
 }
 
 export interface Walk {
-  as(account: string, opts?: { mobile?: boolean }): Promise<Session>;
+  /** 以账号登录（同一账号复用会话）；fresh：重新登录（如被授权后旧会话失效） */
+  as(account: string, opts?: { mobile?: boolean; fresh?: boolean }): Promise<Session>;
   step<T>(title: string, fn: () => Promise<T>, on?: Session): Promise<T>;
   /** 本用例证据目录 */
   dir: string;
@@ -52,7 +53,8 @@ export const test = base.extend<{ walk: Walk }>({
 
     const as: Walk['as'] = async (account, opts = {}) => {
       const existing = sessions.find((s) => s.account === account);
-      if (existing) return (last = existing);
+      if (existing && !opts.fresh) return (last = existing);
+      if (existing) sessions.splice(sessions.indexOf(existing), 1);
       // trace 由 Playwright 按配置（retain-on-failure）记录；录像由本夹具记录，用例通过时删除
       const context = await browser.newContext({
         baseURL,
