@@ -29,6 +29,11 @@ jobs:
         run: |
           python3 -m pip install --quiet pyyaml==6.0.2
           python3 scripts/ci/scan-dcs-write.py
+      # Agent 永不暴露清单：命中清单的 Operation 只能是 DENY / NONE；docs/agent-boundary.md 与 agent-denylist.txt 一致
+      - name: Agent 暴露等级扫描
+        run: |
+          python3 scripts/ci/scan-agent-exposure.py --self-test
+          python3 scripts/ci/scan-agent-exposure.py
       # DOM-05：核心 schema 与核心代码中不得出现培训 / 咨询等扩展领域概念（只能由扩展 Pack 提供）
       - name: DOM-05 核心领域纯净扫描
         run: |
