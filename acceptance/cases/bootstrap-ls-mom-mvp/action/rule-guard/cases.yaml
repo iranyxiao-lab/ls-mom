@@ -1,0 +1,109 @@
+cases:
+  - id: AC-ACT-RG-001
+    title: L0 提示
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 约束分级, scenario: L0 提示 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 提交工作未填计划结束时间
+    expected:
+      - 提交成功并返回提示信息
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#L0提示_提交工作未填计划结束时间时成功并返回提示
+  - id: AC-ACT-RG-002
+    title: L2 阻断
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 约束分级, scenario: L2 阻断 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 高风险工作分派给资质已过期的人员
+    expected:
+      - 分派被拒绝并说明资质过期
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#L2阻断_高风险工作分派给资质过期人员被拒绝
+  - id: AC-ACT-RG-003
+    title: 非法表达式
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 受限表达式子集, scenario: 非法表达式 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 规则表达式中调用未在白名单的函数
+    expected:
+      - 发布校验失败并指出函数名
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/CelRuleEngineTest.java#非白名单函数发布校验失败并指出函数名
+  - id: AC-ACT-RG-004
+    title: 执行超限
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 受限表达式子集, scenario: 执行超限 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 表达式求值超过成本或时间上限
+    expected:
+      - 求值中止并按规则失败处理
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/CelRuleEngineTest.java#求值超过成本上限时中止并按规则失败处理
+  - id: AC-ACT-RG-005
+    title: 绕过前端
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 前后端语义一致, scenario: 绕过前端 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 直接调用 API 提交违反条件必填规则的数据
+    expected:
+      - 后端拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#绕过前端直接调用违反条件必填规则被后端拒绝
+  - id: AC-ACT-RG-006
+    title: 一致性测试
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 前后端语义一致, scenario: 一致性测试 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 运行规则一致性测试集
+    expected:
+      - 前端与后端对每条用例的求值结果一致
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/CelConformanceTest.java#前后端一致性用例
+  - id: AC-ACT-RG-007
+    title: 风险定级
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 决策表, scenario: 风险定级 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 输入严重度为 HIGH 且涉及安全设备
+    expected:
+      - 决策表返回风险等级 L3
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#决策表_严重度HIGH且涉及安全设备返回风险等级L3
+  - id: AC-ACT-RG-008
+    title: 双签互斥
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 代码守卫插件, scenario: 双签互斥 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 同一人试图同时作为执行人和复核人完成双签
+    expected:
+      - 代码守卫拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#代码守卫_双签互斥
+  - id: AC-ACT-RG-009
+    title: 试图放宽
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/rule-guard, requirement: 加严不放宽, scenario: 试图放宽 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 客户 Pack 将标准阻断规则覆盖为提示
+    expected:
+      - 发布校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/rule/RuleGuardTest.java#客户规则只能加严_试图放宽被拒绝

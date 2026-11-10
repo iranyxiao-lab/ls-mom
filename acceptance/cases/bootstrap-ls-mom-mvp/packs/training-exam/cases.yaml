@@ -1,0 +1,62 @@
+cases:
+  - id: AC-PACK-TE-001
+    title: 新增题目
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 课程与题库, scenario: 新增题目 }
+    slice: D
+    roles: [ 培训管理员, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 培训管理员新增一道多选题并设置正确选项
+    expected:
+      - 题目保存在 Pack 的独立表中
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-training/src/test/java/com/lsmom/biz/training/TrainingPackTest.java#新增多选题保存在Pack独立表_审核后才可组卷
+  - id: AC-PACK-TE-002
+    title: 超时交卷
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 考试与答卷, scenario: 超时交卷 }
+    slice: D
+    roles: [ 培训管理员, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 考试时间到达而考生未提交
+    expected:
+      - 系统自动提交已作答部分并判分
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-training/src/test/java/com/lsmom/biz/training/TrainingPackTest.java#限时作答_超时未交卷系统自动提交已作答部分并判分
+  - id: AC-PACK-TE-003
+    title: 资质查询
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 培训记录, scenario: 资质查询 }
+    slice: D
+    roles: [ 培训管理员, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 高风险工作分派守卫查询人员资质
+    expected:
+      - 通过 Pack 公开的 Operation 获得有效培训记录，而非直接读表
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-training/src/test/java/com/lsmom/biz/training/TrainingPackTest.java#客观题自动判分_简答人工评分_及格生成培训记录_资质经公开Operation查询
+  - id: AC-PACK-TE-004
+    title: LLM 草拟题目
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 课程发布审批, scenario: LLM 草拟题目 }
+    slice: D
+    roles: [ 培训管理员, 操作工 ]
+    dataset: acceptance
+    steps:
+      - LLM 根据 SOP 生成 10 道题
+    expected:
+      - 题目状态为草稿，需人工审核后发布
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-training/src/test/java/com/lsmom/biz/training/TrainingPackTest.java#LLM草拟的题目只能为草稿_需真人审核后发布_Agent不能提交课程发布
+  - id: AC-PACK-TE-005
+    title: DOM-05 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/training-exam, requirement: 核心无培训概念, scenario: DOM-05 验收 }
+    codes: [ DOM-05 ]
+    slice: D
+    roles: [ 培训管理员, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 扫描核心 schema 与核心代码
+    expected:
+      - 不存在培训考试相关的表、字段或类型
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-architecture-test/src/test/java/com/lsmom/architecture/ModuleDependencyTest.java#coreHasNoExtensionDomainConcepts

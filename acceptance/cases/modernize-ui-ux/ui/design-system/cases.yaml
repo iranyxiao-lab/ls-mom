@@ -1,0 +1,109 @@
+cases:
+  - id: AC-UI-DS-001
+    title: 硬编码检测
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 设计令牌唯一来源, scenario: 硬编码检测 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 业务页面样式中出现十六进制颜色或未经令牌的固定像素间距
+    expected:
+      - 前端 lint 失败并指出位置
+    mode: AUTO
+    script: plus-ui/tests/lint/style-gate.mjs#src/views 无违规
+  - id: AC-UI-DS-002
+    title: 品牌换色
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 设计令牌唯一来源, scenario: 品牌换色 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 管理员把主色改为客户品牌色
+    expected:
+      - 所有按钮、链接、焦点环、图表主色同步变化，无需改页面代码
+    mode: AUTO
+    script: plus-ui/tests/ui/storybook/tokens.spec.ts#品牌换色
+  - id: AC-UI-DS-003
+    title: 切换深色
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 明暗主题, scenario: 切换深色 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户切换到深色主题
+    expected:
+      - 页面在 200ms 内完成切换且无闪白，刷新后仍为深色
+    mode: AUTO
+    script: plus-ui/tests/unit/theme.spec.ts#切换深色后 html.dark 生效
+  - id: AC-UI-DS-004
+    title: 紧凑列表
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 密度档位, scenario: 紧凑列表 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户在 1080p 屏幕上以紧凑密度打开工作板列表
+    expected:
+      - 首屏可见行数不少于 20 行
+    mode: AUTO
+    script: acceptance/e2e/ui/density-keyboard.spec.ts#紧凑列表
+  - id: AC-UI-DS-005
+    title: 状态色盲可辨
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 无障碍基线, scenario: 状态色盲可辨 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 列表展示工作状态
+    expected:
+      - 每个状态同时有颜色、图标或文字
+    mode: AUTO
+    script: plus-ui/tests/unit/ls-state.spec.ts#每个状态同时有颜色、图标和文字
+  - id: AC-UI-DS-006
+    title: 键盘遍历
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 无障碍基线, scenario: 键盘遍历 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 只用 Tab／Shift+Tab／Enter／Esc 操作一张审批单
+    expected:
+      - 可以完成填写意见、通过和关闭抽屉
+    mode: AUTO
+    script: acceptance/e2e/ui/density-keyboard.spec.ts#键盘遍历
+  - id: AC-UI-DS-007
+    title: 平板查看列表
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 响应式断点, scenario: 平板查看列表 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 在平板竖屏打开台账列表
+    expected:
+      - 次要列自动收起到行展开区，不出现整页横向滚动
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-table.spec.ts#平板竖屏：只保留前三列，次要列收到行展开区
+  - id: AC-UI-DS-008
+    title: 无数据
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 统一的状态与反馈组件, scenario: 无数据 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 新用户打开"我的待办"且没有待办
+    expected:
+      - 显示插图、说明文字和一个相关的主操作（如"查看我发起的"），而不是空表格
+    mode: AUTO
+    script: plus-ui/tests/unit/ls-state.spec.ts#空态显示说明与主操作
+  - id: AC-UI-DS-009
+    title: 减少动态效果
+    ref: { change: modernize-ui-ux, spec: ui/design-system, requirement: 动效克制且可关闭, scenario: 减少动态效果 }
+    slice: UI
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 操作系统开启"减少动态效果"
+    expected:
+      - 抽屉、页签切换不再有位移动画
+    mode: AUTO
+    script: plus-ui/tests/unit/ls-state.spec.ts#减少动态效果时过渡时长归零

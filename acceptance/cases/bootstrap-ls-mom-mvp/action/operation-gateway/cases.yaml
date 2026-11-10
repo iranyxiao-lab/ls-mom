@@ -1,0 +1,97 @@
+cases:
+  - id: AC-ACT-OG-001
+    title: 调用未注册 Operation
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: Operation 契约, scenario: 调用未注册 Operation }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 客户端请求 `/api/op/ls.core.Work.unknown`
+    expected:
+      - 返回"Operation 不存在"错误
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#调用未注册Operation返回不存在并审计
+  - id: AC-ACT-OG-002
+    title: 守卫失败回滚
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 统一执行入口, scenario: 守卫失败回滚 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 提交 Issue 时守卫判定缺少必需证据
+    expected:
+      - 返回守卫错误，业务数据、事件与 Outbox 均无变化
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#守卫失败时业务数据事件与Outbox均无变化
+  - id: AC-ACT-OG-003
+    title: 通用更新改状态
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 写入风险分级, scenario: 通用更新改状态 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 通过通用 CRUD 更新接口把 WorkItem 的 `status` 改为 DONE
+    expected:
+      - 请求被拒绝，提示应使用对应 Operation
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/RiskAndExternalTest.java#通用接口改WorkItem状态被拒绝
+  - id: AC-ACT-OG-004
+    title: 重复提交
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 幂等, scenario: 重复提交 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 网络重试导致同一幂等键的"提交"请求到达两次
+    expected:
+      - 只产生一次状态迁移与一个事件，第二次返回相同结果
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#重复提交只产生一次迁移与一个事件
+  - id: AC-ACT-OG-005
+    title: 并发编辑
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 乐观并发, scenario: 并发编辑 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 两人基于同一版本先后提交修改
+    expected:
+      - 后到的请求返回版本冲突
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#并发编辑后到者返回版本冲突与最新版本
+  - id: AC-ACT-OG-006
+    title: 失败也审计
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 审计, scenario: 失败也审计 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户因权限不足调用"关闭 Issue"失败
+    expected:
+      - 审计中存在一条失败记录及拒绝原因
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#权限不足失败也审计
+  - id: AC-ACT-OG-007
+    title: 外部过账失败
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 外部写入经 Operation, scenario: 外部过账失败 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 外部 ERP 返回失败
+    expected:
+      - 业务记录同步状态为失败，出现在补偿列表，填报本身保持已提交
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/RiskAndExternalTest.java#外部过账失败时填报仍为已提交并进入补偿列表_恢复后重投成功
+  - id: AC-ACT-OG-008
+    title: 文档一致性
+    ref: { change: bootstrap-ls-mom-mvp, spec: action/operation-gateway, requirement: 开放接口描述, scenario: 文档一致性 }
+    slice: PLATFORM
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 发布新 Operation
+    expected:
+      - OpenAPI 文档中出现该 Operation，其输入 Schema 与注册定义一致
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/OpenApiTest.java#已发布Operation出现在文档且Schema一致

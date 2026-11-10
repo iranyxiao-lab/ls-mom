@@ -1,0 +1,121 @@
+cases:
+  - id: AC-UI-SN-001
+    title: 班组长首页
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台, scenario: 班组长首页 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 班组长登录
+    expected:
+      - 首页首屏显示本班组今日工作、待我审核和未关闭异常，每张卡片都可一键进入对应列表
+    mode: AUTO
+    script: plus-ui/tests/ui/app/home.spec.ts#班组长首页：首屏三张卡片
+  - id: AC-UI-SN-002
+    title: 个人调整
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台, scenario: 个人调整 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户隐藏一张卡片并调整顺序
+    expected:
+      - 下次登录保持该布局，"恢复默认"可回到角色布局
+    mode: AUTO
+    script: plus-ui/tests/ui/app/home.spec.ts#个人调整：隐藏与排序在换浏览器后保持
+  - id: AC-UI-SN-003
+    title: 按编号直达
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 全局命令面板, scenario: 按编号直达 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户按 Ctrl+K 并输入一张工作单编号
+    expected:
+      - 结果首项为该工作单，回车直接打开详情
+    mode: AUTO
+    script: plus-ui/tests/ui/app/palette.spec.ts#命令面板：拼音匹配菜单、编号直达工作与设备
+  - id: AC-UI-SN-004
+    title: 拼音匹配
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 全局命令面板, scenario: 拼音匹配 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 输入 "sbtz"
+    expected:
+      - 结果中出现"设备台账"
+    mode: AUTO
+    script: plus-ui/tests/unit/command-palette.spec.ts#全拼、混合缩写、原文都能命中
+  - id: AC-UI-SN-005
+    title: 无权限对象不出现
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 全局命令面板, scenario: 无权限对象不出现 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户搜索其他车间的设备
+    expected:
+      - 结果中不出现无数据域权限的对象
+    mode: AUTO
+    script: plus-ui/tests/ui/app/palette.spec.ts#命令面板只显示数据域内的对象
+  - id: AC-UI-SN-006
+    title: 继续上次工作
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 收藏与最近访问, scenario: 继续上次工作 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户打开命令面板未输入任何内容
+    expected:
+      - 显示最近访问和收藏列表
+    mode: AUTO
+    script: plus-ui/tests/ui/app/palette.spec.ts#最近访问与收藏
+  - id: AC-UI-SN-007
+    title: 切回列表
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 多页签与状态保留, scenario: 切回列表 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户从筛选后的列表打开详情页签再切回列表
+    expected:
+      - 列表筛选条件和滚动位置不变
+    mode: AUTO
+    script: plus-ui/tests/ui/app/tabs.spec.ts#从筛选后的列表切到其他页签再切回
+  - id: AC-UI-SN-008
+    title: 安装 Pack 后菜单
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 菜单层级不超过三级, scenario: 安装 Pack 后菜单 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 安装培训考试 Pack
+    expected:
+      - 其菜单出现在固定分组下，层级不超过三级
+    mode: AUTO
+    script: plus-ui/tests/e2e/menu-groups.e2e.mjs#新 Pack 入口自动归入
+  - id: AC-UI-SN-009
+    title: 从通知办理
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 通知抽屉, scenario: 从通知办理 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户点击一条"交接班待确认"通知
+    expected:
+      - 打开交接班确认抽屉，确认后通知标记已处理
+    mode: AUTO
+    script: plus-ui/tests/ui/app/notifications.spec.ts#从通知确认交接班
+  - id: AC-UI-SN-010
+    title: 无权限
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 错误与无权限页面可行动, scenario: 无权限 }
+    slice: UI
+    roles: [ 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户打开无权访问的单据链接
+    expected:
+      - 页面说明缺少的权限，并提供"申请权限"按钮和 trace_id
+    mode: AUTO
+    script: plus-ui/tests/ui/app/errors.spec.ts#无权限链接：显示缺少的权限与追踪编号

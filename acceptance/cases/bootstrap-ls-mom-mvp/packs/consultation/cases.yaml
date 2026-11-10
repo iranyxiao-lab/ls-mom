@@ -1,0 +1,49 @@
+cases:
+  - id: AC-PACK-CO-001
+    title: 匿名意见
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/consultation, requirement: 议题与意见, scenario: 匿名意见 }
+    slice: D
+    roles: [ 员工, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 员工在匿名议题下提交意见
+    expected:
+      - 答复人看不到提交人，审计记录中保留提交主体
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-consultation/src/test/java/com/lsmom/biz/consultation/ConsultationPackTest.java#匿名意见_答复人看不到提交人_审计保留提交主体
+  - id: AC-PACK-CO-002
+    title: 意见转整改
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/consultation, requirement: 答复与转问题, scenario: 意见转整改 }
+    slice: D
+    roles: [ 员工, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 管理员将一条安全意见转为 Issue
+    expected:
+      - 生成关联该意见的 Issue，意见状态显示已转整改
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-consultation/src/test/java/com/lsmom/biz/consultation/ConsultationPackTest.java#答复归类_安全意见转整改生成关联Issue_意见显示已转整改
+  - id: AC-PACK-CO-003
+    title: 总结引用
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/consultation, requirement: 咨询总结, scenario: 总结引用 }
+    slice: D
+    roles: [ 员工, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 负责人发布 LLM 草拟的总结
+    expected:
+      - 总结中每个观点都能链接到对应意见
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-consultation/src/test/java/com/lsmom/biz/consultation/ConsultationPackTest.java#LLM草拟总结_每个观点引用来源意见_真人确认后发布
+  - id: AC-PACK-CO-004
+    title: 仅安装咨询 Pack
+    ref: { change: bootstrap-ls-mom-mvp, spec: packs/consultation, requirement: 独立安装与停用, scenario: 仅安装咨询 Pack }
+    slice: D
+    roles: [ 员工, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 在未安装培训 Pack 的环境安装咨询 Pack
+    expected:
+      - 安装成功且功能完整
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-consultation/src/test/java/com/lsmom/biz/consultation/ConsultationPackTest.java#不依赖培训考试Pack_独立安装

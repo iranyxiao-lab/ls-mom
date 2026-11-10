@@ -1,0 +1,85 @@
+cases:
+  - id: AC-UI-MF-001
+    title: 操作工打开手机
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 移动工作台, scenario: 操作工打开手机 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 操作工在手机上登录
+    expected:
+      - 首屏是本人本班次的任务卡片，每张卡片有"开工／报工"主按钮
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.2 首屏是本班次
+  - id: AC-UI-MF-002
+    title: 常规报工
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 一键开工与报工, scenario: 常规报工 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 操作工对进行中的任务报 120 件产出
+    expected:
+      - 点"报工"→输入 120→拍照（可选）→"提交"即可完成
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.3 常规报工点击
+  - id: AC-UI-MF-003
+    title: 底部操作区
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 触控友好, scenario: 底部操作区 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 打开缺陷登记页
+    expected:
+      - '"提交"按钮固定在底部，"删除草稿"不与"提交"相邻'
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.3 删除草稿在顶部，不与底部「提交」相邻
+  - id: AC-UI-MF-004
+    title: 语音描述缺陷
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 拍照、扫码与语音, scenario: 语音描述缺陷 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 维修工按住语音按钮描述"三号泵轴承异响"
+    expected:
+      - 文字填入描述字段，用户可修改后提交
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.4 按住语音按钮说话
+  - id: AC-UI-MF-005
+    title: 断网报工
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 弱网与离线草稿, scenario: 断网报工 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 操作工在无信号区域提交报工
+    expected:
+      - 记录显示"待同步"，恢复网络后自动提交成功，服务端只产生一条报工
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.5 恢复网络后自动提交，服务端只多一条报工
+  - id: AC-UI-MF-006
+    title: 同步时校验失败
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 弱网与离线草稿, scenario: 同步时校验失败 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 排队的报工同步时该任务已被班组长取消
+    expected:
+      - 该条标记为"同步失败：任务已取消"，用户可查看并丢弃
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.5 同步时任务已取消
+  - id: AC-UI-MF-007
+    title: 添加到主屏
+    ref: { change: modernize-ui-ux, spec: ui/mobile-field-ops, requirement: 安装到桌面, scenario: 添加到主屏 }
+    slice: UI
+    roles: [ 操作工, 维修工 ]
+    dataset: acceptance
+    steps:
+      - 用户把移动端添加到手机主屏并在无网络时打开
+    expected:
+      - 应用外壳与已缓存的今日任务可以显示，并提示当前离线
+    mode: AUTO
+    script: plus-ui/tests/e2e/mobile.e2e.mjs#7.5 无网络打开：外壳与缓存的今日任务可以显示

@@ -1,0 +1,97 @@
+cases:
+  - id: AC-META-PL-001
+    title: 缺少负责人
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: Pack Manifest, scenario: 缺少负责人 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 导入一个未填写业务负责人的 Pack
+    expected:
+      - 校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#zip含sha256清单_篡改被拒_缺少负责人的Pack被拒
+  - id: AC-META-PL-002
+    title: 循环依赖
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 依赖顺序安装与无环, scenario: 循环依赖 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - Pack A 依赖 B，B 又依赖 A
+    expected:
+      - 安装被拒绝并给出循环路径
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#版本范围与循环依赖
+  - id: AC-META-PL-003
+    title: 未批准发布
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 发布链路, scenario: 未批准发布 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 测试通过但未经批准的 ChangeSet 请求发布到生产
+    expected:
+      - 发布被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#ChangeSet流水线_未批准发布被拒_批准后发布
+  - id: AC-META-PL-004
+    title: 停用培训 Pack
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 启用、停用与数据保留, scenario: 停用培训 Pack }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 停用培训考试 Pack
+    expected:
+      - 其页面与 Operation 不可访问，历史培训记录仍保存在数据库
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#安装培训Pack_独立迁移历史_停用后入口不可用数据保留_被依赖不可停用
+  - id: AC-META-PL-005
+    title: 标准 Pack 升级
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 升级保留客户扩展, scenario: 标准 Pack 升级 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 设备 Pack 从 1.0 升级到 1.1，而客户 Pack 为设备增加了两个字段
+    expected:
+      - 升级后客户字段与数据仍在，客户 Pack 验收测试通过
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#标准Pack升级保留客户字段与数据_客户验收测试通过
+  - id: AC-META-PL-006
+    title: 环境被手工修改
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 配置漂移检测与回灌, scenario: 环境被手工修改 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 有人在测试环境直接修改了某表单标签
+    expected:
+      - 漂移报告列出该差异，并可一键生成包含该差异的 ChangeSet
+    mode: AUTO
+    script: plus-ui/tests/e2e/pack-lifecycle.e2e.mjs#漂移报告列出差异
+  - id: AC-META-PL-007
+    title: 超期未用
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 复审与下线, scenario: 超期未用 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 某客户 Pack 超过复审日期且 90 天无使用
+    expected:
+      - 协同应用中心将其标记为建议下线并通知负责人
+    mode: AUTO
+    script: plus-ui/tests/e2e/pack-lifecycle.e2e.mjs#超过复审日期且 90 天无使用：标记建议下线
+  - id: AC-META-PL-008
+    title: 升级演练失败
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/pack-lifecycle, requirement: 升级演练, scenario: 升级演练失败 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 演练环境中某迁移失败
+    expected:
+      - 发布门禁阻止发布并输出失败迁移
+    mode: AUTO
+    script: plus-ui/tests/e2e/pack-lifecycle.e2e.mjs#发布门禁脚本拒绝并列出失败迁移

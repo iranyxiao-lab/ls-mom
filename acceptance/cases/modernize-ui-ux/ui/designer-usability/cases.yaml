@@ -1,0 +1,73 @@
+cases:
+  - id: AC-UI-DU-001
+    title: 用借还模板
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 从模板起步, scenario: 用借还模板 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 实施人员选择"借还登记"模板并改名
+    expected:
+      - 生成包含主子表、借还状态与审批流程的完整草稿
+    mode: AUTO
+    script: plus-ui/tests/e2e/template-library.e2e.mjs#借还模板生成的草稿直接通过发布校验
+  - id: AC-UI-DU-002
+    title: 推断字段
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 从 Excel 生成台账, scenario: 推断字段 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 上传含"日期、设备编号、检查结果（正常/异常）"表头的点检表
+    expected:
+      - 草稿中"日期"为日期类型、"设备编号"建议为设备引用、"检查结果"建议为二值字典
+    mode: AUTO
+    script: plus-ui/tests/e2e/excel-ledger.e2e.mjs#结果为二值字典
+  - id: AC-UI-DU-003
+    title: 生成条件必填
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 自然语言辅助, scenario: 生成条件必填 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 输入上述描述
+    expected:
+      - 规则面板出现对应的条件必填规则草稿，确认前不生效
+    mode: AUTO
+    script: plus-ui/tests/e2e/form-assist.e2e.mjs#条件必填描述生成规则草稿
+  - id: AC-UI-DU-004
+    title: 切换节点视角
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 所见即所得, scenario: 切换节点视角 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 实施人员切换到"车间审核"节点视角
+    expected:
+      - 画布中不可编辑字段显示为只读样式
+    mode: AUTO
+    script: plus-ui/tests/e2e/designer-perspective.e2e.mjs#只读字段显示为文字，无输入框
+  - id: AC-UI-DU-005
+    title: 一键定位
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 发布前问题清单, scenario: 一键定位 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 问题清单显示"节点 CONFIRM 引用了不存在的字段 confirmNote"
+    expected:
+      - 点击该项后流程设计器选中该节点并打开字段策略面板
+    mode: AUTO
+    script: plus-ui/tests/e2e/flow-issues.e2e.mjs#字段策略面板已打开
+  - id: AC-UI-DU-006
+    title: 试运行审批
+    ref: { change: modernize-ui-ux, spec: ui/designer-usability, requirement: 安全的试运行, scenario: 试运行审批 }
+    slice: UI
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 实施人员以模拟角色走完提交→审核→确认
+    expected:
+      - 正式库中没有任何试运行记录
+    mode: AUTO
+    script: plus-ui/tests/e2e/trial-run.e2e.mjs#正式库无试运行记录

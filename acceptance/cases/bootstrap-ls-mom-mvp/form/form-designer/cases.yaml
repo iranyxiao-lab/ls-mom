@@ -1,0 +1,100 @@
+cases:
+  - id: AC-FORM-FD-001
+    title: 拖拽主子表
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 设计器工作区, scenario: 拖拽主子表 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 实施人员从控件面板拖入子表控件并添加三列
+    expected:
+      - 画布显示子表，Schema 区出现对应子表定义
+    mode: AUTO
+    script: plus-ui/tests/e2e/form-designer.e2e.mjs#拖入表格表单并绑定子 Concept
+  - id: AC-FORM-FD-002
+    title: 撤销删除
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 撤销与重做, scenario: 撤销删除 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 删除一个字段后执行撤销
+    expected:
+      - 字段及其属性与规则恢复
+    mode: AUTO
+    script: plus-ui/tests/unit/form-designer.spec.ts#撤销删除
+  - id: AC-FORM-FD-003
+    title: 设备引用过滤
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: MVP 控件集, scenario: 设备引用过滤 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 为设备引用控件配置过滤 `orgId = $context.orgId`
+    expected:
+      - 预览时远程搜索只返回当前组织的设备
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-form.spec.ts#引用控件把过滤与组织上下文交给服务端搜索
+  - id: AC-FORM-FD-004
+    title: 粘贴脚本
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 自定义组件来自注册表, scenario: 粘贴脚本 }
+    codes: [ FORM-08 ]
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 用户在任何属性中输入 `<script>` 或函数体代码
+    expected:
+      - 该内容被拒绝且无法发布
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/ComponentAndScriptTest.java#粘贴脚本无法发布
+  - id: AC-FORM-FD-005
+    title: 模拟审核节点
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 预览与权限模拟, scenario: 模拟审核节点 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 选择流程节点"车间审核"进行模拟
+    expected:
+      - 预览中只有该节点允许的字段可编辑
+    mode: AUTO
+    script: plus-ui/tests/unit/form-designer.spec.ts#权限模拟按节点与角色计算可编辑字段
+  - id: AC-FORM-FD-006
+    title: 手工改 Schema
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 发布必须经校验, scenario: 手工改 Schema }
+    codes: [ FORM-06 ]
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 在 Schema 区手工加入未知字段类型后点击发布
+    expected:
+      - 发布失败并定位到该字段
+    mode: AUTO
+    script: plus-ui/tests/unit/form-designer.spec.ts#Schema 区手工加入未知控件后发布失败并定位到字段
+  - id: AC-FORM-FD-007
+    title: 往返转换
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 编辑器格式可替换, scenario: 往返转换 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 将一份 LS FormSchema 载入设计器再导出且不做修改
+    expected:
+      - 导出结果与原 Schema 语义等价
+    mode: AUTO
+    script: plus-ui/tests/unit/fc-adapter.spec.ts#LS → FC → LS 语义等价
+  - id: AC-FORM-FD-008
+    title: 大表单性能
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-designer, requirement: 大表单可用性, scenario: 大表单性能 }
+    codes: [ FORM-09 ]
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 打开包含 200 个字段的表单并拖动一个字段
+    expected:
+      - 画布在 300ms 内完成更新
+    mode: AUTO
+    script: plus-ui/tests/e2e/form-designer-perf.e2e.mjs#200 字段表单拖拽响应最大

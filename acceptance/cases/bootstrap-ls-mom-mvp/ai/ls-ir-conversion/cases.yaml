@@ -1,0 +1,101 @@
+cases:
+  - id: AC-AI-IR-001
+    title: Schema 校验
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: LS-IR 格式, scenario: Schema 校验 }
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 提交缺少 `provenance` 的 LS-IR
+    expected:
+      - 校验失败
+    mode: AUTO
+    script: ls-mom-cli/src/test/java/com/lsmom/cli/LsIrTest.java#缺少provenance的LS_IR被拒
+  - id: AC-AI-IR-002
+    title: AI-02 可构建
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 由 LS-IR 生成产物, scenario: AI-02 可构建 }
+    codes: [ AI-02 ]
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 由一份新台账 LS-IR 生成产物
+    expected:
+      - 生成物能编译、在临时数据库安装并通过生成的测试
+    mode: AUTO
+    script: ls-mom-cli/src/test/java/com/lsmom/cli/PackGeneratorTest.java#AI02_新台账LS_IR生成物可编译_安装并通过生成的测试_打包为ChangeSet
+  - id: AC-AI-IR-003
+    title: 复用已有对象
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 构建期需求生成, scenario: 复用已有对象 }
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 需求中提到"设备"
+    expected:
+      - 生成的 LS-IR 引用现有 `ls.asset.Asset` 而非新建设备 Concept
+    mode: AUTO
+    script: ls-mom-cli/src/test/java/com/lsmom/cli/BuildCopilotTest.java#需求中的设备复用已有ls_asset_Asset_不新建设备对象
+  - id: AC-AI-IR-004
+    title: AI-01 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 不直达生产, scenario: AI-01 验收 }
+    codes: [ AI-01 ]
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 生成流水线尝试直接发布 ChangeSet 到生产
+    expected:
+      - 请求被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-pack/src/test/java/com/lsmom/pack/PackLifecycleTest.java#ChangeSet流水线_未批准发布被拒_批准后发布
+  - id: AC-AI-IR-005
+    title: 转换样例
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: Frappe 静态转换, scenario: 转换样例 }
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 转换一个许可清晰的简单 DocType 与 Workflow 样例
+    expected:
+      - 得到 LS-IR 及其生成物，场景测试通过
+    mode: AUTO
+    script: ls-mom-cli/src/test/java/com/lsmom/cli/FrappeImporterTest.java#转换样例安装并通过场景测试_来源可查_未处理需人工项时ChangeSet不能发布
+  - id: AC-AI-IR-006
+    title: AI-04 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 危险资产阻断, scenario: AI-04 验收 }
+    codes: [ AI-04 ]
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 待转换包中含 Server Script
+    expected:
+      - 该部分标记为禁止自动转换，ChangeSet 无法在未人工处理时发布
+    mode: AUTO
+    script: plus-ui/tests/e2e/frappe-conversion.e2e.mjs#门禁列出未处理的 Server Script
+  - id: AC-AI-IR-007
+    title: AI-03 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 来源追溯, scenario: AI-03 验收 }
+    codes: [ AI-03 ]
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 查询某 Pack 中由转换生成的 Concept
+    expected:
+      - 可看到其 Frappe 来源、许可证、转换器版本和人工修改历史
+    mode: AUTO
+    script: plus-ui/tests/e2e/frappe-conversion.e2e.mjs#来源页签：来源类型、许可证、转换器版本
+  - id: AC-AI-IR-008
+    title: 指标报告
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/ls-ir-conversion, requirement: 生成质量指标, scenario: 指标报告 }
+    slice: F
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 完成一次生成任务
+    expected:
+      - 指标报告中记录本次的各项数值
+    mode: AUTO
+    script: ls-mom-cli/src/test/java/com/lsmom/cli/PackGeneratorTest.java#AI02_新台账LS_IR生成物可编译_安装并通过生成的测试_打包为ChangeSet

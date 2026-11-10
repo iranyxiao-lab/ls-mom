@@ -1,0 +1,76 @@
+cases:
+  - id: AC-UI-UX-001
+    title: 审核预算
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 关键任务操作预算, scenario: 审核预算 }
+    codes: [ UI-CLICK-AUDIT ]
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 端到端测试从首页待办卡片完成一次审核
+    expected:
+      - 统计的点击数 ≤3，否则 CI 失败
+    mode: AUTO
+    script: plus-ui/tests/ui/app/home-todo.spec.ts#首页待办原地审核一次不超过 3 次点击
+  - id: AC-UI-UX-002
+    title: 包体超标
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 性能预算, scenario: 包体超标 }
+    codes: [ UI-PERF-BUNDLE ]
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 某次提交使首屏 JS 超过 400KB
+    expected:
+      - CI 的包体检查失败并列出增长来源
+    mode: AUTO
+    script: plus-ui/tests/perf/size-gate.mjs#首屏 JS 超过预算时包体检查失败
+  - id: AC-UI-UX-003
+    title: 缺少按钮标签
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 自动化无障碍检查, scenario: 缺少按钮标签 }
+    codes: [ UI-A11Y ]
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 新增的图标按钮缺少可读标签
+    expected:
+      - 无障碍扫描失败并指出元素
+    mode: AUTO
+    script: plus-ui/tests/ui/app/a11y.spec.ts#自检：图标按钮缺少可读标签时扫描失败
+  - id: AC-UI-UX-004
+    title: 意外样式变化
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 视觉回归, scenario: 意外样式变化 }
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 修改全局样式导致按钮圆角变化
+    expected:
+      - 视觉回归报告标出受影响的截图
+    mode: AUTO
+    script: plus-ui/tests/ui/visual-docker.sh
+  - id: AC-UI-UX-005
+    title: 完成率不足
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 可用性验证, scenario: 完成率不足 }
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 移动报工测试中 5 人只有 3 人独立完成
+    expected:
+      - 该任务记为未通过，问题进入待改进清单并安排复测
+    mode: AUTO
+    script: acceptance/tools/group3.test.ts#可用性测试某任务完成率不足 80% 时该任务记为未通过并判不通过
+  - id: AC-UI-UX-006
+    title: 发现放弃点
+    ref: { change: modernize-ui-ux, spec: ui/ux-quality, requirement: 使用埋点, scenario: 发现放弃点 }
+    slice: UI
+    roles: [ 车间主任, 实施者 ]
+    dataset: acceptance
+    steps:
+      - 统计显示 40% 的缺陷登记在"选择设备"步骤放弃
+    expected:
+      - 报表中该步骤被标记为高放弃率
+    mode: AUTO
+    script: plus-ui/tests/e2e/ui-usage.e2e.mjs#显示高放弃率

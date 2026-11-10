@@ -1,0 +1,121 @@
+cases:
+  - id: AC-UI-DE-001
+    title: 从设备发起缺陷
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 上下文默认值, scenario: 从设备发起缺陷 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户在设备详情点击"报缺陷"
+    expected:
+      - 缺陷表单已填好设备、位置、登记人、登记时间，用户只需填描述与严重程度
+    mode: AUTO
+    script: plus-ui/tests/ui/app/smart-defaults.spec.ts#从设备报缺陷：带出设备、位置、登记人、时间
+  - id: AC-UI-DE-002
+    title: 连续报工
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 记住上次选择, scenario: 连续报工 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 操作工第二次报工
+    expected:
+      - 工位和单位已预填为上次的值
+    mode: AUTO
+    script: plus-ui/tests/unit/smart-defaults.spec.ts#新单据按上下文预填并标出来源，改动后清除标记，提交后记住
+  - id: AC-UI-DE-003
+    title: 意外关闭
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 草稿自动保存与恢复, scenario: 意外关闭 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户填了一半关闭了浏览器
+    expected:
+      - 再次打开该表单时提示"发现未提交的草稿（时间）"，可恢复或丢弃
+    mode: AUTO
+    script: plus-ui/tests/ui/app/drafts.spec.ts#关闭浏览器后重新打开
+  - id: AC-UI-DE-004
+    title: 会话过期
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 草稿自动保存与恢复, scenario: 会话过期 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 提交时会话已过期
+    expected:
+      - 弹出原地重新登录，登录后自动继续提交，填写内容不丢失
+    mode: AUTO
+    script: plus-ui/tests/ui/app/drafts.spec.ts#提交时会话已过期
+  - id: AC-UI-DE-005
+    title: 服务端错误定位
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 实时就近校验, scenario: 服务端错误定位 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 服务端因子表第 3 行缺少工器具拒绝保存
+    expected:
+      - 子表第 3 行的工器具单元格高亮并显示原因，页面滚动到该处
+    mode: AUTO
+    script: plus-ui/tests/ui/app/form-errors.spec.ts#子表第 3 行服务端错误
+  - id: AC-UI-DE-006
+    title: 子表连续录入
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 全键盘录入, scenario: 子表连续录入 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户在借出明细最后一行按 Enter
+    expected:
+      - 新增一行且焦点落在新行第一个可编辑单元格
+    mode: AUTO
+    script: plus-ui/tests/unit/keyboard-entry.spec.ts#末行末格新增行并聚焦新行第一格
+  - id: AC-UI-DE-007
+    title: 粘贴 30 行
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 从 Excel 粘贴, scenario: 粘贴 30 行 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户从 Excel 复制 30 行明细粘贴到子表
+    expected:
+      - 生成 30 行，其中字典值不匹配的单元格标红并给出候选值
+    mode: AUTO
+    script: plus-ui/tests/ui/app/subtable-paste.spec.ts#粘贴 30 行
+  - id: AC-UI-DE-008
+    title: 扫设备码
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 扫码填字段, scenario: 扫设备码 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 点检员扫描设备铭牌二维码
+    expected:
+      - 设备字段被选中，并带出该设备的点检清单
+    mode: AUTO
+    script: plus-ui/tests/ui/app/ref-scan.spec.ts#扫码点检
+  - id: AC-UI-DE-009
+    title: 部分失败
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 批量编辑, scenario: 部分失败 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 对 20 条工作批量分派，其中 2 条状态不允许
+    expected:
+      - 18 条成功，结果面板列出 2 条失败原因，可只对失败项重试
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-table.spec.ts#20 条批量分派中 2 条失败
+  - id: AC-UI-DE-010
+    title: 记忆值已失效
+    ref: { change: modernize-ui-ux, spec: ui/efficient-data-entry, requirement: 便利功能不绕过服务端, scenario: 记忆值已失效 }
+    slice: UI
+    roles: [ 操作工, 点检员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 预填的上次工位已被停用后用户直接提交
+    expected:
+      - 服务端拒绝，前端在工位字段提示"该工位已停用，请重新选择"
+    mode: AUTO
+    script: plus-ui/tests/ui/app/convenience-guard.spec.ts#记忆的设备已报废

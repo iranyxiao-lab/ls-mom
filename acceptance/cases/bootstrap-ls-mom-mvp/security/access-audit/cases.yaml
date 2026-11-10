@@ -1,0 +1,86 @@
+cases:
+  - id: AC-SEC-AA-001
+    title: 有菜单无数据域
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 多层权限, scenario: 有菜单无数据域 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户有台账菜单权限但无目标车间数据域
+    expected:
+      - 列表为空，直接访问记录被拒绝
+    mode: AUTO
+    script: plus-ui/tests/e2e/access-matrix.e2e.mjs#查询二车间的工作被拒
+  - id: AC-SEC-AA-002
+    title: 吊销 Key
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 机器身份与 API Key, scenario: 吊销 Key }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 管理员吊销某外部系统的 API Key
+    expected:
+      - 该 Key 的后续请求立即被拒绝
+    mode: AUTO
+    script: plus-ui/tests/e2e/agent-gateway.e2e.mjs#吊销后调用返回 401
+  - id: AC-SEC-AA-003
+    title: 限流
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 机器身份与 API Key, scenario: 限流 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 某 Key 的请求超过配置速率
+    expected:
+      - 超出部分返回限流错误
+    mode: AUTO
+    script: plus-ui/tests/e2e/agent-gateway.e2e.mjs#超过每分钟上限返回 429
+  - id: AC-SEC-AA-004
+    title: 服务身份审批
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 真人专属动作, scenario: 服务身份审批 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 服务身份调用任务审批
+    expected:
+      - 请求被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#节点只读字段被拒并审计_非办理人办理被拒_机器身份不能审批
+  - id: AC-SEC-AA-005
+    title: 导出审计
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 审计覆盖, scenario: 导出审计 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户导出 5000 条质量记录
+    expected:
+      - 审计记录导出人、条件、条数与时间
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/ImportExportTest.java#超量导出被拒绝并审计_正常导出异步写入对象存储
+  - id: AC-SEC-AA-006
+    title: 新客户部署
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 单客户单库隔离, scenario: 新客户部署 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 为新客户部署实例
+    expected:
+      - 使用独立数据库与对象存储桶
+    mode: MANUAL
+    notes: 按 deploy/README 为新客户部署：每个客户一个 Compose 项目，核对数据库卷、对象存储桶与 .env 中的库名、桶名均为该客户独立
+  - id: AC-SEC-AA-007
+    title: 恢复演练
+    ref: { change: bootstrap-ls-mom-mvp, spec: security/access-audit, requirement: 联合备份与恢复, scenario: 恢复演练 }
+    slice: PLATFORM
+    roles: [ 系统管理员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 将最近备份恢复到全新环境
+    expected:
+      - 业务记录、附件、在途流程与 Pack 版本一致可用，在途流程可继续办理
+    mode: AUTO
+    script: deploy/scripts/upgrade-acceptance.sh
+    journey: J-RESTORE

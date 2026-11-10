@@ -1,0 +1,85 @@
+cases:
+  - id: AC-CORE-DE-001
+    title: 人工读数
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 事实观察, scenario: 人工读数 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 点检人员录入一次压力读数
+    expected:
+      - 生成一条来源为人工的 Observation，并出现在设备时间轴
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/document/DocumentObservationTest.java#人工读数生成来源为人工的观察
+  - id: AC-CORE-DE-002
+    title: 事件完整性
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 领域事件结构, scenario: 事件完整性 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 一条 WorkItem 被分派
+    expected:
+      - 产生类型为分派的事件，字段齐全且 `trace_id` 与请求一致
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#事件字段齐全且trace与请求一致
+  - id: AC-CORE-DE-003
+    title: 业务失败
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: Outbox 同事务写入, scenario: 业务失败 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - Operation 在写入后因守卫失败回滚
+    expected:
+      - 不存在对应的 Outbox 记录，也不发送任何通知
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/OutboxTest.java#业务回滚无Outbox_成功后投递
+  - id: AC-CORE-DE-004
+    title: 下游超时
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 至少一次投递与消费幂等, scenario: 下游超时 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 外部通知服务连续超时
+    expected:
+      - 记录按退避重试，达到上限后出现在失败任务列表并可手工重投
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/OutboxTest.java#下游超时退避重试达上限进入补偿列表并可手工重投
+  - id: AC-CORE-DE-005
+    title: 越权下载
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 附件关联, scenario: 越权下载 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 无该对象数据域的用户请求附件下载链接
+    expected:
+      - 系统拒绝并记录审计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/document/DocumentObservationTest.java#越权下载被拒绝并审计
+  - id: AC-CORE-DE-006
+    title: 查看时间轴
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 业务时间轴, scenario: 查看时间轴 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 打开一条质量不符合项详情
+    expected:
+      - 时间轴依次展示登记、审核、整改工作、验证和关闭，并标注操作人
+    mode: AUTO
+    script: plus-ui/tests/e2e/quality-ops.e2e.mjs#质检员终判关闭，记录终判人与结论
+  - id: AC-CORE-DE-007
+    title: 事件清理
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/domain-events, requirement: 不采用全量事件溯源, scenario: 事件清理 }
+    slice: PLATFORM
+    roles: [ 点检员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 已投递的历史 Outbox 记录按保留策略归档
+    expected:
+      - 业务查询结果不受影响
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/OutboxTest.java#重复投递消费方只处理一次_归档不影响业务

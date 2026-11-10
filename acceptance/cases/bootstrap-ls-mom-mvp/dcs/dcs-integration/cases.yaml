@@ -1,0 +1,109 @@
+cases:
+  - id: AC-DCS-DI-001
+    title: 写入能力扫描
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 只读边界, scenario: 写入能力扫描 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 对已发布 Operation 与 Agent 工具清单执行黑名单扫描
+    expected:
+      - 不存在任何 DCS 写入类能力
+    mode: AUTO
+    script: plus-ui/tests/e2e/dcs-alarm.e2e.mjs#Operation 经黑名单
+  - id: AC-DCS-DI-002
+    title: 设备查看点位
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 点位语义与映射, scenario: 设备查看点位 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 打开设备详情
+    expected:
+      - 显示映射到该设备的测点及最近快照值
+    mode: AUTO
+    script: plus-ui/tests/e2e/dcs-alarm.e2e.mjs#设备详情显示映射的测点及最近快照值
+  - id: AC-DCS-DI-003
+    title: 业务库检查
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 原始数据不入业务库, scenario: 业务库检查 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 采集模拟器以 1Hz 连续推送 24 小时
+    expected:
+      - 业务库中只有按配置粒度（默认 1 分钟）的快照记录
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/SnapshotServiceTest.java#连续24小时1Hz推送后业务库只有分钟级快照
+  - id: AC-DCS-DI-004
+    title: 乱序与重复
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 报警幂等与去重, scenario: 乱序与重复 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 同一报警先后以乱序重复到达三次
+    expected:
+      - 业务报警只有一条，次数为 3，最近发生时间为最大的 `occurred_at`
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/AlarmServiceTest.java#乱序重复到达三次_只有一条业务报警_次数3_最近发生时间取最大
+  - id: AC-DCS-DI-005
+    title: 断网续传
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 采集链路健壮性, scenario: 断网续传 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 适配器断网 10 分钟后恢复
+    expected:
+      - 缺失时段数据补传，快照无重复
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/SnapshotServiceTest.java#断网补传与重复送达后快照无重复_坏值与时钟偏差计数不参与统计
+  - id: AC-DCS-DI-006
+    title: 时钟偏差
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 采集链路健壮性, scenario: 时钟偏差 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 源时间戳比接收时间超前超过阈值
+    expected:
+      - 记录被标记时钟异常并保留原始时间与接收时间
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/AlarmServiceTest.java#坏质量位只记录不判定_时钟异常标记并保留原始时间
+  - id: AC-DCS-DI-007
+    title: 报警生成草稿
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 报警处置策略, scenario: 报警生成草稿 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 配置为自动草稿的点位产生报警
+    expected:
+      - 生成关联该报警与设备的 Issue 草稿，并通知设备负责人确认
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/AlarmServiceTest.java#自动草稿_关联报警与设备并通知负责人_确认后成为正式问题
+  - id: AC-DCS-DI-008
+    title: 先人工后报警
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: 报警与人工缺陷关联去重, scenario: 先人工后报警 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 巡检员已登记泵振动缺陷，10 分钟后该泵振动报警到达
+    expected:
+      - 系统建议关联到已有缺陷，确认后报警挂在该 Issue 下
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/AlarmServiceTest.java#先人工后报警_建议关联已有缺陷_确认后报警挂在该Issue下而不新建
+  - id: AC-DCS-DI-009
+    title: 报警上下文摘要
+    ref: { change: bootstrap-ls-mom-mvp, spec: dcs/dcs-integration, requirement: LLM 只用快照, scenario: 报警上下文摘要 }
+    slice: E
+    roles: [ 设备员, 系统 ]
+    dataset: acceptance
+    steps:
+      - 请求生成某报警的上下文摘要
+    expected:
+      - 输入只含报警前后指定窗口的快照，摘要中带原始报警引用
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-dcs/src/test/java/com/lsmom/dcs/AlarmServiceTest.java#报警上下文摘要_带引用草稿

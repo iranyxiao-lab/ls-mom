@@ -1,0 +1,73 @@
+cases:
+  - id: AC-CORE-IM-001
+    title: 正常关闭
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: Issue 闭环状态, scenario: 正常关闭 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - 整改工作完成后验证人确认通过
+    expected:
+      - Issue 状态变为 CLOSED，时间轴记录验证人与验证结论
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#正常关闭记录验证人与结论
+  - id: AC-CORE-IM-002
+    title: 验证不通过
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: Issue 闭环状态, scenario: 验证不通过 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - 验证人判定整改无效
+    expected:
+      - Issue 回到 IN_RECTIFICATION 并通知整改负责人
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#验证不通过回到整改中
+  - id: AC-CORE-IM-003
+    title: 独立异常
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: 多对象关联, scenario: 独立异常 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - 现场人员登记一条不关联任何对象的异常
+    expected:
+      - 登记成功并可正常分派处理
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#独立异常不关联任何对象
+  - id: AC-CORE-IM-004
+    title: 整改未完成
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: 整改生成工作, scenario: 整改未完成 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - Issue 有两条整改工作，仅一条完成时请求提交验证
+    expected:
+      - 系统拒绝并列出未完成的整改工作
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#整改未完成时拒绝提交验证并列出未完成工作
+  - id: AC-CORE-IM-005
+    title: 不符合项
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: 专业细节外置, scenario: 不符合项 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - 质量 Pack 创建不符合项
+    expected:
+      - 同时生成一条 Issue 外壳与一条质量扩展记录，两者一一关联
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#不符合项外壳与扩展记录一一关联
+  - id: AC-CORE-IM-006
+    title: 重复报警
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/issue-management, requirement: 来源去重, scenario: 重复报警 }
+    slice: PLATFORM
+    roles: [ 班组长, 质检员 ]
+    dataset: acceptance
+    steps:
+      - 同一去重键的报警再次到达
+    expected:
+      - 不新建 Issue，原 Issue 的发生次数与最近发生时间更新
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/issue/IssueTest.java#重复报警只累计发生次数

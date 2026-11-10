@@ -1,0 +1,62 @@
+cases:
+  - id: AC-DOM-QM-001
+    title: DOM-04 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 质量记录独立与关联, scenario: DOM-04 验收 }
+    codes: [ DOM-04 ]
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 分别创建一条无关联的质量记录和一条同时关联工作与设备的质量记录
+    expected:
+      - 两者均保存成功并可在相应对象时间轴中查看
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-quality/src/test/java/com/lsmom/biz/quality/SliceCGoldenScenariosTest.java#质量记录可独立或多对象关联
+  - id: AC-DOM-QM-002
+    title: 高严重度缺字段
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 不符合项条件必填, scenario: 高严重度缺字段 }
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 通过 API 提交 HIGH 严重度且未填立即措施的不符合项
+    expected:
+      - 后端拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-quality/src/test/java/com/lsmom/biz/quality/SliceCGoldenScenariosTest.java#高严重度不符合项条件必填
+  - id: AC-DOM-QM-003
+    title: 审核节点改描述
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 受控质量流程, scenario: 审核节点改描述 }
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 车间审核人试图修改问题描述
+    expected:
+      - 前端只读，直接 API 修改被拒绝
+    mode: AUTO
+    script: plus-ui/tests/e2e/quality-ops.e2e.mjs#审核节点：API 修改问题描述被拒
+  - id: AC-DOM-QM-004
+    title: Agent 试图关闭
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 质量终判仅限真人, scenario: Agent 试图关闭 }
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - Agent 身份调用不符合项关闭 Operation
+    expected:
+      - 请求被拒绝并审计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-quality/src/test/java/com/lsmom/biz/quality/QualityPackTest.java#受控质量流程_审核节点只读_整改证据_终判仅限真人
+  - id: AC-DOM-QM-005
+    title: 无证据提交
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/quality-management, requirement: 整改证据, scenario: 无证据提交 }
+    slice: C
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 整改工作无任何证据时提交验证
+    expected:
+      - 系统拒绝并提示补充证据
+    mode: AUTO
+    script: plus-ui/tests/e2e/quality-ops.e2e.mjs#无整改证据提交验证被拒

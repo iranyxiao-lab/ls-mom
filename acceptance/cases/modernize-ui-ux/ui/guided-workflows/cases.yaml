@@ -1,0 +1,109 @@
+cases:
+  - id: AC-UI-GW-001
+    title: 等待他人
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 状态与下一步提示, scenario: 等待他人 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 发起人打开已提交待审核的单据
+    expected:
+      - 顶部显示"等待 张三（车间主任）审核，剩余 20 小时"，并提供"催办"
+    mode: AUTO
+    script: plus-ui/tests/unit/flow-header.spec.ts#发起人：显示等待谁审核与剩余时间，可催办
+  - id: AC-UI-GW-002
+    title: 轮到我
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 状态与下一步提示, scenario: 轮到我 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 审核人打开同一单据
+    expected:
+      - 顶部主按钮为"审核"，意见输入框直接可见
+    mode: AUTO
+    script: plus-ui/tests/ui/app/flow-header.spec.ts#发起人与审核人看到不同的头部
+  - id: AC-UI-GW-003
+    title: 查看退回原因
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 流程进度可视, scenario: 查看退回原因 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 发起人打开被退回的单据
+    expected:
+      - 步骤条标出退回节点，退回意见醒目显示在顶部
+    mode: AUTO
+    script: plus-ui/tests/unit/flow-header.spec.ts#退回：醒目显示退回节点与意见
+  - id: AC-UI-GW-004
+    title: 批量连续审批
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 原地办理, scenario: 批量连续审批 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 审核人在抽屉中通过一条后
+    expected:
+      - 抽屉自动加载下一条待办，并提示"已通过，还剩 4 条"
+    mode: AUTO
+    script: plus-ui/tests/unit/work-center.spec.ts#原地连续办理：通过后自动加载下一条并提示
+  - id: AC-UI-GW-005
+    title: 撤销移动
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 分级确认与撤销, scenario: 撤销移动 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 班组长把一条工作拖到中班后点"撤销"
+    expected:
+      - 工作回到原班次，服务端以补偿 Operation 恢复
+    mode: AUTO
+    script: plus-ui/tests/e2e/production-ops.e2e.mjs#撤销：回到早班
+  - id: AC-UI-GW-006
+    title: 关闭问题确认
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 分级确认与撤销, scenario: 关闭问题确认 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户点击"关闭 Issue"
+    expected:
+      - 确认框列出将被关闭的问题与整改工作数量，并说明关闭后不可再编辑
+    mode: AUTO
+    script: plus-ui/tests/e2e/quality-ops.e2e.mjs#关闭前确认：列出问题与整改工作数量
+  - id: AC-UI-GW-007
+    title: 守卫拒绝
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 可操作的错误反馈, scenario: 守卫拒绝 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 分派因人员资质过期被拒绝
+    expected:
+      - 提示"李四的动火作业资质已于 10 月 3 日过期"，并提供"改派他人"和"查看培训记录"
+    mode: AUTO
+    script: plus-ui/tests/e2e/qualification.e2e.mjs#提示谁的什么资质何时过期
+  - id: AC-UI-GW-008
+    title: 跳过引导
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 新手引导与上下文帮助, scenario: 跳过引导 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户在引导第一步点"跳过"
+    expected:
+      - 引导关闭且不再自动出现，可从帮助菜单重新打开
+    mode: AUTO
+    script: plus-ui/tests/ui/app/tour.spec.ts#首次自动引导，跳过后不再自动出现
+  - id: AC-UI-GW-009
+    title: 离开导入页
+    ref: { change: modernize-ui-ux, spec: ui/guided-workflows, requirement: 长任务进度可见, scenario: 离开导入页 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户发起 5000 行导入后切换到其他页面
+    expected:
+      - 顶栏任务图标显示进度，完成后通知并可查看错误行报告
+    mode: AUTO
+    script: plus-ui/tests/e2e/task-center.e2e.mjs#离开页面后收到导入完成通知

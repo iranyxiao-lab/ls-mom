@@ -1,0 +1,121 @@
+cases:
+  - id: AC-UI-LI-001
+    title: 我的默认视图
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 保存的视图, scenario: 我的默认视图 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户保存"本班组未完成"视图并设为默认
+    expected:
+      - 再次打开该列表直接应用该视图
+    mode: AUTO
+    script: plus-ui/tests/ui/app/saved-view.spec.ts#默认视图
+  - id: AC-UI-LI-002
+    title: 视图字段被弃用
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 保存的视图, scenario: 视图字段被弃用 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 视图中用到的字段在新版本中被弃用
+    expected:
+      - 打开视图时提示并自动忽略该字段，其余条件照常生效
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-table.spec.ts#套用保存的列设置时忽略已弃用字段
+  - id: AC-UI-LI-003
+    title: 组合筛选
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 快速筛选, scenario: 组合筛选 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户点选"我负责的"和"今天到期"
+    expected:
+      - 列表立即刷新，顶部显示两个可单独移除的条件标签
+    mode: AUTO
+    script: plus-ui/tests/ui/app/saved-view.spec.ts#组合筛选
+  - id: AC-UI-LI-004
+    title: 隐藏列
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 列自定义, scenario: 隐藏列 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户隐藏"创建人"列
+    expected:
+      - 该列消失，刷新后仍隐藏
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-table.spec.ts#隐藏、固定、移动列并通知调用方
+  - id: AC-UI-LI-005
+    title: 连续审阅
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 抽屉详情, scenario: 连续审阅 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 审核人在抽屉中审完一条后点"下一条"
+    expected:
+      - 抽屉切换到列表中的下一条记录，列表本身保持不动
+    mode: AUTO
+    script: plus-ui/tests/ui/app/record-drawer.spec.ts#连续审阅
+  - id: AC-UI-LI-006
+    title: 行内改数量
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 行内编辑草稿, scenario: 行内改数量 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户双击草稿行的数量单元格修改后按 Enter
+    expected:
+      - 值经服务端校验保存，单元格短暂显示已保存标记
+    mode: AUTO
+    script: plus-ui/tests/ui/app/inline-edit.spec.ts#草稿行内编辑经服务端校验
+  - id: AC-UI-LI-007
+    title: 已完成的工作
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 行内动作就近显示, scenario: 已完成的工作 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 列表中某工作已完成
+    expected:
+      - 该行不出现"分派""提交"按钮
+    mode: AUTO
+    script: plus-ui/tests/ui/app/inline-edit.spec.ts#不显示不可执行的动作
+  - id: AC-UI-LI-008
+    title: 跨页全选
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 批量操作栏, scenario: 跨页全选 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户勾选"全选 1,250 条筛选结果"后导出
+    expected:
+      - 系统显示条数并要求确认，导出走异步任务并在完成时通知
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-table.spec.ts#跨页全选需要二次确认
+  - id: AC-UI-LI-009
+    title: 骨架屏
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 大数据量流畅, scenario: 骨架屏 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 网络较慢时打开列表
+    expected:
+      - 先显示与表格结构一致的骨架，而不是空白或整页转圈
+    mode: AUTO
+    script: plus-ui/tests/unit/ls-state.spec.ts#骨架屏标记加载中
+  - id: AC-UI-LI-010
+    title: 他人更新
+    ref: { change: modernize-ui-ux, spec: ui/list-interactions, requirement: 实时刷新提示, scenario: 他人更新 }
+    slice: UI
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 用户浏览待办列表期间有两条新待办到达
+    expected:
+      - 顶部出现"2 条新待办，点击刷新"，当前勾选不受影响
+    mode: AUTO
+    script: plus-ui/tests/ui/app/list-updates.spec.ts#他人新增时提示有更新，勾选保持

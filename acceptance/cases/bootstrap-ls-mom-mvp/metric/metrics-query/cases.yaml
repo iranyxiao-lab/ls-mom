@@ -1,0 +1,73 @@
+cases:
+  - id: AC-MET-MQ-001
+    title: 重复口径
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 指标口径注册, scenario: 重复口径 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 新建指标的口径与现有指标 `ls.prod.onTimeRate` 完全相同
+    expected:
+      - 发布校验提示重复并要求复用
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/MetricTest.java#重复口径提示复用_口径升级生成新版本且旧版本可查
+  - id: AC-MET-MQ-002
+    title: 参数越界
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 命名查询, scenario: 参数越界 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 调用命名 Query 时参数不符合参数 Schema
+    expected:
+      - 返回参数校验错误
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/MetricTest.java#命名Query_参数越界报错_超时取消_数据域生效
+  - id: AC-MET-MQ-003
+    title: 超时
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 命名查询, scenario: 超时 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 查询执行超过声明的超时
+    expected:
+      - 查询被取消并返回超时错误
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/MetricTest.java#命名Query_参数越界报错_超时取消_数据域生效
+  - id: AC-MET-MQ-004
+    title: 班组长看指标
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 数据域生效, scenario: 班组长看指标 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 班组长查询按期完成率
+    expected:
+      - 只基于本班组工作计算
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/MetricTest.java#班组长看按期完成率只基于本班组工作
+  - id: AC-MET-MQ-005
+    title: 钻取
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 可钻取与可追溯, scenario: 钻取 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 点击看板上"本周异常数 12"
+    expected:
+      - 打开包含这 12 条 Issue 的列表
+    mode: AUTO
+    script: plus-ui/tests/e2e/metrics-dashboard.e2e.mjs#钻取明细
+  - id: AC-MET-MQ-006
+    title: 口径升级
+    ref: { change: bootstrap-ls-mom-mvp, spec: metric/metrics-query, requirement: 口径版本, scenario: 口径升级 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 按期完成率口径从"计划结束日"改为"班次结束"
+    expected:
+      - 新版本生效，旧版本定义仍可查询
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/MetricTest.java#重复口径提示复用_口径升级生成新版本且旧版本可查

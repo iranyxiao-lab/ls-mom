@@ -1,0 +1,61 @@
+cases:
+  - id: AC-WB-CC-001
+    title: 待办排序
+    ref: { change: bootstrap-ls-mom-mvp, spec: workbench/collaboration-center, requirement: 我的协同列表, scenario: 待办排序 }
+    slice: B
+    roles: [ 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户打开我的待办
+    expected:
+      - 已超时与即将到期的任务排在前列并有明显标识
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/WorkCenterTest.java#待办超时与即将到期排在前列并有标识
+  - id: AC-WB-CC-002
+    title: 已读不等于完成
+    ref: { change: bootstrap-ls-mom-mvp, spec: workbench/collaboration-center, requirement: 消息与待办分离, scenario: 已读不等于完成 }
+    slice: B
+    roles: [ 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户阅读审核提醒消息但未办理
+    expected:
+      - 待办仍在我的待办中
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/WorkCenterTest.java#已读不等于完成_待办只在办理后消失
+  - id: AC-WB-CC-003
+    title: 转办
+    ref: { change: bootstrap-ls-mom-mvp, spec: workbench/collaboration-center, requirement: 在待办中办理, scenario: 转办 }
+    slice: B
+    roles: [ 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 审核人将任务转办给同事
+    expected:
+      - 待办转到同事名下，时间轴记录转办人、接收人和原因
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/WorkCenterTest.java#转办后待办转到同事名下_时间轴记录转办人接收人和原因_委托记录可查
+  - id: AC-WB-CC-004
+    title: 频繁催办
+    ref: { change: bootstrap-ls-mom-mvp, spec: workbench/collaboration-center, requirement: 催办, scenario: 频繁催办 }
+    slice: B
+    roles: [ 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 发起人在限制间隔内第二次催办
+    expected:
+      - 系统拒绝并提示下次可催办时间
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/WorkCenterTest.java#限制间隔内第二次催办被拒并提示下次可催办时间
+  - id: AC-WB-CC-005
+    title: 查看 Pack 状态
+    ref: { change: bootstrap-ls-mom-mvp, spec: workbench/collaboration-center, requirement: 协同应用中心, scenario: 查看 Pack 状态 }
+    slice: B
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 管理员打开协同应用中心
+    expected:
+      - 能看到培训考试 Pack 的版本、使用量和下次复审日期
+    mode: AUTO
+    script: plus-ui/tests/e2e/pack-lifecycle.e2e.mjs#应用中心显示的版本、状态、负责人、提出人、复审日期

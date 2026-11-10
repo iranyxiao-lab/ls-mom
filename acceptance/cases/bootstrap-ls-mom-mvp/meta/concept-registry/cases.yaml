@@ -1,0 +1,73 @@
+cases:
+  - id: AC-META-CR-001
+    title: 核心对象注册
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: Concept 注册, scenario: 核心对象注册 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 系统启动
+    expected:
+      - 可查询到 `ls.core.Work`、`ls.core.Issue` 等核心 Concept，其存储方式为核心显式表且不可经设计器修改结构
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#启动后可查询核心Concept且为核心显式表
+  - id: AC-META-CR-002
+    title: 修改显示名
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: 编码稳定与不可复用, scenario: 修改显示名 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 将字段 `severity` 的显示名从"严重程度"改为"等级"
+    expected:
+      - 编码不变，历史记录、表单、指标继续正常工作
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#修改显示名不影响编码
+  - id: AC-META-CR-003
+    title: 复用已删除编码
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: 编码稳定与不可复用, scenario: 复用已删除编码 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 尝试新建一个与已弃用字段同编码的字段
+    expected:
+      - 发布校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#复用已弃用编码发布失败
+  - id: AC-META-CR-004
+    title: 删除被引用字段
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: 字段弃用先于删除, scenario: 删除被引用字段 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 申请移除仍被在途流程表单引用的字段
+    expected:
+      - 发布校验失败并列出引用方
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#删除被引用字段失败并列出引用方
+  - id: AC-META-CR-005
+    title: 影响分析
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: 关系与映射, scenario: 影响分析 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 查询字段 `asset` 的使用方
+    expected:
+      - 返回引用它的表单、流程节点策略、指标和 Operation 列表
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#关系与映射
+  - id: AC-META-CR-006
+    title: 核心污染检测
+    ref: { change: bootstrap-ls-mom-mvp, spec: meta/concept-registry, requirement: 核心语义不含客户概念, scenario: 核心污染检测 }
+    slice: PLATFORM
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 有变更向 `ls.core` 添加名为 `examScore` 的字段
+    expected:
+      - 发布校验与架构测试均失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-meta/src/test/java/com/lsmom/meta/concept/ConceptRegistryTest.java#核心命名空间污染检测

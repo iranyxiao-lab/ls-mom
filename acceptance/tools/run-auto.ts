@@ -2,7 +2,7 @@
  * 按用例脚本执行 AUTO 用例（acceptance-walkthrough 3.3 / 4.3 / 7.2），逐条结果写 runs/<run>/auto.json，由 collect.ts 合并。
  * 脚本类型（用例 script 字段：仓库相对路径，可带 #片段）：
  *   - *.java                    Maven Surefire：-Dtest=类#方法，按 surefire-reports 中同名测试判定（无 #片段 时整个类）
- *   - plus-ui/tests/e2e/*.mjs   端到端脚本：退出码为 0，且有 #片段 时输出中须有包含该片段的"✓ "检查行
+ *   - *.mjs / *.sh              端到端脚本（node / bash）：退出码为 0，且有 #片段 时输出中须有包含该片段的"✓ "检查行
  *   - plus-ui/tests/ui/**.spec.ts  Playwright（app / storybook 项目），-g 片段
  *   - plus-ui/** 其他 .test/.spec.ts  Vitest（无头），-t 片段
  *   - acceptance/tools/*.test.ts     node --test，--test-name-pattern 片段
@@ -31,7 +31,7 @@ export function targetOf(c: Case): Target | null {
   const fragment = rest.join('#') || undefined;
   const kind: Kind = file.endsWith('.java')
     ? 'java'
-    : file.endsWith('.mjs')
+    : file.endsWith('.mjs') || file.endsWith('.sh')
       ? 'e2e'
       : file.startsWith('acceptance/e2e/')
         ? 'walk'
@@ -127,9 +127,10 @@ function runE2e(ts: Target[], exec: Exec, log: (s: string) => void, dir: string)
   for (const [file, list] of byFile) {
     if (!first && pause) spawnSync('sleep', [String(pause)]);
     first = false;
-    log(`node ${file}`);
+    const cmd = file.endsWith('.sh') ? 'bash' : 'node';
+    log(`${cmd} ${file}`);
     const t0 = Date.now();
-    const r = exec('node', [path.join(ROOT, file)], { cwd: path.join(ROOT, 'plus-ui') });
+    const r = exec(cmd, [path.join(ROOT, file)], { cwd: cmd === 'bash' ? ROOT : path.join(ROOT, 'plus-ui') });
     const ms = Date.now() - t0;
     const logFile = path.join(dir, 'auto-logs', path.basename(file) + '.log');
     fs.mkdirSync(path.dirname(logFile), { recursive: true });

@@ -1,0 +1,61 @@
+cases:
+  - id: AC-CORE-PO-001
+    title: 用户创建时生成 Party
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/party-org, requirement: 统一主体引用, scenario: 用户创建时生成 Party }
+    slice: PLATFORM
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 管理员新建一个员工账号
+    expected:
+      - 系统自动创建类型为 EMPLOYEE 的 Party 并与该账号关联
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/org/PartyOrgTest.java#用户创建时生成Party
+  - id: AC-CORE-PO-002
+    title: 外部协作方无登录
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/party-org, requirement: 统一主体引用, scenario: 外部协作方无登录 }
+    slice: PLATFORM
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 登记一个外部维修单位联系人
+    expected:
+      - 该 Party 可被工作分派引用，但不具备登录能力
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/org/PartyOrgTest.java#外部协作方无登录但可被分派引用
+  - id: AC-CORE-PO-003
+    title: 班组撤销
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/party-org, requirement: 组织单元层级与有效期, scenario: 班组撤销 }
+    slice: PLATFORM
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 某班组设置失效日期为昨天
+    expected:
+      - 新建工作时无法选择该班组，历史工作详情仍显示该班组名称
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/org/PartyOrgTest.java#班组撤销后不能用于新工作但历史可读
+  - id: AC-CORE-PO-004
+    title: 班组数据域
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/party-org, requirement: 组织与系统部门映射, scenario: 班组数据域 }
+    slice: PLATFORM
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 数据域为"本班组"的用户查询工作列表
+    expected:
+      - 只返回所属班组的工作
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/org/PartyOrgTest.java#班组数据域只返回所属班组的工作
+  - id: AC-CORE-PO-005
+    title: 负责人缺失
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/party-org, requirement: 负责人解析, scenario: 负责人缺失 }
+    slice: PLATFORM
+    roles: [ 系统管理员 ]
+    dataset: acceptance
+    steps:
+      - 流程需要车间负责人而该车间未设置负责人
+    expected:
+      - 解析返回"无人可办"，调用方据此阻断发布或生成异常待办
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/org/LeaderResolverTest.java#车间未设置负责人时返回无人可办

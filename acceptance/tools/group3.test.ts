@@ -171,3 +171,32 @@ test('用例执行：按脚本类型分派，端到端脚本按检查项片段�
   assert.ok(fs.existsSync(path.join(dir, rows[0].evidence[0])));
   fs.rmSync(dir, { recursive: true });
 });
+
+test('报告：可用性测试某任务完成率不足 80% 时该任务记为未通过并判不通过', () => {
+  const i = inputs([]);
+  i.usability = { tasks: [{ task: '移动报工', role: '操作工', participants: 5, completed: 3, medianSec: 50 }, { task: '审核', role: '车间主任', participants: 3, completed: 3 }] };
+  const r = build(i);
+  assert.equal(r.passed, false);
+  assert.deepEqual(r.reasons, ['可用性测试完成率低于 80%：操作工·移动报工 60%']);
+  assert.match(markdown(r), /\| 操作工 \| 移动报工 \| 5 \| 3 \| 60% \| 50s \|/);
+  i.usability.tasks[0].completed = 4;
+  assert.equal(build(i).passed, true);
+});
+
+test('按映射生成用例：步骤取 WHEN、预期取 THEN/AND，已覆盖场景不重复生成，场景名不存在时报出', async () => {
+  const { scaffold, stepsOf } = await import('./scaffold.ts');
+  assert.deepEqual(stepsOf('- **WHEN** 甲\n- **AND** 乙\n- **THEN** 丙\n- **AND** 丁'), { steps: ['甲', '乙'], expected: ['丙', '丁'] });
+  const sc = [
+    { ...scenario, text: '- **WHEN** 非候选人提交通过\n- **THEN** 被拒绝' },
+    { ...scenario, scenario: '会签', requirement: '多人办理模式', text: '- **WHEN** 三人中两人通过\n- **THEN** 节点未完成' }
+  ] as Scenario[];
+  const existing = [mkCase('AC-FLOW-WC-001')];
+  const r = scaffold(
+    { change: 'bootstrap-ls-mom-mvp', spec: 'flow/workflow-collaboration', prefix: 'AC-FLOW-WC', roles: ['班组长'], cases: { 非办理人办理: 'x.java#a', 会签: { manual: '人工核对' }, 不存在: 'y' } },
+    sc,
+    existing
+  );
+  assert.deepEqual(r.added.map((c) => [c.id, c.ref.scenario, c.mode, c.steps[0], c.expected[0]]), [['AC-FLOW-WC-002', '会签', 'MANUAL', '三人中两人通过', '节点未完成']]);
+  assert.deepEqual(r.unknown, ['不存在']);
+  assert.deepEqual(r.missing, []);
+});

@@ -1,0 +1,136 @@
+cases:
+  - id: AC-CORE-WC-001
+    title: 无制造主数据创建生产工作
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: WorkItem 最小必填集, scenario: 无制造主数据创建生产工作 }
+    codes: [ DOM-01 ]
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 系统中没有任何 BOM、Routing、Warehouse 数据时创建一条生产工作
+    expected:
+      - 创建成功，状态为 DRAFT
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/WorkItemTest.java#没有任何BOM与仓库数据时创建生产工作
+  - id: AC-CORE-WC-002
+    title: 缺少标题
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: WorkItem 最小必填集, scenario: 缺少标题 }
+    codes: [ DOM-01 ]
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 通过 API 创建 WorkItem 未提供 `title`
+    expected:
+      - 返回校验错误并指出 `title` 必填
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/WorkItemTest.java#缺少标题返回校验错误
+  - id: AC-CORE-WC-003
+    title: 非法迁移
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: WorkItem 生命周期, scenario: 非法迁移 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 对 DRAFT 状态的工作直接调用"确认完成"
+    expected:
+      - 系统拒绝并返回当前状态与允许的动作列表
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#非法迁移返回当前状态与允许动作
+  - id: AC-CORE-WC-004
+    title: 阻塞与恢复
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: WorkItem 生命周期, scenario: 阻塞与恢复 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 执行中的工作被标记阻塞并填写原因，之后解除阻塞
+    expected:
+      - 状态依次为 BLOCKED、IN_PROGRESS，时间轴记录两次迁移及原因
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/GatewayTest.java#阻塞与恢复时间轴记录两次迁移及原因
+  - id: AC-CORE-WC-005
+    title: 冲突提示
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 柔性分派, scenario: 冲突提示 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 分派的人员在同一时段已有另一项工作，且 Profile 为宽松
+    expected:
+      - 分派成功并返回冲突警告
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/ConstraintProfileTest.java#宽松Profile冲突只提示
+  - id: AC-CORE-WC-006
+    title: 冲突阻断
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 柔性分派, scenario: 冲突阻断 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 同样冲突但 Profile 设置冲突为阻断
+    expected:
+      - 分派被拒绝并说明冲突的工作
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/ConstraintProfileTest.java#阻断Profile拒绝冲突分派并说明冲突工作
+  - id: AC-CORE-WC-007
+    title: 草稿到提交
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 工作填报, scenario: 草稿到提交 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 移动端保存填报草稿后再提交
+    expected:
+      - 草稿不参与统计，提交后计入工作进度与看板
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/ConstraintProfileTest.java#草稿不参与统计提交后计入进度
+  - id: AC-CORE-WC-008
+    title: 成环拒绝
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 工作关系, scenario: 成环拒绝 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 将 A 设为 B 的父工作，而 B 已是 A 的祖先
+    expected:
+      - 系统拒绝并提示形成循环
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/WorkRelationTest.java#祖先关系成环被拒绝
+  - id: AC-CORE-WC-009
+    title: 启用严格 Profile
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 约束 Profile 可选增强, scenario: 启用严格 Profile }
+    codes: [ DOM-02 ]
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 管理员为某车间启用要求产出单位的 Profile
+    expected:
+      - 之后提交的产出填报必须带单位，启用前已完成的工作仍可正常查看与统计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/work/ConstraintProfileTest.java#启用严格Profile后产出必须带单位且历史不受影响
+  - id: AC-CORE-WC-010
+    title: 表单升级后查看历史
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 运行时定义版本冻结, scenario: 表单升级后查看历史 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 工作表单发布 v2 后打开按 v1 提交的工作
+    expected:
+      - 详情按 v1 渲染
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/FormVersionTest.java#发布v2后旧单仍按v1渲染且编辑旧草稿按迁移策略
+  - id: AC-CORE-WC-011
+    title: 维修工作
+    ref: { change: bootstrap-ls-mom-mvp, spec: core/work-collaboration, requirement: 生产与维修复用同一闭环, scenario: 维修工作 }
+    slice: PLATFORM
+    roles: [ 调度员, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 设备 Pack 由缺陷生成维修工作
+    expected:
+      - 该工作类型为 MAINTENANCE，使用同一分派与确认动作，设备专属字段存于设备 Pack 的扩展对象
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-asset/src/test/java/com/lsmom/biz/asset/AssetPackTest.java#缺陷登记产生Issue_维修到验证关闭_时间轴可见报警缺陷维修验证

@@ -1,0 +1,141 @@
+cases:
+  - id: AC-CRUD-GL-001
+    title: 发布工器具借还台账
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 动态 Concept 生成受控物理表, scenario: 发布工器具借还台账 }
+    codes: [ CRUD-01 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 发布包含主表"借还单"与子表"借出明细"的 Concept
+    expected:
+      - 数据库中出现对应主表与子表，迁移历史中有该次 DDL 记录
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/DdlPlannerTest.java#发布借还单生成主表子表与迁移记录
+  - id: AC-CRUD-GL-002
+    title: 改字段类型
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 新字段默认显式列, scenario: 改字段类型 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 将文本字段改为数字字段
+    expected:
+      - 系统生成需评审的迁移脚本，而非直接覆盖旧定义
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/DdlPlannerTest.java#改字段类型生成需评审的迁移脚本而非直接覆盖
+  - id: AC-CRUD-GL-003
+    title: 子表校验失败
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 通用增删改查, scenario: 子表校验失败 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 保存借还单时第三行明细缺少必填的工器具
+    expected:
+      - 整单保存失败，返回第三行的字段错误
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudWriteTest.java#子表第三行缺少必填工器具时整单失败并定位到行
+  - id: AC-CRUD-GL-004
+    title: 注入尝试
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 白名单查询, scenario: 注入尝试 }
+    codes: [ CRUD-03 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 排序参数为 `name; drop table x`
+    expected:
+      - 请求被拒绝为非法排序字段
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudQueryTest.java#排序注入被拒绝为非法排序字段
+  - id: AC-CRUD-GL-005
+    title: 非白名单字段过滤
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 白名单查询, scenario: 非白名单字段过滤 }
+    codes: [ CRUD-03 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 以未开放查询的字段作为筛选条件
+    expected:
+      - 请求被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudQueryTest.java#非白名单字段与操作符过滤被拒绝
+  - id: AC-CRUD-GL-006
+    title: 越域读取
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 服务端权限与校验, scenario: 越域读取 }
+    codes: [ CRUD-02 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - A 车间用户通过 ID 直接读取 B 车间台账记录
+    expected:
+      - 返回无权限
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudWriteTest.java#绕过前端直接调用时服务端权限与校验依然生效
+  - id: AC-CRUD-GL-007
+    title: 已提交记录通用编辑
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 正式动作分流, scenario: 已提交记录通用编辑 }
+    codes: [ CRUD-06 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 对已提交的借还单调用通用更新修改数量
+    expected:
+      - 请求被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudWriteTest.java#已提交记录禁止通用编辑_正式动作只能经Operation
+  - id: AC-CRUD-GL-008
+    title: 导入有错误行
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 导入导出, scenario: 导入有错误行 }
+    codes: [ CRUD-04 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 导入 100 行其中 3 行字典值非法
+    expected:
+      - 预检报告列出 3 行错误，用户可选择仅导入 97 条正确行
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/ImportExportTest.java#导入100行其中3行字典值非法_预检列出3行错误并仅导入97条
+  - id: AC-CRUD-GL-009
+    title: 超量导出
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 导入导出, scenario: 超量导出 }
+    codes: [ CRUD-04 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 导出条数超过配置上限
+    expected:
+      - 系统拒绝或要求缩小范围，并记录审计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/ImportExportTest.java#超量导出被拒绝并审计_正常导出异步写入对象存储
+  - id: AC-CRUD-GL-010
+    title: 双击保存
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 并发、重复提交与审计, scenario: 双击保存 }
+    codes: [ CRUD-05 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户快速连续点击两次保存
+    expected:
+      - 只产生一次写入
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudWriteTest.java#双击保存只写一次
+  - id: AC-CRUD-GL-011
+    title: Agent 调通用接口
+    ref: { change: bootstrap-ls-mom-mvp, spec: crud/generic-ledger, requirement: 不向 Agent 直接暴露, scenario: Agent 调通用接口 }
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - Agent 身份令牌调用通用 CRUD 新增接口
+    expected:
+      - 请求被拒绝并审计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-crud/src/test/java/com/lsmom/crud/CrudWriteTest.java#Agent身份调用通用接口被拒绝并审计

@@ -1,0 +1,121 @@
+cases:
+  - id: AC-PLAT-PB-001
+    title: 首次推送
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 代码托管于 GitHub 私有仓库, scenario: 首次推送 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 实施者完成初始化并推送
+    expected:
+      - GitHub 上存在私有仓库 `ls-mom`，`main` 分支包含 README、LICENSE 声明、`.gitignore` 和 OpenSpec 目录
+    mode: MANUAL
+    notes: 需 GitHub 私有仓库 ls-mom 与 gh 登录：核对仓库可见性为私有，main 含 README、LICENSE 声明、.gitignore 与 openspec/
+  - id: AC-PLAT-PB-002
+    title: 凭据扫描
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 代码托管于 GitHub 私有仓库, scenario: 凭据扫描 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 任一提交包含疑似密钥、令牌或密码明文
+    expected:
+      - CI 的密钥扫描步骤失败并阻止合并
+    mode: MANUAL
+    notes: 在临时分支提交一个伪造令牌，确认 CI security.yml 的 gitleaks 步骤失败并阻止合并；本地可运行同一 gitleaks 命令复核
+  - id: AC-PLAT-PB-003
+    title: 违规依赖被拦截
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 模块依赖方向受控, scenario: 违规依赖被拦截 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 有代码让 core 模块引用 biz 或任意 Pack 的类型
+    expected:
+      - 构建期架构测试失败并指出违规的依赖边
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-architecture-test/src/test/java/com/lsmom/architecture/ModuleDependencyTest.java#coreDependsOnNothingAbove
+  - id: AC-PLAT-PB-004
+    title: AI 模块绕过 Operation
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 模块依赖方向受控, scenario: AI 模块绕过 Operation }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - ai 或 MCP 模块直接引用数据访问层（Mapper／Repository）
+    expected:
+      - 架构测试失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-architecture-test/src/test/java/com/lsmom/architecture/ModuleDependencyTest.java#aiAndMcpDoNotTouchMappers
+  - id: AC-PLAT-PB-005
+    title: 全新环境启动
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 一键可重跑的部署环境, scenario: 全新环境启动 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 在没有任何数据卷的机器上执行启动命令
+    expected:
+      - 所有服务健康，迁移执行成功，可用种子管理员登录并看到演示组织与 Pack
+    mode: AUTO
+    script: acceptance/e2e/platform/baseline.spec.ts#全新环境
+  - id: AC-PLAT-PB-006
+    title: 重复执行
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 一键可重跑的部署环境, scenario: 重复执行 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 在已初始化的环境上再次执行启动与种子命令
+    expected:
+      - 不产生重复种子数据，迁移不报错
+    mode: MANUAL
+    notes: 连续执行两次 deploy/scripts/acceptance-reset.sh，比较输出的数据指纹一致；再对同一环境执行 docker compose up -d，应用日志中迁移无报错、种子数据条数不变
+  - id: AC-PLAT-PB-007
+    title: 手工 DDL 检测
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 数据库结构只经版本化迁移变更, scenario: 手工 DDL 检测 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 数据库结构与迁移历史推导出的结构不一致
+    expected:
+      - 启动时的结构校验报告漂移并在生产配置下拒绝启动
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-core/src/test/java/com/lsmom/core/schema/SchemaDriftPostgresTest.java#manualDdlIsDetected
+  - id: AC-PLAT-PB-008
+    title: 引入不兼容许可证
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 持续集成质量门禁, scenario: 引入不兼容许可证 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 新增依赖的许可证为 AGPL
+    expected:
+      - 许可证扫描失败并列出该依赖
+    mode: MANUAL
+    notes: 在临时分支引入 AGPL 依赖，确认 CI security.yml 的许可证门禁（scripts/ci/check-licenses.py）失败并列出该依赖
+  - id: AC-PLAT-PB-009
+    title: 跨组件追踪
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 全链路追踪标识, scenario: 跨组件追踪 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 用户提交一张单据并触发流程启动与 Outbox 事件
+    expected:
+      - 请求日志、审计记录、流程绑定记录和 Outbox 记录中可查到同一 `trace_id`
+    mode: AUTO
+    script: acceptance/e2e/platform/baseline.spec.ts#同一 trace_id
+  - id: AC-PLAT-PB-010
+    title: 性能基准
+    ref: { change: bootstrap-ls-mom-mvp, spec: platform/project-baseline, requirement: 非功能基线, scenario: 性能基准 }
+    slice: PLATFORM
+    roles: [ 实施者 ]
+    dataset: acceptance
+    steps:
+      - 在基准环境运行性能测试套件
+    expected:
+      - 报告中列表与保存的 P95 均满足阈值，否则发布门禁失败
+    mode: MANUAL
+    notes: 在基准环境运行 scripts/perf/bench.mjs（百万行台账），报告中列表 P95 ≤800ms、保存 P95 ≤500ms，未达标退出码 1

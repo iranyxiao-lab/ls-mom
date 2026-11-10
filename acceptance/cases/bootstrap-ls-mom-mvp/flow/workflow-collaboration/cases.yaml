@@ -2,9 +2,9 @@ cases:
   - id: AC-FLOW-WC-009
     title: 超时未办理时提醒办理人并升级给上级负责人
     ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 超时与升级, scenario: 超时升级 }
-    codes: [FLOW-04]
+    codes: [ FLOW-04 ]
     slice: B
-    roles: [班组长, 车间主任, 上级负责人]
+    roles: [ 班组长, 车间主任, 上级负责人 ]
     dataset: acceptance
     steps:
       - 发布带 24 小时超时（提醒并升级）的借还审批流程
@@ -15,3 +15,216 @@ cases:
       - 上级负责人收到升级待办，原待办仍在
     mode: AUTO
     script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#超时未办理_办理人收到提醒且上级负责人收到升级待办
+  - id: AC-FLOW-WC-001
+    title: 审批通过
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 业务状态唯一, scenario: 审批通过 }
+    slice: B
+    roles: [ 实施顾问, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 最后一个审核节点通过
+    expected:
+      - 系统调用 `onApproved` 指定的 Operation，业务状态由该 Operation 推进
+    mode: AUTO
+    script: acceptance/e2e/flow/todo-consistency.spec.ts#审批通过后业务状态由回调 Operation 推进
+  - id: AC-FLOW-WC-002
+    title: 变量检查
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 流程变量最小化, scenario: 变量检查 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 检查任一运行中流程实例的变量
+    expected:
+      - 不包含业务表单的描述、明细等完整字段
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowLifecycleTest.java#流程变量只含路由信息且可按业务对象查询流程
+  - id: AC-FLOW-WC-003
+    title: 查询绑定
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 流程与业务绑定, scenario: 查询绑定 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 查询某借还单的流程
+    expected:
+      - 返回其流程实例、版本与当前节点
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowLifecycleTest.java#流程变量只含路由信息且可按业务对象查询流程
+  - id: AC-FLOW-WC-004
+    title: 退回再提交
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 基础协同动作, scenario: 退回再提交 }
+    codes: [ FLOW-01, FLOW-03 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 部门审核退回，发起人修改后再提交
+    expected:
+      - 流程回到部门审核，时间轴记录退回原因与再提交
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowLifecycleTest.java#提交_部门审核_退回修改_再提交_确认归档
+  - id: AC-FLOW-WC-005
+    title: 已审核后撤回
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 基础协同动作, scenario: 已审核后撤回 }
+    codes: [ FLOW-03 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 下一节点已办理后发起人请求撤回
+    expected:
+      - 业务 Operation 判定不合法并拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowLifecycleTest.java#审核前可撤回_审核后撤回被业务Operation拒绝
+  - id: AC-FLOW-WC-006
+    title: 会签
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 多人办理模式, scenario: 会签 }
+    codes: [ FLOW-02 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 会签节点三人中两人通过
+    expected:
+      - 节点未完成，直到第三人办理
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#会签三人中两人通过节点未完成_或签任一人通过即完成且其余待办关闭
+  - id: AC-FLOW-WC-007
+    title: 或签
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 多人办理模式, scenario: 或签 }
+    codes: [ FLOW-02 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 或签节点三人中任一人通过
+    expected:
+      - 节点完成，其他两人的待办自动关闭
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#会签三人中两人通过节点未完成_或签任一人通过即完成且其余待办关闭
+  - id: AC-FLOW-WC-008
+    title: 无人可办
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 办理人策略, scenario: 无人可办 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 运行时解析出的候选人全部已离职
+    expected:
+      - 生成异常待办分配给流程管理员，并记录原因
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#候选人全部离职时生成异常待办给流程管理员
+  - id: AC-FLOW-WC-010
+    title: 审核人越权改字段
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 节点字段权限服务端强制, scenario: 审核人越权改字段 }
+    codes: [ FLOW-05 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 审核人直接调用 API 修改节点只读字段 `severity`
+    expected:
+      - 请求被拒绝并审计
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#节点只读字段被拒并审计_非办理人办理被拒_机器身份不能审批
+  - id: AC-FLOW-WC-011
+    title: 非办理人办理
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 任务权限双重校验, scenario: 非办理人办理 }
+    codes: [ FLOW-05 ]
+    slice: B
+    roles: [ 班组长, 车间主任, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 非候选人用户提交某任务的通过请求
+    expected:
+      - 请求被拒绝
+    mode: AUTO
+    script: acceptance/e2e/flow/todo-consistency.spec.ts#非办理人办理被拒
+  - id: AC-FLOW-WC-012
+    title: 在途实例
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 版本冻结, scenario: 在途实例 }
+    codes: [ FLOW-06 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 流程 v2 发布时有 5 个 v1 实例在途
+    expected:
+      - 这 5 个实例按 v1 继续办理，之后发起的实例使用 v2
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#在途实例按旧版本继续_新实例使用新版本
+  - id: AC-FLOW-WC-013
+    title: 待办一致
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 待办读模型, scenario: 待办一致 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 任务被办理完成
+    expected:
+      - 待办读模型中该任务状态在数秒内变为已完成
+    mode: AUTO
+    script: acceptance/e2e/flow/todo-consistency.spec.ts#待办读模型
+  - id: AC-FLOW-WC-014
+    title: 重复回调
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 幂等回调与同步重试, scenario: 重复回调 }
+    codes: [ FLOW-07 ]
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 同一任务完成事件被投递两次
+    expected:
+      - 业务只迁移一次状态
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowCollaborationTest.java#重复回调只迁移一次_回调失败进入重试
+  - id: AC-FLOW-WC-015
+    title: 读模型缺失
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 对账, scenario: 读模型缺失 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 对账发现流程有活动任务而待办读模型缺失
+    expected:
+      - 对账报告列出该任务并可重建待办
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#人为删除待办后对账发现并重建
+  - id: AC-FLOW-WC-016
+    title: 批准后数据被改
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 受控审批模式, scenario: 批准后数据被改 }
+    slice: B
+    roles: [ 班组长, 车间主任 ]
+    dataset: acceptance
+    steps:
+      - 整改方案批准后申请人修改了方案内容再执行
+    expected:
+      - 守卫判定批准失效，需重新审批
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#批准后数据被改须重新审批
+  - id: AC-FLOW-WC-017
+    title: 普通台账跑通
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 普通台账闭环, scenario: 普通台账跑通 }
+    codes: [ FLOW-01 ]
+    slice: B
+    roles: [ 班组长, 车间主任, 设备员 ]
+    dataset: acceptance
+    steps:
+      - 按该路径完整办理一张借还单
+    expected:
+      - 业务状态最终为已归档，时间轴完整
+    mode: AUTO
+    script: plus-ui/tests/e2e/toolloan-config.e2e.mjs#设备员确认归档，审核意见写入
+  - id: AC-FLOW-WC-018
+    title: 受控质量跑通
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 受控质量闭环, scenario: 受控质量跑通 }
+    slice: B
+    roles: [ 质检员, 车间主任, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 按该路径办理一条不符合项
+    expected:
+      - 产生整改 WorkItem，验证后不符合项关闭
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/QualityLoopFlowTest.java#登记_车间审核_整改工作_验证_关闭

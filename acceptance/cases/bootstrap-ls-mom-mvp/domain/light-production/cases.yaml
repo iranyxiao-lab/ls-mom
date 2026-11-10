@@ -1,0 +1,101 @@
+cases:
+  - id: AC-DOM-LP-001
+    title: 文字需求转工作
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 生产需求, scenario: 文字需求转工作 }
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 车间主任登记"周三前完成 A 线清洗与 200 件组装"并转为两条工作
+    expected:
+      - 生成两条 PRODUCTION 类型 WorkItem 并关联该需求
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-production/src/test/java/com/lsmom/biz/production/ProductionPackTest.java#文字需求转为两条生产工作_带班次时生成班次安排
+  - id: AC-DOM-LP-002
+    title: DOM-01 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 无制造主数据的完整闭环, scenario: DOM-01 验收 }
+    codes: [ DOM-01 ]
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 在空的制造主数据环境中执行需求→工作→分派→填报→确认
+    expected:
+      - 全流程成功，工作状态为 DONE
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-production/src/test/java/com/lsmom/biz/production/SliceAGoldenScenariosTest.java#DOM01_无BOM工艺路线仓库_需求到确认完整闭环
+  - id: AC-DOM-LP-003
+    title: 拖动调整班次
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 班次安排, scenario: 拖动调整班次 }
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 班组长将一条工作从早班移到中班
+    expected:
+      - 工作的计划班次更新，冲突按 Profile 提示或阻断
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-production/src/test/java/com/lsmom/biz/production/ProductionPackTest.java#调整班次_冲突按Profile提示或阻断
+  - id: AC-DOM-LP-004
+    title: 默认不核销
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 产出与物料记录, scenario: 默认不核销 }
+    codes: [ DOM-03 ]
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 记录投料 50kg 但未记录领用
+    expected:
+      - 记录成功，不产生库存差异错误
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-production/src/test/java/com/lsmom/biz/production/SliceAGoldenScenariosTest.java#DOM03_产出物料只记录不核销_交接班双方确认后未完成事项流转
+  - id: AC-DOM-LP-005
+    title: 双方确认
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 交接班, scenario: 双方确认 }
+    codes: [ DOM-03 ]
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 交班人确认摘要、接班人确认接收
+    expected:
+      - 交接班记录为已完成，未完成事项自动出现在接班班组工作板
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-production/src/test/java/com/lsmom/biz/production/ProductionPackTest.java#交接班_草稿不可见_双方确认_未完成事项流转到接班班组
+  - id: AC-DOM-LP-006
+    title: 草稿未确认
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 交接班, scenario: 草稿未确认 }
+    codes: [ DOM-03 ]
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - LLM 生成摘要但交班人未确认
+    expected:
+      - 接班人看不到该交接班记录
+    mode: AUTO
+    script: plus-ui/tests/e2e/production-ops.e2e.mjs#草稿未确认：接班方列表中看不到
+  - id: AC-DOM-LP-007
+    title: 移动填报拍照
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 生产运营工作台, scenario: 移动填报拍照 }
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 操作工在手机端填报进度并拍照
+    expected:
+      - 照片作为证据附件关联到该填报
+    mode: AUTO
+    script: plus-ui/tests/e2e/production-ops.e2e.mjs#照片作为证据附件关联到该填报
+  - id: AC-DOM-LP-008
+    title: 看板钻取
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/light-production, requirement: 经营看板, scenario: 看板钻取 }
+    slice: A
+    roles: [ 车间主任, 班组长, 操作工 ]
+    dataset: acceptance
+    steps:
+      - 点击按期完成率
+    expected:
+      - 显示参与计算的工作明细
+    mode: AUTO
+    script: plus-ui/tests/e2e/production-ops.e2e.mjs#按期完成率钻取明细包含刚完成的工作

@@ -1,0 +1,152 @@
+cases:
+  - id: AC-AI-AG-001
+    title: 调用 DENY 能力
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 仅经 Operation 白名单, scenario: 调用 DENY 能力 }
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - Agent 请求调用暴露等级为 DENY 的审批 Operation
+    expected:
+      - 请求被拒绝并审计
+    mode: AUTO
+    script: plus-ui/tests/e2e/agent-tool-sync.e2e.mjs#直接调用被拒（AGENT_TOOL_DENIED）
+  - id: AC-AI-AG-002
+    title: AI-05 越权读取
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 有效权限不放大, scenario: AI-05 越权读取 }
+    codes: [ AI-05 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 无 B 车间权限的用户经 Agent 查询 B 车间工作
+    expected:
+      - 返回无权限并记录
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/agent/AgentGatewayTest.java#AI05_越权查询B组工作被拒并记录_AI06_两条整改草稿为DRAFT且审计含双主体与批次
+  - id: AC-AI-AG-003
+    title: 审计主体
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: OBO 双主体, scenario: 审计主体 }
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - Agent 为用户创建缺陷草稿
+    expected:
+      - 审计记录同时包含用户与 Agent 身份
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/agent/AgentGatewayTest.java#AI05_越权查询B组工作被拒并记录_AI06_两条整改草稿为DRAFT且审计含双主体与批次
+  - id: AC-AI-AG-004
+    title: AI-06 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 默认草稿, scenario: AI-06 验收 }
+    codes: [ AI-06 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - Agent 根据交接班内容创建两条整改草稿
+    expected:
+      - 两条记录状态为 DRAFT 且标注来源为 Agent
+    mode: AUTO
+    script: plus-ui/tests/e2e/agent-gateway.e2e.mjs#AI-06：两条为 DRAFT
+  - id: AC-AI-AG-005
+    title: 关闭前检查
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 模拟不产生副作用, scenario: 关闭前检查 }
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - Agent 模拟关闭一条 Issue
+    expected:
+      - 返回"缺少验证证据"，数据库无任何变化
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/agent/AgentGatewayTest.java#模拟关闭前检查返回缺证据且数据库无变化_SIMULATE等级不能正式执行
+  - id: AC-AI-AG-006
+    title: AI-07 输入变化
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 审批绑定输入, scenario: AI-07 输入变化 }
+    codes: [ AI-07 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 批准后 Agent 以不同参数执行
+    expected:
+      - 执行被拒绝，需要重新批准
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/agent/AgentGatewayTest.java#审批绑定_AI07输入或版本变化被拒_AI08一次性ID不能重复执行_过期被拒
+  - id: AC-AI-AG-007
+    title: AI-08 重复执行
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 审批绑定输入, scenario: AI-08 重复执行 }
+    codes: [ AI-08 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 同一一次性 ID 被第二次使用
+    expected:
+      - 不产生第二条正式记录
+    mode: AUTO
+    script: plus-ui/tests/e2e/agent-gateway.e2e.mjs#AI-08：同一审批单不能再次使用
+  - id: AC-AI-AG-008
+    title: AI-09 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 永不暴露的高风险行动, scenario: AI-09 验收 }
+    codes: [ AI-09 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 列出 Agent 可用工具
+    expected:
+      - 不包含上述任何一类能力
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/agent/AgentGatewayTest.java#有效权限为真人与Agent交集_工具清单不含永不暴露能力_AI09
+  - id: AC-AI-AG-009
+    title: 工具同步
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: MCP 适配, scenario: 工具同步 }
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 一个 Operation 的暴露等级由 DRAFT 改为 DENY 并发布
+    expected:
+      - MCP 工具清单中该工具消失
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-mcp/src/test/java/com/lsmom/mcp/McpServerTest.java#暴露等级由DRAFT改为DENY并发布后工具从清单消失
+  - id: AC-AI-AG-010
+    title: 交接班摘要
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 摘要人工确认, scenario: 交接班摘要 }
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - Agent 生成交接班摘要
+    expected:
+      - 摘要处于待确认状态，并带指向工作与异常的引用
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-action/src/test/java/com/lsmom/action/SummaryTest.java#AI09_Agent草拟带引用的摘要_待确认_真人发布_不改原记录
+  - id: AC-AI-AG-011
+    title: AI-10 验收
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 带引用的知识问答, scenario: AI-10 验收 }
+    codes: [ AI-10 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 用户询问"本周 A 线异常数"
+    expected:
+      - 回答给出数值、所用指标编码和可钻取的记录引用
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-ai/src/test/java/com/lsmom/ai/knowledge/KnowledgeTest.java#AI10_本周某班组异常数_给出数值_指标编码与可钻取的记录引用
+  - id: AC-AI-AG-012
+    title: 未发布文档
+    ref: { change: bootstrap-ls-mom-mvp, spec: ai/agent-gateway, requirement: 带引用的知识问答, scenario: 未发布文档 }
+    codes: [ AI-10 ]
+    slice: F
+    roles: [ 车间主任, Agent ]
+    dataset: acceptance
+    steps:
+      - 知识库中某 SOP 存在未发布的修订稿
+    expected:
+      - 问答只引用已发布版本
+    mode: AUTO
+    script: plus-ui/tests/e2e/knowledge-qa.e2e.mjs#未发布修订稿的内容没有出现在回答与引用中

@@ -1,0 +1,118 @@
+cases:
+  - id: AC-FORM-FS-001
+    title: 字段未绑定 Concept
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: FormSchema 结构, scenario: 字段未绑定 Concept }
+    codes: [ FORM-01 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 发布的表单字段 `key` 不存在于目标 Concept
+    expected:
+      - 发布校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/ViewSchemaTest.java#字段未绑定Concept时被拒
+  - id: AC-FORM-FS-002
+    title: 引用越过滤
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 服务端按 Schema 校验, scenario: 引用越过滤 }
+    codes: [ FORM-02 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 提交的设备引用不属于 `$context.orgId` 过滤范围
+    expected:
+      - 后端拒绝并指出字段 `asset`
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/FormRecordTest.java#引用越过orgId过滤被拒并指出字段
+  - id: AC-FORM-FS-003
+    title: 绑定草稿 Operation
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 动作只绑定已发布 Operation, scenario: 绑定草稿 Operation }
+    codes: [ FORM-03 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 表单提交按钮绑定一个尚未发布的 Operation
+    expected:
+      - 表单发布失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/FormRecordTest.java#动作绑定草稿Operation时发布失败
+  - id: AC-FORM-FS-004
+    title: 移动端精简
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 多形态视图, scenario: 移动端精简 }
+    codes: [ FORM-04 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 在移动端打开填报表单
+    expected:
+      - 只显示 MobileSchema 中的字段，提交时仍按完整 FormSchema 服务端校验
+    mode: AUTO
+    script: plus-ui/tests/unit/schema-form.spec.ts#移动端只显示精简字段，提交仍按完整表单校验
+  - id: AC-FORM-FS-005
+    title: 看板写 SQL
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 多形态视图, scenario: 看板写 SQL }
+    codes: [ FORM-04 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 看板绑定中出现原始 SQL
+    expected:
+      - 发布校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/ViewSchemaTest.java#看板写SQL被拒
+  - id: AC-FORM-FS-006
+    title: 发布新版本后打开旧单
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 表单版本不可变, scenario: 发布新版本后打开旧单 }
+    codes: [ FORM-07 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 表单发布 v4 后打开按 v3 提交的记录
+    expected:
+      - 按 v3 布局只读显示
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/FormVersionTest.java#发布v2后旧单仍按v1渲染且编辑旧草稿按迁移策略
+  - id: AC-FORM-FS-007
+    title: 编辑旧单
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 表单版本不可变, scenario: 编辑旧单 }
+    codes: [ FORM-07 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 用户编辑一条 v3 草稿
+    expected:
+      - 系统按已配置的迁移策略提示切换到 v4 或保持 v3
+    mode: AUTO
+    script: plus-ui/tests/unit/ledger-workspace.spec.ts#编辑旧草稿：迁移策略为保持旧版时按 v1 编辑
+  - id: AC-FORM-FS-008
+    title: 节点策略引用被删字段
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 升级兼容性校验, scenario: 节点策略引用被删字段 }
+    codes: [ FORM-07 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 新表单版本移除了某流程节点 `required` 中的字段
+    expected:
+      - 发布校验失败并列出该流程节点
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/FormVersionTest.java#新版本移除流程节点必填字段时发布失败并列出节点
+  - id: AC-FORM-FS-009
+    title: readonly 通配与显式 editable
+    ref: { change: bootstrap-ls-mom-mvp, spec: form/form-schema, requirement: 节点字段策略合并, scenario: readonly 通配与显式 editable }
+    codes: [ FORM-05 ]
+    slice: PLATFORM
+    roles: [ 实施顾问, 班组长 ]
+    dataset: acceptance
+    steps:
+      - 节点策略为 `readonly:["*"]`、`editable:["confirmComment"]`
+    expected:
+      - 仅 `confirmComment` 可编辑，其他字段只读，服务端拒绝修改其他字段
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-form/src/test/java/com/lsmom/form/NodePolicyCheckTest.java#审核节点只允许修改审核意见

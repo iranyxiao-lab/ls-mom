@@ -1,0 +1,62 @@
+cases:
+  - id: AC-DOM-AM-001
+    title: 状态变更留痕
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 设备台账, scenario: 状态变更留痕 }
+    slice: B
+    roles: [ 设备员, 维修工, 点检员 ]
+    dataset: acceptance
+    steps:
+      - 设备由运行改为停机检修
+    expected:
+      - 状态历史中新增一条带操作人与原因的记录
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-asset/src/test/java/com/lsmom/biz/asset/AssetPackTest.java#标准Pack安装_状态变更留痕
+  - id: AC-DOM-AM-002
+    title: 点检异常项
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 点检计划与记录, scenario: 点检异常项 }
+    slice: B
+    roles: [ 设备员, 维修工, 点检员 ]
+    dataset: acceptance
+    steps:
+      - 点检记录中某检查项判定异常
+    expected:
+      - 系统提示并可一键生成缺陷 Issue 草稿
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-asset/src/test/java/com/lsmom/biz/asset/AssetPackTest.java#点检计划按周期生成点检工作_异常项一键生成缺陷草稿
+  - id: AC-DOM-AM-003
+    title: 缺陷登记
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 缺陷经 Issue 闭环, scenario: 缺陷登记 }
+    codes: [ DOM-06 ]
+    slice: B
+    roles: [ 设备员, 维修工, 点检员 ]
+    dataset: acceptance
+    steps:
+      - 登记一条设备缺陷
+    expected:
+      - 产生关联该设备的 Issue 与缺陷扩展记录
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-asset/src/test/java/com/lsmom/biz/asset/AssetPackTest.java#缺陷登记产生Issue_维修到验证关闭_时间轴可见报警缺陷维修验证
+  - id: AC-DOM-AM-004
+    title: 维修到关闭
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 维修复用 WorkItem, scenario: 维修到关闭 }
+    slice: B
+    roles: [ 设备员, 维修工, 点检员 ]
+    dataset: acceptance
+    steps:
+      - 维修工作完成且验证人确认
+    expected:
+      - 缺陷 Issue 关闭，设备时间轴显示缺陷、维修与验证
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-biz/pack-asset/src/test/java/com/lsmom/biz/asset/SliceBGoldenScenariosTest.java#点检异常到维修验证关闭
+  - id: AC-DOM-AM-005
+    title: 查看设备时间轴
+    ref: { change: bootstrap-ls-mom-mvp, spec: domain/asset-management, requirement: 设备关联时间轴, scenario: 查看设备时间轴 }
+    slice: B
+    roles: [ 设备员, 维修工, 点检员 ]
+    dataset: acceptance
+    steps:
+      - 打开某泵的详情
+    expected:
+      - 时间轴中可见最近一次报警与由此产生的缺陷
+    mode: AUTO
+    script: plus-ui/tests/e2e/asset-ops.e2e.mjs#时间轴按时间倒序，最新是验证

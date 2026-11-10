@@ -1,0 +1,86 @@
+cases:
+  - id: AC-FLOW-FD-001
+    title: 服务节点选择
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 节点类型范围, scenario: 服务节点选择 }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 配置服务节点
+    expected:
+      - 只能从已发布 Operation 列表中选择，不能输入类名、URL 或脚本
+    mode: AUTO
+    script: plus-ui/tests/e2e/flow-designer.e2e.mjs#服务节点未选 Operation 时校验报错
+  - id: AC-FLOW-FD-002
+    title: 粘贴 XML
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 从配置生成标准流程定义, scenario: 粘贴 XML }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 用户尝试在设计器导入 BPMN XML
+    expected:
+      - 操作不可用；只有代码库中经评审的研发流程可部署原始定义
+    mode: AUTO
+    script: plus-ui/tests/e2e/flow-designer.e2e.mjs#界面不提供 XML 导入
+  - id: AC-FLOW-FD-003
+    title: 研发流程含脚本任务
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 危险节点禁止, scenario: 研发流程含脚本任务 }
+    codes: [ FLOW-08 ]
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 代码库流程定义中包含脚本任务并提交部署
+    expected:
+      - 静态扫描失败，部署被拒绝
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowEngineTest.java#研发流程含脚本任务等危险内容时扫描失败部署被拒
+  - id: AC-FLOW-FD-004
+    title: 引用表单不存在字段
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 节点绑定表单策略, scenario: 引用表单不存在字段 }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 节点 `required` 包含表单中不存在的字段
+    expected:
+      - 发布校验失败
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#发布校验_缺少回调_角色无成员_节点策略引用不存在字段
+  - id: AC-FLOW-FD-005
+    title: 角色无成员
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 发布前办理人校验, scenario: 角色无成员 }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 节点办理人策略为某角色而该角色在业务部门下无成员
+    expected:
+      - 发布被阻断并提示节点名
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#发布校验_缺少回调_角色无成员_节点策略引用不存在字段
+  - id: AC-FLOW-FD-006
+    title: 版本对比
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 预览与版本差异, scenario: 版本对比 }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 对比 v1 与 v2
+    expected:
+      - 显示新增的会签节点与变化的超时设置
+    mode: AUTO
+    script: plus-ui/tests/e2e/flow-designer.e2e.mjs#差异图高亮新增节点
+  - id: AC-FLOW-FD-007
+    title: 缺少回调
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/flow-designer, requirement: 业务结果绑定, scenario: 缺少回调 }
+    slice: B
+    roles: [ 实施顾问 ]
+    dataset: acceptance
+    steps:
+      - 流程未配置 `onApproved`
+    expected:
+      - 发布失败
+    mode: AUTO
+    script: plus-ui/tests/e2e/flow-api.e2e.mjs#缺少驳回回调被校验拦截
