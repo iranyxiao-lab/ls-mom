@@ -104,7 +104,7 @@ defineExpose({ load, open });
 
 <style scoped>
 .item {
-  padding: 8px 0;
+  padding: var(--ls-space-2) 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .stem {
@@ -114,27 +114,27 @@ defineExpose({ load, open });
 .label {
   color: var(--el-text-color-secondary);
   font-size: 12px;
-  margin-top: 6px;
+  margin-top: var(--ls-space-2);
 }
 .pre {
   white-space: pre-wrap;
-  margin: 4px 0;
+  margin: var(--ls-space-1) 0;
 }
 .sub {
   color: var(--el-text-color-secondary);
 }
 .score {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-top: 6px;
+  margin-top: var(--ls-space-2);
 }
 .err {
   color: var(--el-color-danger);
   font-size: 12px;
 }
 .footer {
-  margin-top: 12px;
+  margin-top: var(--ls-space-3);
   text-align: right;
 }
 </style>

@@ -165,7 +165,7 @@ onMounted(async () => {
 <style scoped>
 .desk {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: flex-start;
 }
 .left {
@@ -178,8 +178,8 @@ onMounted(async () => {
 }
 .toolbar {
   display: flex;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: var(--ls-space-3);
+  margin-bottom: var(--ls-space-3);
   align-items: center;
 }
 .sub {
@@ -187,9 +187,9 @@ onMounted(async () => {
   font-size: 12px;
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 h4 {
-  margin: 4px 0 8px;
+  margin: var(--ls-space-1) 0 var(--ls-space-2);
 }
 </style>

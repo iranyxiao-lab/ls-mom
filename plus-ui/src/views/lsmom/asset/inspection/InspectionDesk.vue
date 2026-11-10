@@ -322,9 +322,9 @@ defineExpose({ openRecord, loadMine, loadPlans });
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -332,8 +332,8 @@ defineExpose({ openRecord, loadMine, loadPlans });
 .ins-card {
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: var(--ls-space-3) var(--ls-space-3);
+  margin-bottom: var(--ls-space-2);
   cursor: pointer;
 }
 .ins-card .title {
@@ -344,12 +344,12 @@ defineExpose({ openRecord, loadMine, loadPlans });
   font-size: 12px;
 }
 .hint {
-  margin-top: 12px;
+  margin-top: var(--ls-space-3);
 }
 .footer {
-  margin-top: 12px;
+  margin-top: var(--ls-space-3);
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 :deep(.bad .el-input__wrapper) {
   box-shadow: 0 0 0 1px var(--el-color-danger) inset;

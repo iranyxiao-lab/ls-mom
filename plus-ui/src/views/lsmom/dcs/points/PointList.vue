@@ -143,8 +143,8 @@ onMounted(load);
 <style scoped>
 .bar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
 }
 .sub {
   color: var(--el-text-color-secondary);

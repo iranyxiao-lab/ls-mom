@@ -253,27 +253,27 @@ defineExpose({ openCreate, openEdit, openDetail, openImport });
 <style scoped>
 .ledger__hint,
 .ledger__meta {
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .ledger__meta {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: center;
   color: var(--el-text-color-secondary);
 }
 .ledger__export {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
   font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 .ledger__error {
   color: var(--el-color-danger);
-  margin-left: 8px;
+  margin-left: var(--ls-space-2);
 }
 .ledger__import {
   display: flex;
-  gap: 16px;
+  gap: var(--ls-space-4);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 </style>

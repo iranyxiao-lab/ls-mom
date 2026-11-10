@@ -1,12 +1,11 @@
-// 处理主题样式
+import { setBrand } from '@/design/theme';
+
+/** RuoYi 默认主题色：视为"未设置品牌色"，使用设计令牌默认主色。 */
+export const RUOYI_DEFAULT_THEME = '#409EFF';
+
+// 处理主题样式（LS-MOM：只设置品牌主色令牌 --ls-color-primary，Element Plus 的 --el-color-primary-* 由映射层派生）
 export const handleThemeStyle = (theme: string) => {
-  document.documentElement.style.setProperty('--el-color-primary', theme);
-  for (let i = 1; i <= 9; i++) {
-    document.documentElement.style.setProperty(`--el-color-primary-light-${i}`, `${getLightColor(theme, i / 10)}`);
-  }
-  for (let i = 1; i <= 9; i++) {
-    document.documentElement.style.setProperty(`--el-color-primary-dark-${i}`, `${getDarkColor(theme, i / 10)}`);
-  }
+  setBrand(!theme || theme.toUpperCase() === RUOYI_DEFAULT_THEME ? null : theme);
 };
 
 // hex颜色转rgb颜色

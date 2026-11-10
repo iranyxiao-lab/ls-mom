@@ -37,7 +37,7 @@ const emit = defineEmits<{ cite: [id: number] }>();
 <style scoped>
 .meta {
   display: flex;
-  gap: 10px;
+  gap: var(--ls-space-3);
   align-items: center;
 }
 .sub {
@@ -48,13 +48,13 @@ const emit = defineEmits<{ cite: [id: number] }>();
   white-space: pre-wrap;
 }
 .points li {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .cites {
   font-size: 12px;
   color: var(--el-text-color-secondary);
   display: flex;
-  gap: 6px;
+  gap: var(--ls-space-2);
   align-items: center;
 }
 </style>

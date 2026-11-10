@@ -4,12 +4,12 @@
 
 ## 1. 设计系统基础
 
-- [ ] 1.1 引入 UnoCSS＋Iconify（Lucide）、VueUse、Storybook（Vue3/Vite），配置 stylelint 禁止 `src/views/**` 使用十六进制颜色和裸 px 间距；验证示例违规文件 lint 失败
-- [ ] 1.2 以 TS 定义 primitive/semantic/component 三层令牌，构建时生成 CSS 变量、UnoCSS 主题、ECharts 主题；验证修改主色令牌后 Storybook 中按钮、链接、焦点环、图表同步变化
-- [ ] 1.3 编写 Element Plus（`--el-*`）与 Vant（`--van-*`）令牌映射层；验证 Storybook 并排对比页中两套组件主色、圆角、字号一致
-- [ ] 1.4 实现明暗主题（跟随系统、手动切换并记住、无闪白）与舒适/紧凑密度；验证无头 vitest：切换后 `html.dark` 和 `data-density` 生效、刷新后保持
-- [ ] 1.5 实现统一状态组件（空态、骨架屏、错误态、状态标签带图标＋文字、徽标、成功提示）和"减少动态效果"适配；验证组件单测与 Storybook 文档
-- [ ] 1.6 编写 `docs/ui/design-system.md`（令牌、主题、密度、无障碍规则、如何新增令牌）；验证文档中的令牌名与源码一致（脚本比对）
+- [x] 1.1 引入 UnoCSS＋Iconify（Lucide）、VueUse、Storybook（Vue3/Vite），配置 stylelint 禁止 `src/views/**` 使用十六进制颜色和裸 px 间距；验证示例违规文件 lint 失败
+- [x] 1.2 以 TS 定义 primitive/semantic/component 三层令牌，构建时生成 CSS 变量、UnoCSS 主题、ECharts 主题；验证修改主色令牌后 Storybook 中按钮、链接、焦点环、图表同步变化
+- [x] 1.3 编写 Element Plus（`--el-*`）与 Vant（`--van-*`）令牌映射层；验证 Storybook 并排对比页中两套组件主色、圆角、字号一致
+- [x] 1.4 实现明暗主题（跟随系统、手动切换并记住、无闪白）与舒适/紧凑密度；验证无头 vitest：切换后 `html.dark` 和 `data-density` 生效、刷新后保持
+- [x] 1.5 实现统一状态组件（空态、骨架屏、错误态、状态标签带图标＋文字、徽标、成功提示）和"减少动态效果"适配；验证组件单测与 Storybook 文档
+- [x] 1.6 编写 `docs/ui/design-system.md`（令牌、主题、密度、无障碍规则、如何新增令牌）；验证文档中的令牌名与源码一致（脚本比对）
 
 ## 2. 体验质量门禁（先建门禁，后续各组持续受检）
 

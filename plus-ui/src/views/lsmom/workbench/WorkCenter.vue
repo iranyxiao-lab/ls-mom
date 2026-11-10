@@ -274,9 +274,9 @@ defineExpose({ load, tab, items, counts, panel });
 <style scoped>
 .filters {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .sub {
   color: var(--el-text-color-secondary);

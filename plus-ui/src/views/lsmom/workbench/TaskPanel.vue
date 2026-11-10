@@ -215,9 +215,9 @@ defineExpose({ open, ctx, model });
 <style scoped>
 .meta {
   display: flex;
-  gap: 16px;
+  gap: var(--ls-space-4);
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--ls-space-3);
   color: var(--el-text-color-regular);
   font-size: 13px;
 }
@@ -227,13 +227,13 @@ defineExpose({ open, ctx, model });
 }
 .act {
   border-top: 1px solid var(--el-border-color-lighter);
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: var(--ls-space-3);
+  padding-top: var(--ls-space-3);
 }
 .btns {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--ls-space-2);
+  margin-top: var(--ls-space-2);
   flex-wrap: wrap;
 }
 </style>

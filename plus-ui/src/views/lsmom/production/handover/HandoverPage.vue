@@ -218,8 +218,8 @@ onMounted(async () => {
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -232,17 +232,17 @@ onMounted(async () => {
   white-space: pre-wrap;
   font-family: inherit;
   background: var(--el-fill-color-light);
-  padding: 8px;
+  padding: var(--ls-space-2);
   border-radius: 4px;
   margin: 0;
 }
 .actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: var(--ls-space-2);
+  margin-top: var(--ls-space-4);
   align-items: center;
 }
 h4 {
-  margin: 14px 0 6px;
+  margin: var(--ls-space-4) 0 var(--ls-space-2);
 }
 </style>

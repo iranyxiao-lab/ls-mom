@@ -741,11 +741,11 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .ls-designer__title {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
 }
 .ls-designer__muted {
@@ -753,20 +753,20 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   font-size: 12px;
 }
 .ls-designer__alert {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .ls-designer__issues {
   border: 1px solid var(--el-color-danger-light-5);
   background: var(--el-color-danger-light-9);
   border-radius: 4px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
+  padding: var(--ls-space-2) var(--ls-space-3);
+  margin-bottom: var(--ls-space-2);
   max-height: 160px;
   overflow: auto;
 }
 .ls-designer__issues-title {
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: var(--ls-space-1);
 }
 .ls-designer__issue {
   cursor: pointer;
@@ -774,7 +774,7 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
 }
 .ls-designer__main {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 .ls-designer__canvas {
   flex: 1;
@@ -788,15 +788,15 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
 .ls-designer__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  gap: var(--ls-space-1);
 }
 .ls-designer__card {
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
-  padding: 6px;
-  margin-bottom: 6px;
+  padding: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
   display: grid;
-  gap: 4px;
+  gap: var(--ls-space-1);
 }
 .ls-designer__err {
   color: var(--el-color-danger);
@@ -805,7 +805,7 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
 .ls-designer__schema {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--ls-space-3);
 }
 .ls-designer__code :deep(textarea) {
   font-family: ui-monospace, monospace;
@@ -816,7 +816,7 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   max-height: 640px;
   overflow: auto;
   background: var(--el-fill-color-light);
-  padding: 8px;
+  padding: var(--ls-space-2);
 }
 .ls-designer__diff .da {
   color: var(--el-color-success);
@@ -832,8 +832,8 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
 }
 .ls-designer__sim {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 </style>

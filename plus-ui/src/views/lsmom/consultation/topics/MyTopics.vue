@@ -147,22 +147,22 @@ defineExpose({ load, openNew, openMine });
   font-size: 12px;
 }
 .ml {
-  margin-left: 6px;
+  margin-left: var(--ls-space-2);
 }
 .hint {
   color: var(--el-color-info);
-  margin: 0 0 8px;
+  margin: 0 0 var(--ls-space-2);
 }
 .pre {
   white-space: pre-wrap;
 }
 .op {
-  padding: 8px 0;
+  padding: var(--ls-space-2) 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .reply {
-  margin-top: 4px;
-  padding: 6px 8px;
+  margin-top: var(--ls-space-1);
+  padding: var(--ls-space-2) var(--ls-space-2);
   background: var(--el-fill-color-light);
   border-radius: 4px;
 }

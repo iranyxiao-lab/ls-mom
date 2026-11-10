@@ -1,7 +1,7 @@
 <template>
   <div class="app-container home">
     <el-row :gutter="20">
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
+      <el-col :sm="24" :lg="12" style="padding-left: var(--ls-space-5)">
         <h2>RuoYi-Vue-Plus多租户管理系统</h2>
         <p>
           RuoYi-Vue-Plus 是基于 RuoYi-Vue 针对 分布式集群 场景升级(不兼容原框架)
@@ -46,7 +46,7 @@
         </p>
       </el-col>
 
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
+      <el-col :sm="24" :lg="12" style="padding-left: var(--ls-space-5)">
         <h2>RuoYi-Cloud-Plus多租户微服务管理系统</h2>
         <p>
           RuoYi-Cloud-Plus 微服务通用权限管理系统 重写 RuoYi-Cloud 全方位升级(不兼容原框架)
@@ -103,19 +103,19 @@ const goTarget = (url: string) => {
 <style lang="scss" scoped>
 .home {
   blockquote {
-    padding: 10px 20px;
-    margin: 0 0 20px;
+    padding: var(--ls-space-3) var(--ls-space-5);
+    margin: 0 0 var(--ls-space-5);
     font-size: 17.5px;
-    border-left: 5px solid #eee;
+    border-left: 5px solid var(--ls-color-border-lighter);
   }
   hr {
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: var(--ls-space-5);
+    margin-bottom: var(--ls-space-5);
     border: 0;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--ls-color-border-lighter);
   }
   .col-item {
-    margin-bottom: 20px;
+    margin-bottom: var(--ls-space-5);
   }
 
   ul {
@@ -125,7 +125,7 @@ const goTarget = (url: string) => {
 
   font-family: 'open sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 13px;
-  color: #676a6c;
+  color: var(--ls-color-text-secondary);
   overflow-x: hidden;
 
   ul {
@@ -133,17 +133,17 @@ const goTarget = (url: string) => {
   }
 
   h4 {
-    margin-top: 0px;
+    margin-top: 0;
   }
 
   h2 {
-    margin-top: 10px;
+    margin-top: var(--ls-space-3);
     font-size: 26px;
     font-weight: 100;
   }
 
   p {
-    margin-top: 10px;
+    margin-top: var(--ls-space-3);
 
     b {
       font-weight: 700;

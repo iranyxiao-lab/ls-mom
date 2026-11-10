@@ -341,9 +341,9 @@ defineExpose({ load, openDetail, openNew });
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -357,12 +357,12 @@ defineExpose({ load, openDetail, openNew });
   white-space: pre-wrap;
 }
 .footer {
-  margin-top: 12px;
+  margin-top: var(--ls-space-3);
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 .upload {
-  margin-left: 6px;
+  margin-left: var(--ls-space-2);
   color: var(--el-color-primary);
   cursor: pointer;
   font-size: 12px;

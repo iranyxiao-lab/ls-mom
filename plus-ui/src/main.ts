@@ -3,6 +3,9 @@ import { createApp } from 'vue';
 import 'virtual:uno.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import '@/assets/styles/index.scss';
+// 设计令牌（--ls-* 及 Element Plus / Vant 映射），放在组件库样式之后
+import 'virtual:ls-tokens.css';
+import '@/design/base.css';
 
 // App、router、store
 import App from './App.vue';
@@ -41,6 +44,11 @@ VXETable.setConfig({
 // 修改 el-dialog 默认点击遮照为不关闭
 import { ElDialog } from 'element-plus';
 ElDialog.props.closeOnClickModal.default = false;
+
+// 明暗主题与密度：首屏已由 index.html 设置，这里接管后续切换与跟随系统
+import { useDensity, useThemeMode } from '@/design/theme';
+useThemeMode();
+useDensity();
 
 const app = createApp(App);
 

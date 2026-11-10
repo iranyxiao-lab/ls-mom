@@ -8,12 +8,14 @@ import createIcons from './icons';
 import createSvgIconsPlugin from './svg-icon';
 import createCompression from './compression';
 import createSetupExtend from './setup-extend';
+import createLsTokens from './ls-tokens';
 import path from 'path';
 
 export default (viteEnv: any, isBuild = false): [] => {
   const vitePlugins: any = [];
   vitePlugins.push(vue());
   vitePlugins.push(vueDevTools());
+  vitePlugins.push(createLsTokens());
   vitePlugins.push(createUnoCss());
   vitePlugins.push(createAutoImport(path));
   vitePlugins.push(createComponents(path));

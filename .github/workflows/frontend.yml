@@ -38,3 +38,11 @@ jobs:
         run: pnpm exec vitest run --browser.headless
       - name: 生产构建
         run: pnpm build:prod
+      - name: 样式门禁（业务页面只用设计令牌）
+        run: |
+          node tests/lint/style-gate.mjs
+          node tests/lint/tokens-doc.mjs
+      - name: 设计系统（Storybook 构建＋无头 Playwright 检查）
+        run: |
+          pnpm storybook:build
+          pnpm exec playwright test --project=storybook

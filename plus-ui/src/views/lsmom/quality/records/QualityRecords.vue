@@ -154,9 +154,9 @@ defineExpose({ load, openNew, addLink });
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -170,8 +170,8 @@ defineExpose({ load, openNew, addLink });
 }
 .link-row {
   display: flex;
-  gap: 6px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin: 4px 0;
+  margin: var(--ls-space-1) 0;
 }
 </style>

@@ -37,7 +37,7 @@ const message = computed(() => {
 .wscn-http404 {
   position: relative;
   width: 1200px;
-  padding: 0 50px;
+  padding: 0 var(--ls-space-12);
   overflow: hidden;
   .pic-404 {
     position: relative;
@@ -154,15 +154,15 @@ const message = computed(() => {
     position: relative;
     float: left;
     width: 300px;
-    padding: 30px 0;
+    padding: var(--ls-space-8) 0;
     overflow: hidden;
     &__oops {
       font-size: 32px;
       font-weight: bold;
       line-height: 40px;
-      color: #1482f0;
+      color: var(--ls-color-primary);
       opacity: 0;
-      margin-bottom: 20px;
+      margin-bottom: var(--ls-space-5);
       animation-name: slideUp;
       animation-duration: 0.5s;
       animation-fill-mode: forwards;
@@ -170,10 +170,10 @@ const message = computed(() => {
     &__headline {
       font-size: 20px;
       line-height: 24px;
-      color: #222;
+      color: var(--ls-color-text);
       font-weight: bold;
       opacity: 0;
-      margin-bottom: 10px;
+      margin-bottom: var(--ls-space-3);
       animation-name: slideUp;
       animation-duration: 0.5s;
       animation-delay: 0.1s;
@@ -184,7 +184,7 @@ const message = computed(() => {
       line-height: 21px;
       color: grey;
       opacity: 0;
-      margin-bottom: 30px;
+      margin-bottom: var(--ls-space-8);
       animation-name: slideUp;
       animation-duration: 0.5s;
       animation-delay: 0.2s;
@@ -195,10 +195,10 @@ const message = computed(() => {
       float: left;
       width: 110px;
       height: 36px;
-      background: #1482f0;
+      background: var(--ls-color-primary);
       border-radius: 100px;
       text-align: center;
-      color: #ffffff;
+      color: var(--ls-color-on-solid);
       opacity: 0;
       font-size: 14px;
       line-height: 36px;

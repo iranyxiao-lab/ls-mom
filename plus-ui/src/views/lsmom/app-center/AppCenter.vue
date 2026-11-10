@@ -556,8 +556,8 @@ defineExpose({ load, open });
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 8px 0;
+  gap: var(--ls-space-2);
+  margin: var(--ls-space-2) 0;
   flex-wrap: wrap;
 }
 .grow {
@@ -568,13 +568,13 @@ defineExpose({ load, open });
   font-size: 12px;
 }
 .ml {
-  margin-left: 6px;
+  margin-left: var(--ls-space-2);
 }
 .mb {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 .bad {
   color: var(--el-color-danger);
@@ -585,7 +585,7 @@ defineExpose({ load, open });
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  margin-right: 6px;
+  margin-right: var(--ls-space-2);
   background: var(--el-border-color);
 }
 .dot.ok {
@@ -595,13 +595,13 @@ defineExpose({ load, open });
   background: var(--el-color-danger);
 }
 .stages {
-  padding: 4px 48px;
+  padding: var(--ls-space-1) var(--ls-space-12);
 }
 .stage {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  padding: 2px 0;
+  padding: var(--ls-space-half) 0;
 }
 .stage b {
   width: 90px;
@@ -618,6 +618,6 @@ defineExpose({ load, open });
   text-decoration: none;
 }
 .case {
-  padding: 4px 0;
+  padding: var(--ls-space-1) 0;
 }
 </style>

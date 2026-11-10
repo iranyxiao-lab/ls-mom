@@ -256,11 +256,11 @@ function addBranch() {
 .hint {
   color: var(--el-text-color-secondary);
   font-size: 12px;
-  padding: 0 0 8px 16px;
+  padding: 0 0 var(--ls-space-2) var(--ls-space-4);
 }
 .branch-row {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
 }
 </style>

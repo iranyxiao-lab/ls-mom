@@ -365,8 +365,8 @@ defineExpose({ def, issues, selected, validate, publish, runDiff, walk });
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
 }
 .toolbar .title {
   font-weight: 600;
@@ -379,15 +379,15 @@ defineExpose({ def, issues, selected, validate, publish, runDiff, walk });
   border: 1px solid var(--el-color-danger-light-5);
   background: var(--el-color-danger-light-9);
   border-radius: 6px;
-  padding: 6px 10px;
-  margin-bottom: 8px;
+  padding: var(--ls-space-2) var(--ls-space-3);
+  margin-bottom: var(--ls-space-2);
 }
 .issue {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
   cursor: pointer;
-  padding: 2px 0;
+  padding: var(--ls-space-half) 0;
 }
 .issue .path {
   color: var(--el-text-color-secondary);
@@ -396,96 +396,96 @@ defineExpose({ def, issues, selected, validate, publish, runDiff, walk });
 .config {
   display: grid;
   grid-template-columns: 300px 1fr 340px;
-  gap: 12px;
+  gap: var(--ls-space-3);
   min-height: 560px;
 }
 .settings {
   border-right: 1px solid var(--el-border-color-lighter);
-  padding-right: 8px;
+  padding-right: var(--ls-space-2);
 }
 .canvas {
   overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
+  padding: var(--ls-space-3);
   background: var(--el-fill-color-lighter);
   border-radius: 8px;
   max-height: 720px;
 }
 .terminal {
-  padding: 6px 16px;
+  padding: var(--ls-space-2) var(--ls-space-4);
   border-radius: 16px;
   font-size: 12px;
-  color: #fff;
+  color: var(--ls-color-on-solid);
 }
 .terminal.start {
-  background: #16a34a;
+  background: var(--ls-color-success);
 }
 .terminal.end {
-  background: #64748b;
+  background: var(--ls-color-text-secondary);
 }
 .panel {
   border-left: 1px solid var(--el-border-color-lighter);
-  padding-left: 8px;
+  padding-left: var(--ls-space-2);
   overflow: auto;
   max-height: 720px;
 }
 .hint {
-  margin-left: 8px;
+  margin-left: var(--ls-space-2);
   color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 .diff-bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .legend {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   font-size: 12px;
-  margin-bottom: 4px;
+  margin-bottom: var(--ls-space-1);
 }
 .legend span::before {
   content: '';
   display: inline-block;
   width: 10px;
   height: 10px;
-  margin-right: 4px;
+  margin-right: var(--ls-space-1);
   border-radius: 2px;
   vertical-align: -1px;
 }
 .legend .added::before {
-  background: #16a34a;
+  background: var(--ls-color-success);
 }
 .legend .changed::before {
-  background: #d97706;
+  background: var(--ls-color-warning);
 }
 .legend .removed::before {
-  background: #dc2626;
+  background: var(--ls-color-danger);
 }
 .diff-list {
-  margin: 0 0 8px;
-  padding-left: 18px;
+  margin: 0 0 var(--ls-space-2);
+  padding-left: var(--ls-space-5);
   font-size: 13px;
 }
 .diff-list li.added {
-  color: #15803d;
+  color: var(--ls-color-success);
 }
 .diff-list li.changed {
-  color: #b45309;
+  color: var(--ls-color-warning);
 }
 .diff-list li.removed {
-  color: #b91c1c;
+  color: var(--ls-color-danger);
   text-decoration: line-through;
 }
 .json {
   max-height: 600px;
   overflow: auto;
   background: var(--el-fill-color-lighter);
-  padding: 8px;
+  padding: var(--ls-space-2);
   font-size: 12px;
 }
 </style>

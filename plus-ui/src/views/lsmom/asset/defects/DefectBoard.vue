@@ -227,7 +227,7 @@ defineExpose({ load, openDetail });
 
 <style scoped>
 .toolbar {
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .sub {
   color: var(--el-text-color-secondary);
@@ -238,13 +238,13 @@ defineExpose({ load, openDetail });
 }
 .row {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: center;
-  margin: 8px 0;
+  margin: var(--ls-space-2) 0;
 }
 .footer {
-  margin-top: 12px;
+  margin-top: var(--ls-space-3);
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 </style>

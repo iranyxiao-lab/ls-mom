@@ -176,25 +176,25 @@ defineExpose({ load, open });
 <style scoped>
 .bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
   flex-wrap: wrap;
 }
 .hint,
 .block {
-  margin: 8px 0;
+  margin: var(--ls-space-2) 0;
 }
 .ops {
   display: flex;
-  gap: 8px;
-  margin-top: 6px;
+  gap: var(--ls-space-2);
+  margin-top: var(--ls-space-2);
 }
 .sub {
   color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 .ml {
-  margin-left: 6px;
+  margin-left: var(--ls-space-2);
 }
 </style>

@@ -69,7 +69,7 @@
         </el-form-item>
         <el-form-item label="数量 / 单位">
           <el-input-number v-model="form.quantity" :min="0" controls-position="right" style="width: 160px" />
-          <el-input v-model="form.unit" placeholder="单位" style="width: 100px; margin-left: 8px" />
+          <el-input v-model="form.unit" placeholder="单位" style="width: 100px; margin-left: var(--ls-space-2)" />
         </el-form-item>
         <el-form-item label="期望完成">
           <el-date-picker v-model="form.dueDate" type="date" value-format="YYYY-MM-DD" data-testid="req-due" />
@@ -242,8 +242,8 @@ onMounted(async () => {
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -253,6 +253,6 @@ onMounted(async () => {
   font-size: 12px;
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 </style>

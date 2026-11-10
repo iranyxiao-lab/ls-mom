@@ -74,8 +74,8 @@ defineProps<{ nodes: FlowNode[]; ctx: TreeContext; path: string }>();
 .node-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px 2px;
+  gap: var(--ls-space-2);
+  padding: var(--ls-space-2) var(--ls-space-2) var(--ls-space-half);
 }
 .node-type {
   font-size: 12px;
@@ -90,7 +90,7 @@ defineProps<{ nodes: FlowNode[]; ctx: TreeContext; path: string }>();
   white-space: nowrap;
 }
 .node-body {
-  padding: 2px 8px 8px;
+  padding: var(--ls-space-half) var(--ls-space-2) var(--ls-space-2);
   font-size: 12px;
   color: var(--el-text-color-regular);
 }
@@ -99,10 +99,10 @@ defineProps<{ nodes: FlowNode[]; ctx: TreeContext; path: string }>();
 }
 .branches {
   display: flex;
-  gap: 16px;
+  gap: var(--ls-space-4);
   align-items: flex-start;
-  padding: 10px;
-  margin-top: 4px;
+  padding: var(--ls-space-3);
+  margin-top: var(--ls-space-1);
   border: 1px dashed var(--el-border-color);
   border-radius: 8px;
   position: relative;
@@ -116,7 +116,7 @@ defineProps<{ nodes: FlowNode[]; ctx: TreeContext; path: string }>();
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 4px 10px;
+  padding: var(--ls-space-1) var(--ls-space-3);
   border-radius: 12px;
   background: var(--el-fill-color-light);
   font-size: 12px;

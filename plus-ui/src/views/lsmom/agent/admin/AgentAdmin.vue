@@ -274,9 +274,9 @@ defineExpose({ load, open });
 <style scoped>
 .bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
   flex-wrap: wrap;
 }
 .sub {
@@ -284,9 +284,9 @@ defineExpose({ load, open });
   font-size: 12px;
 }
 .mb {
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 </style>

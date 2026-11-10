@@ -283,16 +283,16 @@ defineExpose({ load, open, sDraft, saveDraft });
   font-size: 12px;
 }
 .ml {
-  margin-left: 6px;
+  margin-left: var(--ls-space-2);
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 .bar {
   display: flex;
-  gap: 10px;
+  gap: var(--ls-space-3);
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--ls-space-3);
 }
 .grow {
   flex: 1;
@@ -301,16 +301,16 @@ defineExpose({ load, open, sDraft, saveDraft });
   white-space: pre-wrap;
 }
 .reply {
-  margin-top: 4px;
-  padding: 4px 8px;
+  margin-top: var(--ls-space-1);
+  padding: var(--ls-space-1) var(--ls-space-2);
   background: var(--el-fill-color-light);
   border-radius: 4px;
   font-size: 12px;
 }
 .point {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: var(--ls-space-2);
+  margin-top: var(--ls-space-2);
 }
 .cite {
   width: 280px;
@@ -318,10 +318,10 @@ defineExpose({ load, open, sDraft, saveDraft });
 .err {
   color: var(--el-color-danger);
   font-size: 12px;
-  margin-top: 4px;
+  margin-top: var(--ls-space-1);
 }
 .footer {
-  margin-top: 10px;
+  margin-top: var(--ls-space-3);
   text-align: right;
 }
 </style>

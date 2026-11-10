@@ -264,9 +264,9 @@ defineExpose({ load, openSheet, responses });
 }
 .bar {
   display: flex;
-  gap: 16px;
+  gap: var(--ls-space-4);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .warn {
   color: var(--el-color-danger);
@@ -275,11 +275,11 @@ defineExpose({ load, openSheet, responses });
   color: var(--el-color-danger);
 }
 .item {
-  padding: 10px 0;
+  padding: var(--ls-space-3) 0;
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 .stem {
-  margin-bottom: 6px;
+  margin-bottom: var(--ls-space-2);
   white-space: pre-wrap;
 }
 </style>

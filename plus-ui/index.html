@@ -7,6 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <link rel="icon" href="/favicon.ico" />
     <title>%VITE_APP_TITLE%</title>
+    <!-- 首屏前应用明暗主题、密度与品牌色，避免闪白（与 src/design/theme.ts 的 BOOT_SCRIPT 一致） -->
+    <script>(function(){try{var d=document.documentElement,s=localStorage,t=s.getItem('ls-theme')||'system',m=t==='system'?(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;if(m==='dark')d.classList.add('dark');d.setAttribute('data-theme',m);var n=s.getItem('ls-density');if(n==='compact'||n==='comfortable')d.setAttribute('data-density',n);var b=s.getItem('ls-brand');if(b&&/^#[0-9a-fA-F]{6}$/.test(b))d.style.setProperty('--ls-color-primary',b);if(s.getItem('ls-motion')==='reduced')d.setAttribute('data-motion','reduced');}catch(e){}})();</script>
+    <style>html.dark{color-scheme:dark;background:#111419}html.dark body{background:#111419}html.dark #loader-wrapper .loader-section{background:#111419}</style>
     <!--[if lt IE 11
       ]><script>
         window.location.href = '/html/ie.html';

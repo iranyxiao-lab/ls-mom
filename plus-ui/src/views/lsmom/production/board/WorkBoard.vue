@@ -181,8 +181,8 @@ defineExpose({ load, onDrop, dragging });
 <style scoped>
 .toolbar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-3);
   flex-wrap: wrap;
   align-items: center;
 }
@@ -192,13 +192,13 @@ defineExpose({ load, onDrop, dragging });
 .kanban {
   display: grid;
   grid-template-columns: repeat(4, minmax(220px, 1fr));
-  gap: 10px;
+  gap: var(--ls-space-3);
   overflow-x: auto;
 }
 .col {
   background: var(--el-fill-color-light);
   border-radius: 6px;
-  padding: 8px;
+  padding: var(--ls-space-2);
   min-height: 300px;
   border: 2px dashed transparent;
 }
@@ -206,13 +206,13 @@ defineExpose({ load, onDrop, dragging });
   border-color: var(--el-color-primary);
 }
 .col-head {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .card {
   background: var(--el-bg-color);
   border-radius: 6px;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
   cursor: grab;
   box-shadow: var(--el-box-shadow-lighter);
   border-left: 3px solid var(--el-color-primary-light-5);
@@ -225,9 +225,9 @@ defineExpose({ load, onDrop, dragging });
 }
 .card-tags {
   display: flex;
-  gap: 4px;
+  gap: var(--ls-space-1);
   align-items: center;
-  margin: 4px 0;
+  margin: var(--ls-space-1) 0;
   flex-wrap: wrap;
 }
 .sub {
@@ -235,9 +235,9 @@ defineExpose({ load, onDrop, dragging });
   font-size: 12px;
 }
 .ml {
-  margin-left: 4px;
+  margin-left: var(--ls-space-1);
 }
 .mr {
-  margin-right: 4px;
+  margin-right: var(--ls-space-1);
 }
 </style>

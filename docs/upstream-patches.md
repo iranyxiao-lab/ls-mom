@@ -39,6 +39,11 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 22 | `ruoyi-admin/src/main/resources/application.yml` | `xss.excludeUrls` 增加 `/api/form/**` | 上游过滤器会把 `<script>` 剥成纯文本后放行；视图接口改由 ScriptGuard 原样检查并拒绝（FORM-08） | 8.7 |
 | 23 | `plus-ui/src/router/index.ts` | 新增隐藏路由 `/lsmom/form-designer/:code?`（表单设计器） | 设计器页面入口 | 8.6 |
 | 24 | `plus-ui/pnpm-workspace.yaml` | `overrides` 固定 form-create 及其间接依赖版本；`core-js-pure` 安装脚本不放行 | 冻结设计器版本，依赖均发布满 14 天 | 8.5 |
+| 25 | `plus-ui/index.html` | `<head>` 内联首屏主题脚本（明暗、密度、品牌色）与深色底色 | 首屏无闪白（modernize-ui-ux 设计系统） | UI 1.4 |
+| 26 | `plus-ui/src/main.ts`、`plus-ui/uno.config.ts`、`plus-ui/vite/plugins/index.ts`、`plus-ui/vitest.config.ts` | 引入 `virtual:ls-tokens.css` 与 `src/design/base.css`、初始化主题；UnoCSS 主题改由设计令牌生成并提取 `.ts` 中的图标类；注册令牌生成插件 | 设计令牌唯一来源 | UI 1.1～1.2 |
+| 27 | `plus-ui/src/utils/theme.ts` | `handleThemeStyle` 只设置品牌主色令牌 `--ls-color-primary`（RuoYi 默认色视为未设置），`--el-color-primary-*` 改由映射层派生 | 品牌换色统一走令牌 | UI 1.2 |
+| 28 | `plus-ui/src/layout/components/Settings/index.vue` | 深色开关改为「明暗主题」（跟随系统／浅色／深色）与「界面密度」选择；预设色加入令牌默认主色 | 主题与密度由设计系统管理 | UI 1.4 |
+| 29 | `plus-ui/src/views/index.vue`、`plus-ui/src/views/error/*.vue` | 样式中的十六进制颜色与裸 px 间距替换为设计令牌 | 业务页面只用令牌（stylelint 门禁） | UI 1.1 |
 
 ## 生产前必须替换的上游密钥
 

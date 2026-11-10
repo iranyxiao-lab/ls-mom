@@ -194,15 +194,15 @@ onMounted(load);
   align-items: center;
   font-weight: 600;
   font-size: 16px;
-  margin-bottom: 8px;
-  gap: 4px;
+  margin-bottom: var(--ls-space-2);
+  gap: var(--ls-space-1);
 }
 .m-card {
-  padding: 12px;
+  padding: var(--ls-space-3);
   border-radius: 8px;
   background: var(--el-bg-color);
   box-shadow: var(--el-box-shadow-lighter);
-  margin-bottom: 10px;
+  margin-bottom: var(--ls-space-3);
 }
 .m-title {
   font-weight: 600;
@@ -210,7 +210,7 @@ onMounted(load);
 }
 .row {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
 }
 .grow {
@@ -218,11 +218,11 @@ onMounted(load);
 }
 .block {
   width: 100%;
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 .lbl {
   display: block;
-  margin: 12px 0 4px;
+  margin: var(--ls-space-3) 0 var(--ls-space-1);
   font-size: 13px;
 }
 .sub {
@@ -234,13 +234,13 @@ onMounted(load);
   font-size: 12px;
 }
 .mt {
-  margin-top: 10px;
+  margin-top: var(--ls-space-3);
 }
 .thumbs {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
+  gap: var(--ls-space-2);
+  margin-top: var(--ls-space-2);
 }
 .thumb {
   position: relative;
@@ -258,7 +258,7 @@ onMounted(load);
   top: -6px;
   right: -6px;
   background: var(--el-color-danger);
-  color: #fff;
+  color: var(--ls-color-on-solid);
   border-radius: 50%;
   width: 18px;
   height: 18px;

@@ -184,14 +184,14 @@ defineExpose({ ask, loadDocs });
 <style scoped>
 .ask {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 .sub {
   color: var(--el-text-color-secondary);
   font-size: 12px;
 }
 .answer {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 .value {
   font-size: 32px;
@@ -199,24 +199,24 @@ defineExpose({ ask, loadDocs });
 }
 .value small {
   font-size: 14px;
-  margin-left: 4px;
+  margin-left: var(--ls-space-1);
 }
 .meta,
 .refs,
 .bar,
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
   flex-wrap: wrap;
-  margin: 8px 0;
+  margin: var(--ls-space-2) 0;
 }
 .text,
 .content {
   white-space: pre-wrap;
 }
 .cites li {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .excerpt {
   color: var(--el-text-color-regular);
@@ -224,6 +224,6 @@ defineExpose({ ask, loadDocs });
   white-space: pre-wrap;
 }
 .mt {
-  margin-top: 8px;
+  margin-top: var(--ls-space-2);
 }
 </style>

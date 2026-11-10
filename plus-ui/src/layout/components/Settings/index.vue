@@ -70,9 +70,15 @@
       </span>
     </div>
     <div class="drawer-item">
-      <span>深色模式</span>
+      <span>明暗主题</span>
       <span class="comp-style">
-        <el-switch v-model="isDark" class="drawer-switch" @change="toggleDark" />
+        <el-segmented v-model="themeMode.pref.value" data-testid="pref-theme" :options="themeOptions" size="small" />
+      </span>
+    </div>
+    <div class="drawer-item">
+      <span>界面密度</span>
+      <span class="comp-style">
+        <el-segmented v-model="density.pref.value" data-testid="pref-density" :options="densityOptions" size="small" />
       </span>
     </div>
     <div class="drawer-item">
@@ -134,6 +140,7 @@ import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
 import { usePermissionStore } from '@/store/modules/permission';
 import { handleThemeStyle } from '@/utils/theme';
+import { resolveMode, useDensity, useThemeMode } from '@/design/theme';
 import { SideThemeEnum } from '@/enums/SideThemeEnum';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
 import defaultSettings from '@/settings';
@@ -147,14 +154,28 @@ const showSettings = ref(false);
 const theme = ref(settingsStore.theme);
 const sideTheme = ref(settingsStore.sideTheme);
 const storeSettings = computed(() => settingsStore);
-const predefineColors = ref(['#409EFF', '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585']);
+const predefineColors = ref(['#1a63d1', '#409EFF', '#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1', '#1e90ff', '#c71585']);
 const navType = ref(settingsStore.navType);
 const radiusBase = ref(settingsStore.radiusBase);
 // 是否暗黑模式
-const isDark = useDark({
-  storageKey: 'useDarkKey',
-  valueDark: 'dark',
-  valueLight: 'light'
+// LS-MOM：明暗主题统一由设计系统管理（跟随系统／手动并记住，首屏无闪白）
+const themeMode = useThemeMode();
+const density = useDensity();
+const themeOptions = [
+  { label: '跟随系统', value: 'system' },
+  { label: '浅色', value: 'light' },
+  { label: '深色', value: 'dark' }
+];
+const densityOptions = [
+  { label: '自动', value: 'auto' },
+  { label: '舒适', value: 'comfortable' },
+  { label: '紧凑', value: 'compact' }
+];
+const isDark = computed({
+  get: () => resolveMode(themeMode.pref.value) === 'dark',
+  set: (v: boolean) => {
+    themeMode.pref.value = v ? 'dark' : 'light';
+  }
 });
 // 匹配菜单颜色
 watch(isDark, () => {
@@ -164,7 +185,6 @@ watch(isDark, () => {
     settingsStore.sideTheme = sideTheme.value;
   }
 });
-const toggleDark = () => useToggle(isDark);
 
 /** 菜单导航设置 */
 watch(

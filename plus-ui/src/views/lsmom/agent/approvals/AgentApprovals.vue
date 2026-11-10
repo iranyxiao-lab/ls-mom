@@ -68,9 +68,9 @@ defineExpose({ load });
 <style scoped>
 .bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .sub {
   color: var(--el-text-color-secondary);

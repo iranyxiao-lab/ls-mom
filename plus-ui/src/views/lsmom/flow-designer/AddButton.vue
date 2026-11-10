@@ -43,8 +43,8 @@ function pick(t: NodeType) {
 .menu .item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--ls-space-2);
+  padding: var(--ls-space-2) var(--ls-space-2);
   cursor: pointer;
   border-radius: 4px;
 }

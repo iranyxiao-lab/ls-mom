@@ -29,8 +29,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import * as echarts from 'echarts';
+import { useChartTheme } from '@/design/echarts';
 import type { DashboardWidget } from '@/types/lsView';
 import type { DrillRequest, MetricApi, MetricResult, NamedQueryResult } from '@/api/lsmom/metric';
 import { formatValue, rangeOf, RANGE_TEXT } from './range';
@@ -44,6 +45,9 @@ const result = ref<MetricResult>();
 const queryResult = ref<NamedQueryResult>();
 const chartEl = ref<HTMLElement>();
 const chart = shallowRef<echarts.ECharts>();
+// 图表主题来自设计令牌，明暗与品牌色变化时重绘
+const chartTheme = useChartTheme();
+watch(chartTheme, () => render());
 const range = computed(() => rangeOf(props.widget.range, props.now));
 const dims = computed(() => props.widget.dimensions ?? []);
 
@@ -79,7 +83,7 @@ function seriesValue(r: Record<string, any>) {
 function render() {
   if (!chartEl.value || !result.value) return;
   chart.value?.dispose();
-  const c = echarts.init(chartEl.value);
+  const c = echarts.init(chartEl.value, chartTheme.value);
   chart.value = c;
   const rows = result.value.rows;
   const w = props.widget;

@@ -94,10 +94,10 @@ defineExpose({ load });
 <style scoped>
 .bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .sub {
   color: var(--el-text-color-secondary);
@@ -106,11 +106,11 @@ defineExpose({ load });
 .list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--ls-space-3);
 }
 .head {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -120,19 +120,19 @@ defineExpose({ load });
   margin-left: auto;
 }
 .content {
-  margin: 8px 0;
+  margin: var(--ls-space-2) 0;
   white-space: pre-wrap;
 }
 .points {
-  margin: 0 0 8px;
-  padding-left: 20px;
+  margin: 0 0 var(--ls-space-2);
+  padding-left: var(--ls-space-5);
 }
 .ref {
-  margin-left: 4px;
+  margin-left: var(--ls-space-1);
 }
 .actions {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
   justify-content: flex-end;
 }
 </style>

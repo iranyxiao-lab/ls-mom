@@ -39,10 +39,10 @@ function back() {
 .errPage-container {
   width: 800px;
   max-width: 100%;
-  margin: 100px auto;
+  margin: var(--ls-space-16) auto;
   .pan-back-btn {
-    background: #008489;
-    color: #fff;
+    background: var(--ls-color-success);
+    color: var(--ls-color-on-solid);
     border: none !important;
   }
   .pan-gif {
@@ -57,15 +57,15 @@ function back() {
   .text-jumbo {
     font-size: 60px;
     font-weight: 700;
-    color: #484848;
+    color: var(--ls-color-text-regular);
   }
   .list-unstyled {
     font-size: 14px;
     li {
-      padding-bottom: 5px;
+      padding-bottom: var(--ls-space-1);
     }
     a {
-      color: #008489;
+      color: var(--ls-color-success);
       text-decoration: none;
       &:hover {
         text-decoration: underline;
