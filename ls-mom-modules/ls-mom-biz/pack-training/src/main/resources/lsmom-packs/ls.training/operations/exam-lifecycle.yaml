@@ -1,0 +1,15 @@
+code: ls.training.Exam.lifecycle
+concept: ls.training.Exam
+displayName: 考试状态
+states: [DRAFT, IN_REVIEW, RETURNED, PUBLISHED, REJECTED, CLOSED]
+initial: DRAFT
+transitions:
+  - { operation: ls.training.Exam.compose, name: 组卷, from: [DRAFT], to: DRAFT, permission: "ls:training:manage", risk: C0, inputSchema: { type: object, properties: { seed: { type: integer } } } }
+  - { operation: ls.training.Exam.submit, name: 提交发布审批, from: [DRAFT], to: IN_REVIEW, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  # 以下由发布审批流在待办办理中调用
+  - { operation: ls.training.Exam.publish, name: 发布, from: [IN_REVIEW], to: PUBLISHED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Exam.return, name: 退回, from: [IN_REVIEW], to: RETURNED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Exam.reject, name: 驳回, from: [IN_REVIEW], to: REJECTED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Exam.resubmit, name: 再提交, from: [RETURNED], to: IN_REVIEW, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Exam.withdraw, name: 撤回, from: [IN_REVIEW], to: DRAFT, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Exam.close, name: 结束考试, from: [PUBLISHED], to: CLOSED, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }

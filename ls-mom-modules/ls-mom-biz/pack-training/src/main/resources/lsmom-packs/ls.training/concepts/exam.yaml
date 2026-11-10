@@ -1,0 +1,22 @@
+code: ls.training.Exam
+displayName: 考试
+description: 从题库组卷，指定参考人员与时间窗口；考生限时作答，到时自动交卷。发布需审批
+fields:
+  - { code: title, displayName: 考试名称, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
+  - { code: course, displayName: 课程, dataType: REF, refConcept: ls.training.Course, required: true, props: { queryable: true } }
+  - { code: startAt, displayName: 开始时间, dataType: DATETIME, required: true, props: { sortable: true } }
+  - { code: endAt, displayName: 截止时间, dataType: DATETIME, required: true, props: { sortable: true } }
+  - { code: durationMinutes, displayName: 作答时长（分钟）, dataType: INTEGER, required: true }
+  - { code: drawCount, displayName: 抽题数, dataType: INTEGER }
+  - { code: totalScore, displayName: 总分, dataType: DECIMAL }
+  - { code: reviewNote, displayName: 审批意见, dataType: STRING, props: { maxLength: 500 } }
+children:
+  - code: ls.training.ExamQuestion
+    displayName: 试题
+    fields:
+      - { code: question, displayName: 题目, dataType: REF, refConcept: ls.training.Question, required: true }
+      - { code: score, displayName: 分值, dataType: DECIMAL, required: true }
+  - code: ls.training.ExamCandidate
+    displayName: 参考人员
+    fields:
+      - { code: party, displayName: 人员, dataType: REF, refConcept: ls.core.Party, required: true }

@@ -1,0 +1,29 @@
+{
+  "code": "ls.training.examApproval",
+  "name": "考试发布审批",
+  "concept": "ls.training.Exam",
+  "startOn": "ls.training.Exam.submit",
+  "callbacks": {
+    "approved": "ls.training.Exam.publish",
+    "rejected": "ls.training.Exam.reject",
+    "returned": "ls.training.Exam.return",
+    "resubmitted": "ls.training.Exam.resubmit",
+    "withdrawn": "ls.training.Exam.withdraw"
+  },
+  "nodes": [
+    {
+      "key": "approve",
+      "type": "AUDIT",
+      "name": "考试发布审批",
+      "assignee": {
+        "strategy": "ORG_LEADER",
+        "of": "BIZ_ORG"
+      },
+      "permission": "ls:training:approve"
+    }
+  ],
+  "form": {
+    "code": "ls.training.examForm",
+    "version": 1
+  }
+}

@@ -50,8 +50,10 @@ public class PackConfiguration {
 
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "lsmom.pack.standard.enabled", havingValue = "true", matchIfMissing = true)
-    public StandardPacks standardPacks(PackInstaller installer, PackStore store) {
-        return new StandardPacks(installer, store);
+    public StandardPacks standardPacks(PackInstaller installer, PackStore store, com.lsmom.action.registry.OperationRegistry operations) {
+        StandardPacks s = new StandardPacks(installer, store);
+        s.setOperations(operations);
+        return s;
     }
 
     @Bean

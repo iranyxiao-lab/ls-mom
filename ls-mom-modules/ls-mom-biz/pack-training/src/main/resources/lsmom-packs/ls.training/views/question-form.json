@@ -1,0 +1,149 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.training.questionForm",
+  "version": 1,
+  "conceptCode": "ls.training.Question",
+  "title": "题目",
+  "layout": [
+    {
+      "type": "field",
+      "key": "course"
+    },
+    {
+      "type": "field",
+      "key": "qtype"
+    },
+    {
+      "type": "field",
+      "key": "stem"
+    },
+    {
+      "type": "field",
+      "key": "score"
+    },
+    {
+      "type": "subTable",
+      "key": "questionOption"
+    },
+    {
+      "type": "field",
+      "key": "referenceAnswer"
+    },
+    {
+      "type": "field",
+      "key": "origin"
+    },
+    {
+      "type": "field",
+      "key": "sourceRef"
+    }
+  ],
+  "fields": [
+    {
+      "key": "course",
+      "label": "所属课程",
+      "widget": "conceptRef",
+      "required": true,
+      "ref": {
+        "concept": "ls.training.Course",
+        "labelField": "title"
+      }
+    },
+    {
+      "key": "qtype",
+      "label": "题型",
+      "widget": "select",
+      "required": true,
+      "options": [
+        {
+          "label": "单选",
+          "value": "SINGLE"
+        },
+        {
+          "label": "多选",
+          "value": "MULTI"
+        },
+        {
+          "label": "判断",
+          "value": "JUDGE"
+        },
+        {
+          "label": "简答",
+          "value": "ESSAY"
+        }
+      ]
+    },
+    {
+      "key": "stem",
+      "label": "题干",
+      "widget": "textarea",
+      "required": true
+    },
+    {
+      "key": "score",
+      "label": "分值",
+      "widget": "number",
+      "required": true,
+      "min": 0
+    },
+    {
+      "key": "referenceAnswer",
+      "label": "参考答案（简答）",
+      "widget": "textarea"
+    },
+    {
+      "key": "origin",
+      "label": "来源",
+      "widget": "select",
+      "options": [
+        {
+          "label": "人工",
+          "value": "MANUAL"
+        },
+        {
+          "label": "LLM 草拟",
+          "value": "LLM"
+        }
+      ]
+    },
+    {
+      "key": "sourceRef",
+      "label": "来源依据",
+      "widget": "input"
+    }
+  ],
+  "subTables": [
+    {
+      "key": "questionOption",
+      "label": "选项（简答题不填）",
+      "conceptCode": "ls.training.QuestionOption",
+      "fields": [
+        {
+          "key": "optKey",
+          "label": "选项",
+          "widget": "input",
+          "required": true,
+          "maxLength": 4
+        },
+        {
+          "key": "content",
+          "label": "内容",
+          "widget": "input",
+          "required": true
+        },
+        {
+          "key": "correct",
+          "label": "正确",
+          "widget": "switch"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "approve",
+      "label": "审核通过",
+      "operation": "ls.training.Question.approve"
+    }
+  ]
+}

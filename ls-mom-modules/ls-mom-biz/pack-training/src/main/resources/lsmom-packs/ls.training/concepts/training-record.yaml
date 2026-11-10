@@ -1,0 +1,11 @@
+code: ls.training.TrainingRecord
+displayName: 培训记录
+description: 考试通过生成（人员、课程、成绩、有效期）。其他 Pack 经公开 Operation ls.training.TrainingRecord.qualification 查询资质，不直接读表
+fields:
+  - { code: party, displayName: 人员, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: course, displayName: 课程, dataType: REF, refConcept: ls.training.Course, required: true, props: { queryable: true } }
+  - { code: exam, displayName: 考试, dataType: REF, refConcept: ls.training.Exam }
+  - { code: answer, displayName: 答卷, dataType: REF, refConcept: ls.training.Answer, props: { unique: true } }
+  - { code: score, displayName: 成绩, dataType: DECIMAL, required: true }
+  - { code: passedOn, displayName: 通过日期, dataType: DATE, required: true, props: { sortable: true } }
+  - { code: validUntil, displayName: 有效期至, dataType: DATE, required: true, props: { queryable: true, sortable: true } }

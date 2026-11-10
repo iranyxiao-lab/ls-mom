@@ -30,6 +30,7 @@ public class StandardPacks implements ApplicationRunner, Ordered {
     private final PackInstaller installer;
     private final PackStore store;
     private final ResourcePatternResolver resolver;
+    private com.lsmom.action.registry.OperationRegistry operations;
 
     public StandardPacks(PackInstaller installer, PackStore store) {
         this(installer, store, new PathMatchingResourcePatternResolver());
@@ -41,6 +42,11 @@ public class StandardPacks implements ApplicationRunner, Ordered {
         this.resolver = resolver;
     }
 
+    /** 标准 Pack 自带代码 Operation 时：安装完 Concept 后补登记（核心对账先于 Pack 安装执行）。 */
+    public void setOperations(com.lsmom.action.registry.OperationRegistry operations) {
+        this.operations = operations;
+    }
+
     @Override
     public int getOrder() {
         return 300;
@@ -49,6 +55,7 @@ public class StandardPacks implements ApplicationRunner, Ordered {
     @Override
     public void run(ApplicationArguments args) {
         installAll();
+        if (operations != null) operations.reconcilePending();
     }
 
     public List<PackInstaller.Result> installAll() {

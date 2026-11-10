@@ -63,7 +63,12 @@ class ReconcileTest {
             f.operations.deprecate("ls.core.Work.probeV1");
         }
         f.operations.reconcile(f.handlers());
-        assertThatThrownBy(() -> f.operations.reconcile(with(new BadConcept()))).hasMessageContaining("Concept 未注册");
+        // 目标 Concept 未注册：先挂起等标准 Pack 安装，安装后仍缺则启动失败
+        f.operations.reconcile(with(new BadConcept()));
+        assertThat(f.operations.pendingCodes()).containsExactly("ls.core.Work.probeBadConcept");
+        assertThat(f.operations.find("ls.core.Work.probeBadConcept")).isEmpty();
+        assertThatThrownBy(() -> f.operations.reconcilePending()).hasMessageContaining("Concept 未注册").hasMessageContaining("ls.nowhere.Thing");
+        f.operations.reconcile(f.handlers());
     }
 
     @Test

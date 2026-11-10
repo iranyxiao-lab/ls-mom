@@ -103,11 +103,15 @@ public class ActionFixture {
         new com.lsmom.action.rule.CoreRules(rules, rulePublisher).installAll();
     }
 
+    /** 其他模块的测试追加的代码 Operation 处理器（如 Pack 自带的 Operation）；共享测试库中每个夹具对账时都要带上。 */
+    public static volatile java.util.function.Function<ActionFixture, List<OperationHandler>> extraHandlers = f -> List.of();
+
     public List<OperationHandler> handlers() {
         List<OperationHandler> list = new ArrayList<>(List.of(new CoreOperations.CreateWork(core.works), new CoreOperations.SplitWork(core.relations),
             new CoreOperations.LinkWork(core.relations), new CoreOperations.SaveReport(core.reports), new CoreOperations.SubmitReport(core.reports),
             new CoreOperations.RaiseIssue(issues), new CoreOperations.CreateRectification(issues), new CoreOperations.AttachDocument(docs), new com.lsmom.action.core.ReprioritizeWork(core.works)));
         list.addAll(TestOperations.all(core));
+        list.addAll(extraHandlers.apply(this));
         return list;
     }
 

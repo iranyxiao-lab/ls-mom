@@ -1,0 +1,15 @@
+code: ls.training.Course.lifecycle
+concept: ls.training.Course
+displayName: 课程状态
+states: [DRAFT, IN_REVIEW, RETURNED, PUBLISHED, REJECTED, RETIRED]
+initial: DRAFT
+transitions:
+
+  - { operation: ls.training.Course.submit, name: 提交发布审批, from: [DRAFT], to: IN_REVIEW, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  # 以下由发布审批流在待办办理中调用
+  - { operation: ls.training.Course.publish, name: 发布, from: [IN_REVIEW], to: PUBLISHED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Course.return, name: 退回, from: [IN_REVIEW], to: RETURNED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Course.reject, name: 驳回, from: [IN_REVIEW], to: REJECTED, permission: "ls:training:approve", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Course.resubmit, name: 再提交, from: [RETURNED], to: IN_REVIEW, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Course.withdraw, name: 撤回, from: [IN_REVIEW], to: DRAFT, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Course.retire, name: 停用, from: [PUBLISHED], to: RETIRED, permission: "ls:training:manage", risk: C1, inputSchema: { type: object, properties: { reason: { type: string, maxLength: 500 } } } }

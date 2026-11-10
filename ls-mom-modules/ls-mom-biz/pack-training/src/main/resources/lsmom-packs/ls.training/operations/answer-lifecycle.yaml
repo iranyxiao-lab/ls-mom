@@ -1,0 +1,29 @@
+code: ls.training.Answer.lifecycle
+concept: ls.training.Answer
+displayName: 答卷状态
+states: [IN_PROGRESS, GRADED]
+initial: IN_PROGRESS
+transitions:
+  # 开考由 ls.training.Exam.start（代码 Operation）生成答卷；作答中可多次保存
+  - operation: ls.training.Answer.save
+    name: 保存作答
+    from: [IN_PROGRESS]
+    to: IN_PROGRESS
+    permission: "ls:training:take"
+    risk: C0
+    inputSchema: { type: object, required: [responses], properties: { responses: { type: object } } }
+  # 交卷：客观题自动判分；有简答题时标记简答待评。到时未交由系统自动交卷
+  - operation: ls.training.Answer.submit
+    name: 交卷
+    from: [IN_PROGRESS]
+    to: GRADED
+    permission: "ls:training:take"
+    risk: C0
+    inputSchema: { type: object, properties: { responses: { type: object } } }
+  - operation: ls.training.Answer.gradeEssay
+    name: 简答评分
+    from: [GRADED]
+    to: GRADED
+    permission: "ls:training:grade"
+    risk: C1
+    inputSchema: { type: object, required: [scores], properties: { scores: { type: object } } }

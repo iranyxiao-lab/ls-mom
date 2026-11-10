@@ -1,0 +1,29 @@
+code: ls.training.Answer
+displayName: 答卷
+description: 考生的答卷。开考时生成（题干与选项副本，不含答案）；交卷后客观题自动判分，简答题人工评分；及格生成培训记录
+fields:
+  - { code: exam, displayName: 考试, dataType: REF, refConcept: ls.training.Exam, required: true, props: { queryable: true } }
+  - { code: candidate, displayName: 考生, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: startedAt, displayName: 开考时间, dataType: DATETIME, props: { sortable: true } }
+  - { code: deadline, displayName: 交卷截止, dataType: DATETIME, props: { sortable: true } }
+  - { code: submittedAt, displayName: 交卷时间, dataType: DATETIME }
+  - { code: autoSubmitted, displayName: 超时自动交卷, dataType: BOOLEAN }
+  - { code: objectiveScore, displayName: 客观题得分, dataType: DECIMAL }
+  - { code: essayScore, displayName: 简答得分, dataType: DECIMAL }
+  - { code: totalScore, displayName: 总分, dataType: DECIMAL }
+  - { code: essayPending, displayName: 简答待评, dataType: BOOLEAN, props: { queryable: true } }
+  - { code: passed, displayName: 及格, dataType: BOOLEAN, props: { queryable: true } }
+  - { code: grader, displayName: 评分人, dataType: REF, refConcept: ls.core.Party }
+children:
+  - code: ls.training.AnswerItem
+    displayName: 作答
+    fields:
+      - { code: question, displayName: 题目, dataType: REF, refConcept: ls.training.Question, required: true }
+      - { code: seq, displayName: 题号, dataType: INTEGER, required: true }
+      - { code: qtype, displayName: 题型, dataType: STRING, required: true, props: { maxLength: 16 } }
+      - { code: stem, displayName: 题干, dataType: TEXT, required: true }
+      - { code: choices, displayName: 选项（JSON 文本，不含答案）, dataType: TEXT }
+      - { code: score, displayName: 分值, dataType: DECIMAL, required: true }
+      - { code: response, displayName: 作答, dataType: TEXT }
+      - { code: earned, displayName: 得分, dataType: DECIMAL }
+      - { code: correct, displayName: 正确, dataType: BOOLEAN }

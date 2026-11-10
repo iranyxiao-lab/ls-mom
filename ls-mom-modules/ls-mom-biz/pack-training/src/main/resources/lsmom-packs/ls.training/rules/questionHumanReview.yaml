@@ -1,0 +1,9 @@
+code: ls.training.questionHumanReview
+concept: ls.training.Question
+level: L2
+kind: CEL
+name: 题目审核须由真人执行（LLM / Agent 草拟的题目只能为草稿）
+message: 题目审核须由真人执行（LLM / Agent 草拟的题目只能为草稿）
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.training.Question.approve]

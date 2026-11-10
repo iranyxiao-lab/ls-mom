@@ -1,0 +1,32 @@
+-- 培训考试 Pack 的菜单与权限点（页面、Operation 权限、通用台账权限）。菜单编号 3400–3499 保留给培训考试。
+insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, query_param, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark)
+values
+(3400, '培训考试', 0, 24, 'training', null, '', '1', '0', 'M', '0', '0', '', 'education', 103, 1, now(), null, null, 'ls.training'),
+(3401, '我的考试', 3400, 1, 'exams', 'lsmom/training/exams/index', '', '1', '0', 'C', '0', '0', 'ls:training:take', 'edit', 103, 1, now(), null, null, 'ls.training'),
+(3402, '阅卷', 3400, 2, 'grading', 'lsmom/training/grading/index', '', '1', '0', 'C', '0', '0', 'ls:training:grade', 'checkbox', 103, 1, now(), null, null, 'ls.training'),
+(3403, '培训管理', 3400, 3, 'admin', 'lsmom/training/admin/index', '', '1', '0', 'C', '0', '0', 'ls:training:manage', 'list', 103, 1, now(), null, null, 'ls.training'),
+(3410, '课程题库与考试维护', 3400, 10, '#', '', '', '1', '0', 'F', '0', '0', 'ls:training:manage', '#', 103, 1, now(), null, null, 'ls.training'),
+(3411, '发布审批', 3400, 11, '#', '', '', '1', '0', 'F', '0', '0', 'ls:training:approve', '#', 103, 1, now(), null, null, 'ls.training'),
+(3412, '参加考试', 3400, 12, '#', '', '', '1', '0', 'F', '0', '0', 'ls:training:take', '#', 103, 1, now(), null, null, 'ls.training'),
+(3413, '简答评分', 3400, 13, '#', '', '', '1', '0', 'F', '0', '0', 'ls:training:grade', '#', 103, 1, now(), null, null, 'ls.training'),
+(3414, '资质查询', 3400, 14, '#', '', '', '1', '0', 'F', '0', '0', 'ls:training:qualification', '#', 103, 1, now(), null, null, 'ls.training'),
+(3420, '课程列表', 3400, 45, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Course:list', '#', 103, 1, now(), null, null, 'ls.training'),
+(3421, '课程详情', 3400, 46, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Course:query', '#', 103, 1, now(), null, null, 'ls.training'),
+(3422, '课程新增', 3400, 47, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Course:add', '#', 103, 1, now(), null, null, 'ls.training'),
+(3423, '课程修改', 3400, 48, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Course:edit', '#', 103, 1, now(), null, null, 'ls.training'),
+(3424, '课程删除', 3400, 49, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Course:remove', '#', 103, 1, now(), null, null, 'ls.training'),
+(3425, '题目列表', 3400, 50, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Question:list', '#', 103, 1, now(), null, null, 'ls.training'),
+(3426, '题目详情', 3400, 51, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Question:query', '#', 103, 1, now(), null, null, 'ls.training'),
+(3427, '题目新增', 3400, 52, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Question:add', '#', 103, 1, now(), null, null, 'ls.training'),
+(3428, '题目修改', 3400, 53, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Question:edit', '#', 103, 1, now(), null, null, 'ls.training'),
+(3429, '题目删除', 3400, 54, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Question:remove', '#', 103, 1, now(), null, null, 'ls.training'),
+(3430, '考试列表', 3400, 55, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Exam:list', '#', 103, 1, now(), null, null, 'ls.training'),
+(3431, '考试详情', 3400, 56, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Exam:query', '#', 103, 1, now(), null, null, 'ls.training'),
+(3432, '考试新增', 3400, 57, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Exam:add', '#', 103, 1, now(), null, null, 'ls.training'),
+(3433, '考试修改', 3400, 58, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Exam:edit', '#', 103, 1, now(), null, null, 'ls.training'),
+(3434, '考试删除', 3400, 59, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Exam:remove', '#', 103, 1, now(), null, null, 'ls.training'),
+(3435, '答卷列表', 3400, 60, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Answer:list', '#', 103, 1, now(), null, null, 'ls.training'),
+(3436, '答卷详情', 3400, 61, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.Answer:query', '#', 103, 1, now(), null, null, 'ls.training'),
+(3437, '培训记录列表', 3400, 62, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.TrainingRecord:list', '#', 103, 1, now(), null, null, 'ls.training'),
+(3438, '培训记录详情', 3400, 63, '#', '', '', '1', '0', 'F', '0', '0', 'crud:ls.training.TrainingRecord:query', '#', 103, 1, now(), null, null, 'ls.training')
+on conflict (menu_id) do nothing;

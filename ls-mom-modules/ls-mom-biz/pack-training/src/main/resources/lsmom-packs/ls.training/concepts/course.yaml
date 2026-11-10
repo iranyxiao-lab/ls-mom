@@ -1,0 +1,13 @@
+code: ls.training.Course
+displayName: 课程
+description: 培训课程（资料附件、适用岗位、及格线与有效期）。发布需审批；LLM 草拟的课程只能为草稿
+fields:
+  - { code: courseCode, displayName: 课程编码, dataType: STRING, required: true, props: { unique: true, queryable: true, sortable: true, maxLength: 64 } }
+  - { code: title, displayName: 课程名称, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
+  - { code: positions, displayName: 适用岗位, dataType: STRING, props: { queryable: true, maxLength: 200 } }
+  - { code: description, displayName: 课程说明, dataType: TEXT }
+  - { code: materials, displayName: 课程资料, dataType: FILE }
+  - { code: passScore, displayName: 及格分, dataType: DECIMAL, required: true }
+  - { code: validMonths, displayName: 有效期（月）, dataType: INTEGER, required: true }
+  - { code: origin, displayName: 来源, dataType: ENUM, options: [MANUAL, LLM], props: { optionLabels: { MANUAL: 人工, LLM: LLM 草拟 }, queryable: true } }
+  - { code: reviewNote, displayName: 审批意见, dataType: STRING, props: { maxLength: 500 } }

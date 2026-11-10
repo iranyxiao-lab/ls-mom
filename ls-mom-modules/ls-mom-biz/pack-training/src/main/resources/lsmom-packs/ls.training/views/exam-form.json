@@ -1,0 +1,166 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.training.examForm",
+  "version": 1,
+  "conceptCode": "ls.training.Exam",
+  "title": "考试",
+  "layout": [
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "course"
+    },
+    {
+      "type": "field",
+      "key": "startAt"
+    },
+    {
+      "type": "field",
+      "key": "endAt"
+    },
+    {
+      "type": "field",
+      "key": "durationMinutes"
+    },
+    {
+      "type": "field",
+      "key": "drawCount"
+    },
+    {
+      "type": "field",
+      "key": "totalScore"
+    },
+    {
+      "type": "subTable",
+      "key": "examCandidate"
+    },
+    {
+      "type": "subTable",
+      "key": "examQuestion"
+    },
+    {
+      "type": "field",
+      "key": "reviewNote"
+    }
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "label": "考试名称",
+      "widget": "input",
+      "required": true
+    },
+    {
+      "key": "course",
+      "label": "课程",
+      "widget": "conceptRef",
+      "required": true,
+      "ref": {
+        "concept": "ls.training.Course",
+        "labelField": "title"
+      }
+    },
+    {
+      "key": "startAt",
+      "label": "开始时间",
+      "widget": "datetime",
+      "required": true
+    },
+    {
+      "key": "endAt",
+      "label": "截止时间",
+      "widget": "datetime",
+      "required": true
+    },
+    {
+      "key": "durationMinutes",
+      "label": "作答时长（分钟）",
+      "widget": "number",
+      "required": true,
+      "min": 1
+    },
+    {
+      "key": "drawCount",
+      "label": "抽题数（空为全部）",
+      "widget": "number",
+      "min": 1
+    },
+    {
+      "key": "totalScore",
+      "label": "总分（组卷后计算）",
+      "widget": "number",
+      "readonly": true
+    },
+    {
+      "key": "reviewNote",
+      "label": "审批意见",
+      "widget": "textarea",
+      "readonly": true
+    }
+  ],
+  "subTables": [
+    {
+      "key": "examCandidate",
+      "label": "参考人员",
+      "conceptCode": "ls.training.ExamCandidate",
+      "fields": [
+        {
+          "key": "party",
+          "label": "人员",
+          "widget": "userRef",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "examQuestion",
+      "label": "试题（点「组卷」从题库抽取）",
+      "conceptCode": "ls.training.ExamQuestion",
+      "fields": [
+        {
+          "key": "question",
+          "label": "题目",
+          "widget": "conceptRef",
+          "ref": {
+            "concept": "ls.training.Question",
+            "labelField": "stem"
+          },
+          "readonly": true
+        },
+        {
+          "key": "score",
+          "label": "分值",
+          "widget": "number",
+          "readonly": true
+        }
+      ]
+    }
+  ],
+  "nodePolicies": {
+    "approve": {
+      "readonly": [
+        "*"
+      ]
+    },
+    "initiator": {
+      "readonly": [
+        "*"
+      ]
+    }
+  },
+  "actions": [
+    {
+      "key": "compose",
+      "label": "保存并组卷",
+      "operation": "ls.training.Exam.compose"
+    },
+    {
+      "key": "submit",
+      "label": "提交发布审批",
+      "operation": "ls.training.Exam.submit"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+code: ls.training.Question
+displayName: 题目
+description: 题库题目（单选、多选、判断、简答，含答案与分值），保存在本 Pack 的独立表中。审核通过才能组卷；LLM 草拟的题目只能为草稿
+fields:
+  - { code: course, displayName: 所属课程, dataType: REF, refConcept: ls.training.Course, required: true, props: { queryable: true } }
+  - { code: qtype, displayName: 题型, dataType: ENUM, required: true, options: [SINGLE, MULTI, JUDGE, ESSAY], props: { optionLabels: { SINGLE: 单选, MULTI: 多选, JUDGE: 判断, ESSAY: 简答 }, queryable: true } }
+  - { code: stem, displayName: 题干, dataType: TEXT, required: true }
+  - { code: score, displayName: 分值, dataType: DECIMAL, required: true }
+  - { code: referenceAnswer, displayName: 参考答案（简答）, dataType: TEXT }
+  - { code: origin, displayName: 来源, dataType: ENUM, options: [MANUAL, LLM], props: { optionLabels: { MANUAL: 人工, LLM: LLM 草拟 }, queryable: true } }
+  - { code: sourceRef, displayName: 来源依据, dataType: STRING, props: { maxLength: 200 } }
+children:
+  - code: ls.training.QuestionOption
+    displayName: 选项
+    fields:
+      - { code: optKey, displayName: 选项, dataType: STRING, required: true, props: { maxLength: 4 } }
+      - { code: content, displayName: 内容, dataType: STRING, required: true, props: { maxLength: 500 } }
+      - { code: correct, displayName: 正确, dataType: BOOLEAN }

@@ -1,0 +1,9 @@
+code: ls.training.Question.lifecycle
+concept: ls.training.Question
+displayName: 题目状态
+states: [DRAFT, PUBLISHED, RETIRED]
+initial: DRAFT
+transitions:
+  # 审核通过才能组卷；LLM 草拟的题目也必须经真人审核（规则 ls.training.questionHumanReview）
+  - { operation: ls.training.Question.approve, name: 审核通过, from: [DRAFT], to: PUBLISHED, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.training.Question.retire, name: 停用, from: [PUBLISHED], to: RETIRED, permission: "ls:training:manage", risk: C1, inputSchema: { type: object } }

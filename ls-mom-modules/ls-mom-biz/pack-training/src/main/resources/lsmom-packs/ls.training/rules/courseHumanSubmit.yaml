@@ -1,0 +1,9 @@
+code: ls.training.courseHumanSubmit
+concept: ls.training.Course
+level: L2
+kind: CEL
+name: 课程提交发布须由真人执行（LLM / Agent 草拟的课程只能为草稿）
+message: 课程提交发布须由真人执行（LLM / Agent 草拟的课程只能为草稿）
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.training.Course.submit, ls.training.Course.resubmit]

@@ -37,6 +37,8 @@ public class OperationRegistry {
 
     private final JdbcTemplate jdbc;
     private final Map<String, OperationHandler> handlers = new HashMap<>();
+    /** 目标 Concept 尚未注册的代码 Operation（由标准 Pack 提供 Concept），Pack 安装后经 {@link #reconcilePending()} 补登记。 */
+    private final List<OperationDefinition> pending = new ArrayList<>();
 
     public OperationRegistry(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
@@ -100,6 +102,7 @@ public class OperationRegistry {
     @Transactional
     public void reconcile(List<OperationHandler> beans) {
         handlers.clear();
+        pending.clear();
         List<String> problems = new ArrayList<>();
         Set<String> declared = new java.util.HashSet<>();
         for (OperationHandler h : beans) {
@@ -116,7 +119,8 @@ public class OperationRegistry {
             OperationDefinition wanted = fromAnnotation(a);
             Optional<OperationDefinition> existing = find(a.code());
             if (existing.isEmpty()) {
-                insertCode(wanted);
+                if (conceptRegistered(wanted.concept())) insertCode(wanted);
+                else pending.add(wanted);
                 continue;
             }
             OperationDefinition meta = existing.get();
@@ -137,6 +141,30 @@ public class OperationRegistry {
         if (!problems.isEmpty()) {
             throw new OperationContractMismatch("Operation 代码与元数据对账失败：\n  - " + String.join("\n  - ", problems));
         }
+    }
+
+    /** 标准 Pack 安装后登记等待 Concept 的代码 Operation；仍缺 Concept 的视为对账失败。 */
+    @Transactional
+    public void reconcilePending() {
+        List<String> problems = new ArrayList<>();
+        for (OperationDefinition d : List.copyOf(pending)) {
+            if (conceptRegistered(d.concept())) {
+                if (find(d.code()).isEmpty()) insertCode(d);
+                pending.remove(d);
+            } else {
+                problems.add("Operation " + d.code() + " 的目标 Concept 未注册：" + d.concept());
+            }
+        }
+        if (!problems.isEmpty()) throw new OperationContractMismatch("Operation 代码与元数据对账失败：\n  - " + String.join("\n  - ", problems));
+    }
+
+    public List<String> pendingCodes() {
+        return pending.stream().map(OperationDefinition::code).toList();
+    }
+
+    private boolean conceptRegistered(String concept) {
+        Integer n = jdbc.queryForObject("select count(*) from meta_concept where code = ?", Integer.class, concept);
+        return n != null && n > 0;
     }
 
     /** 下线代码 Operation（删除处理器前先执行，否则启动对账失败）。 */

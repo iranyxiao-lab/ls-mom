@@ -144,7 +144,7 @@
 
 ## 16. 协同扩展 Pack（P5 前置，可与 P4 并行）
 
-- [ ] 16.1 实现培训考试 Pack（课程、题库、组卷、限时作答自动交卷、判分、培训记录、资质查询公开 Operation、课程发布审批）；验证 spec `packs/training-exam` 全部场景
+- [x] 16.1 实现培训考试 Pack（课程、题库、组卷、限时作答自动交卷、判分、培训记录、资质查询公开 Operation、课程发布审批）；验证 spec `packs/training-exam` 全部场景
 - [ ] 16.2 实现意见咨询 Pack（议题、匿名意见、答复、转 Issue、总结引用）；验证 spec `packs/consultation` 全部场景
 - [ ] 16.3 验证 DOM-05：扫描核心 schema 与核心代码无培训/咨询概念（自动化脚本接入 CI），两 Pack 独立安装/升级/停用测试通过
 

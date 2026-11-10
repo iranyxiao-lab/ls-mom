@@ -1,0 +1,112 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.training.courseForm",
+  "version": 1,
+  "conceptCode": "ls.training.Course",
+  "title": "课程",
+  "layout": [
+    {
+      "type": "field",
+      "key": "courseCode"
+    },
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "positions"
+    },
+    {
+      "type": "field",
+      "key": "passScore"
+    },
+    {
+      "type": "field",
+      "key": "validMonths"
+    },
+    {
+      "type": "field",
+      "key": "materials"
+    },
+    {
+      "type": "field",
+      "key": "description"
+    },
+    {
+      "type": "field",
+      "key": "reviewNote"
+    }
+  ],
+  "fields": [
+    {
+      "key": "courseCode",
+      "label": "课程编码",
+      "widget": "input",
+      "required": true,
+      "maxLength": 64
+    },
+    {
+      "key": "title",
+      "label": "课程名称",
+      "widget": "input",
+      "required": true,
+      "maxLength": 200
+    },
+    {
+      "key": "positions",
+      "label": "适用岗位",
+      "widget": "input"
+    },
+    {
+      "key": "passScore",
+      "label": "及格分",
+      "widget": "number",
+      "required": true,
+      "min": 0
+    },
+    {
+      "key": "validMonths",
+      "label": "有效期（月）",
+      "widget": "number",
+      "required": true,
+      "min": 1
+    },
+    {
+      "key": "materials",
+      "label": "课程资料",
+      "widget": "attachment",
+      "maxCount": 10
+    },
+    {
+      "key": "description",
+      "label": "课程说明",
+      "widget": "textarea"
+    },
+    {
+      "key": "reviewNote",
+      "label": "审批意见",
+      "widget": "textarea",
+      "readonly": true
+    }
+  ],
+  "nodePolicies": {
+    "approve": {
+      "readonly": [
+        "*"
+      ]
+    },
+    "initiator": {
+      "readonly": [
+        "*"
+      ]
+    }
+  },
+  "actions": [
+    {
+      "key": "submit",
+      "label": "提交发布审批",
+      "operation": "ls.training.Course.submit"
+    }
+  ]
+}

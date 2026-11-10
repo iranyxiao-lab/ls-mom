@@ -1,0 +1,9 @@
+code: ls.training.essayHumanGrade
+concept: ls.training.Answer
+level: L2
+kind: CEL
+name: 简答评分须由真人执行
+message: 简答评分须由真人执行
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.training.Answer.gradeEssay]

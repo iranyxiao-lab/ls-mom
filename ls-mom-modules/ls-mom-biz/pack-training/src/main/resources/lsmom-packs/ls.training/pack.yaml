@@ -1,0 +1,54 @@
+# 培训考试 Pack：课程（资料、适用岗位）、题库（单选 / 多选 / 判断 / 简答）、组卷与考试（参考人员、时间窗口、限时作答自动交卷）、
+# 客观题自动判分与简答人工评分、培训记录与资质查询公开 Operation、课程与考试发布审批。核心中不引入任何培训概念。
+code: ls.training
+version: 1.0.0
+name: 培训考试
+description: 课程、题库、组卷、限时考试、判分、培训记录与资质查询；课程与考试发布走审批，LLM 草拟的题目只能为草稿
+standard: true
+owner: { name: LS 标准产品组 }
+requester: { name: 安全培训与上岗资质 }
+reviewDue: 2027-12-31
+contents:
+  concepts:
+    - ls.training.Course
+    - ls.training.Question
+    - ls.training.Exam
+    - ls.training.Answer
+    - ls.training.TrainingRecord
+  operations:
+    - ls.training.Course.submit
+    - ls.training.Course.publish
+    - ls.training.Course.return
+    - ls.training.Course.reject
+    - ls.training.Course.resubmit
+    - ls.training.Course.withdraw
+    - ls.training.Course.retire
+    - ls.training.Question.approve
+    - ls.training.Question.retire
+    - ls.training.Exam.compose
+    - ls.training.Exam.submit
+    - ls.training.Exam.publish
+    - ls.training.Exam.return
+    - ls.training.Exam.reject
+    - ls.training.Exam.resubmit
+    - ls.training.Exam.withdraw
+    - ls.training.Exam.close
+    - ls.training.Answer.save
+    - ls.training.Answer.submit
+    - ls.training.Answer.gradeEssay
+  rules:
+    - ls.training.courseHumanSubmit
+    - ls.training.questionHumanReview
+    - ls.training.examHumanSubmit
+    - ls.training.essayHumanGrade
+  views:
+    - ls.training.courseForm
+    - ls.training.questionForm
+    - ls.training.examForm
+  flows:
+    - ls.training.courseApproval
+    - ls.training.examApproval
+entries:
+  - { name: 我的考试, path: /training/exams }
+  - { name: 阅卷, path: /training/grading }
+  - { name: 培训管理, path: /training/admin }

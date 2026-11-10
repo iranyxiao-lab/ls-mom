@@ -1,0 +1,29 @@
+{
+  "code": "ls.training.courseApproval",
+  "name": "课程发布审批",
+  "concept": "ls.training.Course",
+  "startOn": "ls.training.Course.submit",
+  "callbacks": {
+    "approved": "ls.training.Course.publish",
+    "rejected": "ls.training.Course.reject",
+    "returned": "ls.training.Course.return",
+    "resubmitted": "ls.training.Course.resubmit",
+    "withdrawn": "ls.training.Course.withdraw"
+  },
+  "nodes": [
+    {
+      "key": "approve",
+      "type": "AUDIT",
+      "name": "课程发布审批",
+      "assignee": {
+        "strategy": "ORG_LEADER",
+        "of": "BIZ_ORG"
+      },
+      "permission": "ls:training:approve"
+    }
+  ],
+  "form": {
+    "code": "ls.training.courseForm",
+    "version": 1
+  }
+}

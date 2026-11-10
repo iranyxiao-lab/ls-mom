@@ -1,0 +1,9 @@
+code: ls.training.examHumanSubmit
+concept: ls.training.Exam
+level: L2
+kind: CEL
+name: 试卷提交发布须由真人执行
+message: 试卷提交发布须由真人执行
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.training.Exam.submit, ls.training.Exam.resubmit]
