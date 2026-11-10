@@ -17,6 +17,8 @@ export interface RenderCtx {
   capture?: boolean;
   metrics?: Record<string, unknown>;
   related?: Record<string, unknown>;
+  /** 预填字段的来源（上次填写 / 自动带入） */
+  origin?: Record<string, import('@/utils/lsform/smartDefaults').FillOrigin>;
 }
 
 /** 附件/图片/文件：值为 [{ossId, name, url}]（存 jsonb），文件经 OSS 上传。 */

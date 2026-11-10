@@ -77,7 +77,7 @@
             @click="startOp(o)"
             >{{ o.label }}</el-button
           >
-          <el-button size="small" type="danger" plain data-testid="btn-asset-defect" @click="defectVisible = true">登记缺陷</el-button>
+          <el-button size="small" type="danger" plain data-testid="btn-asset-defect" @click="openDefect">登记缺陷</el-button>
         </div>
         <template v-if="points.length">
           <h4>测点</h4>
@@ -130,19 +130,20 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="defectVisible" title="登记设备缺陷" width="480px" append-to-body>
-      <el-form label-width="80px">
-        <el-form-item label="缺陷描述" required><el-input v-model="defect.title" data-testid="defect-title" /></el-form-item>
-        <el-form-item label="严重度">
-          <el-radio-group v-model="defect.severity">
-            <el-radio-button v-for="(v, k) in SEVERITY" :key="k" :value="k" :data-testid="`defect-sev-${k}`">{{ v }}</el-radio-button>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="现象"><el-input v-model="defect.symptom" type="textarea" :rows="3" data-testid="defect-symptom" /></el-form-item>
-      </el-form>
+    <el-dialog v-model="defectVisible" title="登记设备缺陷" width="600px" append-to-body destroy-on-close data-testid="defect-dialog">
+      <LsSkeleton v-if="!defectSchema" variant="form" :rows="5" />
+      <SchemaForm
+        v-else
+        ref="defectRef"
+        v-model="defect"
+        :schema="defectSchema"
+        :source="cur"
+        :org-id="cur?.orgId"
+        :show-actions="false"
+      />
       <template #footer>
         <el-button @click="defectVisible = false">取消</el-button>
-        <el-button type="primary" data-testid="btn-defect-report" @click="reportDefect">登记</el-button>
+        <el-button type="primary" :disabled="!defectSchema" :loading="defectBusy" data-testid="btn-defect-report" @click="reportDefect">登记</el-button>
       </template>
     </el-dialog>
   </div>
@@ -152,6 +153,9 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { AssetApi } from '@/api/lsmom/asset';
+import type { FormSchema } from '@/types/lsView';
+import SchemaForm from '@/components/SchemaForm/index.vue';
+import { LsSkeleton } from '@/components/LsState';
 import {
   ASSET,
   ASSET_OPS,
@@ -159,7 +163,6 @@ import {
   ASSET_STATUS_TYPE,
   ASSET_TYPES,
   DEFECT,
-  SEVERITY,
   TIMELINE_KIND,
   refLabel,
   type OrgOption,
@@ -199,7 +202,17 @@ const pendingOp = ref<(typeof ASSET_OPS)[number]>();
 const reason = ref('');
 
 const defectVisible = ref(false);
-const defect = reactive({ title: '', severity: 'MEDIUM', symptom: '' });
+const defectSchema = ref<FormSchema>();
+const defectRef = ref<InstanceType<typeof SchemaForm>>();
+const defect = ref<Record<string, any>>({});
+const defectBusy = ref(false);
+
+/** 打开缺陷表单：设备、位置从当前设备带入，登记人、时间取当前上下文，严重度记住上次的选择。 */
+async function openDefect() {
+  defect.value = {};
+  defectVisible.value = true;
+  if (!defectSchema.value) defectSchema.value = await props.api.defectForm();
+}
 
 const typeLabel = (v: string) => ASSET_TYPES.find((t) => t.value === v)?.label ?? v;
 const fmt = (s: string) => (s ? String(s).replace('T', ' ').slice(0, 16) : '');
@@ -281,23 +294,23 @@ async function doOp() {
 
 async function reportDefect() {
   const c = cur.value;
-  if (!c || !defect.title.trim()) return ElMessage.warning('请填写缺陷描述');
-  const r = await props.api.create(DEFECT, {
-    asset: c.id,
-    title: defect.title.trim(),
-    severity: defect.severity,
-    symptom: defect.symptom,
-    orgId: c.orgId
-  });
+  const form = defectRef.value;
+  if (!c || !form || Object.keys(form.validate().errors).length) return;
+  defectBusy.value = true;
   try {
-    await props.api.op(`${DEFECT}.report`, r.id, r.version);
-    ElMessage.success('缺陷已登记');
-  } catch {
-    ElMessage.warning('缺陷已保存为草稿，请到「缺陷与维修」补充证据后登记');
+    const r = await props.api.create(DEFECT, { ...form.payload(), orgId: c.orgId });
+    await form.commitRemembered();
+    try {
+      await props.api.op(`${DEFECT}.report`, r.id, r.version);
+      ElMessage.success('缺陷已登记');
+    } catch {
+      ElMessage.warning('缺陷已保存为草稿，请到「缺陷与维修」补充证据后登记');
+    }
+    defectVisible.value = false;
+    await openDetail(c.id);
+  } finally {
+    defectBusy.value = false;
   }
-  defectVisible.value = false;
-  Object.assign(defect, { title: '', severity: 'MEDIUM', symptom: '' });
-  await openDetail(c.id);
 }
 
 onMounted(load);

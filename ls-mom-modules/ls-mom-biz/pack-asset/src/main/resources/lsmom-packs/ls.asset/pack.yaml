@@ -1,6 +1,6 @@
 # 设备标准 Pack：台账与状态历史、点检计划 → 点检工作 → 点检记录、异常项一键生成缺陷、缺陷经 Issue 闭环、维修复用 WorkItem、设备时间轴
 code: ls.asset
-version: 1.0.2
+version: 1.0.3
 name: 设备
 description: 设备 / 工位台账、状态历史、点检计划与记录、缺陷登记、维修与验证关闭、设备时间轴
 standard: true

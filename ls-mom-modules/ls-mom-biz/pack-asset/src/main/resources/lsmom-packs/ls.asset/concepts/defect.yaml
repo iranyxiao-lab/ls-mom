@@ -5,6 +5,9 @@ fields:
   - { code: asset, displayName: 设备, dataType: REF, refConcept: ls.asset.Asset, required: true, props: { queryable: true } }
   - { code: title, displayName: 缺陷描述, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
   - { code: symptom, displayName: 现象, dataType: TEXT }
+  - { code: location, displayName: 位置, dataType: STRING, props: { maxLength: 128 } }
+  - { code: reporter, displayName: 登记人, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
+  - { code: reportedAt, displayName: 登记时间, dataType: DATETIME, props: { sortable: true } }
   - { code: severity, displayName: 严重度, dataType: ENUM, required: true, options: [LOW, MEDIUM, HIGH, CRITICAL], props: { queryable: true } }
   - { code: issue, displayName: 异常 Issue, dataType: REF, refConcept: ls.core.Issue, props: { unique: true } }
   - { code: inspectionRecord, displayName: 来源点检记录, dataType: REF, refConcept: ls.asset.InspectionRecord, props: { queryable: true } }

@@ -1,13 +1,54 @@
 {
   "viewType": "FORM",
   "formCode": "ls.asset.defectForm",
-  "version": 1,
+  "version": 2,
   "conceptCode": "ls.asset.Defect",
   "title": "设备缺陷",
   "layout": [
     {
-      "type": "field",
-      "key": "asset"
+      "type": "row",
+      "children": [
+        {
+          "type": "col",
+          "span": 12,
+          "children": [
+            {
+              "type": "field",
+              "key": "asset"
+            }
+          ]
+        },
+        {
+          "type": "col",
+          "span": 12,
+          "children": [
+            {
+              "type": "field",
+              "key": "location"
+            }
+          ]
+        },
+        {
+          "type": "col",
+          "span": 12,
+          "children": [
+            {
+              "type": "field",
+              "key": "reporter"
+            }
+          ]
+        },
+        {
+          "type": "col",
+          "span": 12,
+          "children": [
+            {
+              "type": "field",
+              "key": "reportedAt"
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "field",
@@ -27,7 +68,31 @@
       "key": "asset",
       "label": "设备",
       "widget": "assetRef",
-      "required": true
+      "required": true,
+      "defaultFrom": "$source.id",
+      "ref": {
+        "concept": "ls.asset.Asset",
+        "labelField": "name"
+      }
+    },
+    {
+      "key": "location",
+      "label": "位置",
+      "widget": "input",
+      "maxLength": 128,
+      "defaultFrom": "$source.location"
+    },
+    {
+      "key": "reporter",
+      "label": "登记人",
+      "widget": "userRef",
+      "defaultFrom": "$user"
+    },
+    {
+      "key": "reportedAt",
+      "label": "登记时间",
+      "widget": "datetime",
+      "defaultFrom": "$now"
     },
     {
       "key": "title",
@@ -57,7 +122,9 @@
           "label": "严重",
           "value": "CRITICAL"
         }
-      ]
+      ],
+      "remember": true,
+      "default": "MEDIUM"
     },
     {
       "key": "symptom",

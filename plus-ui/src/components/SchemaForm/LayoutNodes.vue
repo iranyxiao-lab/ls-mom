@@ -8,6 +8,10 @@
         :error="ctx.errors[n.key!]"
         :data-testid="'field-' + n.key"
       >
+        <template v-if="ctx.origin?.[n.key!]" #label>
+          {{ fieldOf(n.key)!.label ?? n.key }}
+          <span :class="['ls-form__origin', 'is-' + ctx.origin[n.key!]]" :data-testid="'origin-' + n.key">{{ ORIGIN_LABEL[ctx.origin[n.key!]] }}</span>
+        </template>
         <FieldWidget
           :field="fieldOf(n.key)!"
           :model-value="ctx.model[n.key!]"
@@ -73,6 +77,7 @@
 import type { LayoutNode } from '@/types/lsView';
 import type { RenderCtx } from './types';
 import FieldWidget from './FieldWidget.vue';
+import { ORIGIN_LABEL } from '@/utils/lsform/smartDefaults';
 import SubTableEditor from './SubTableEditor.vue';
 
 defineOptions({ name: 'LayoutNodes' });
@@ -104,6 +109,21 @@ const openPanels = (n: LayoutNode) => (n.children ?? []).map((c, j) => (c.collap
   color: var(--el-text-color-secondary);
   font-size: 12px;
   line-height: 1.5;
+}
+.ls-form__origin {
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--ls-color-primary-text);
+  background: var(--el-color-primary-light-9);
+}
+/* 上次填写的值与系统带入的值用不同颜色区分 */
+.ls-form__origin.is-remembered {
+  color: var(--el-text-color-primary);
+  background: var(--el-color-warning-light-8);
 }
 .ls-form__metric-title {
   color: var(--el-text-color-secondary);

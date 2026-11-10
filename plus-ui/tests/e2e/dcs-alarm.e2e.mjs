@@ -132,7 +132,10 @@ try {
   await k.goto(BASE + '/asset/center');
   await k.getByTestId(`asset-row-${asset.id}`).click();
   await k.getByTestId('btn-asset-defect').click();
-  await k.getByTestId('defect-title').fill('泵体振动偏大');
+  await k.getByTestId('input-title').fill('泵体振动偏大');
+  // 严重度可能是上次记住的值，这里明确选"中"
+  await k.getByTestId('input-severity').click();
+  await k.locator('.el-select-dropdown__item:visible').filter({ hasText: /^中$/ }).click();
   await k.getByTestId('btn-defect-report').click();
   await toast(k, '缺陷');
   const defect = await one(keeper, DEFECT, [{ field: 'asset', op: 'eq', value: asset.id }]);

@@ -119,6 +119,8 @@ JSON Schema 采用 2020-12，位于 `ls-mom-form/src/main/resources/ls-schema/`�
 | `defaultFrom` | `$user` 当前人员、`$org` 当前组织、`$shift` 当前班次、`$now` 当前时间、`$source.<字段>` 来源对象的字段 | 打开新单据时带入；用户可改。`$user` 用于 `userRef`/`input`/`readonlyText`，`$org` 用于 `deptRef`/`teamRef`/`conceptRef`/`input`/`readonlyText`，`$shift` 用于 `select`/`radio`/`dict`/`input`/`readonlyText`，`$now` 用于 `date`/`datetime`/`readonlyText`，`$source.*` 不限控件 |
 | `remember` | `true` | 记住本人上次填写的值，下次打开时带入（保存在服务端用户偏好，换设备也生效）；记忆值与普通输入样式不同 |
 
+渲染器 `SchemaForm` 打开新单据（没有 `id`、非只读）时，调用 `GET /api/ui/form-context?form=<表单编码>` 获取当前人员（Party）、主组织、当前班次（按字典 `ls_shift` 备注里的时段，如 `16:00-24:00`）、服务器当前时间和本人上次填写的值。调用方通过 `source` 属性传入来源对象（例如设备）。预填只覆盖仍为空的字段，优先级为：来源对象 > 上次填写 > 当前上下文 > 字段 `default`。预填的字段在标签旁标注「自动带入」或「上次填写」，后者颜色不同；用户改动后标注消失。提交成功后，调用方调用 `commitRemembered()`，经 `PUT /api/ui/form-context/remembered/<表单编码>` 保存。服务端只接受已发布表单中标了 `remember` 的字段，取值限于简单值。例子见设备台账「登记缺陷」（`ls.asset.defectForm` v2）。
+
 计算字段不能设置这两个属性；只读字段、附件和确认类控件不能记忆。不合法的配置在保存与发布时被拒绝（`DEFAULT_FROM_INVALID`、`REMEMBER_INVALID`）。带入的值只是建议，提交时仍由服务端按字段策略和守卫校验。
 
 ### 规则

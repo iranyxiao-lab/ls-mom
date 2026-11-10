@@ -6,6 +6,7 @@ import { dcsApi } from './dcs';
 import type { DcsPoint } from './dcsModel';
 import { checkPermi } from '@/utils/permission';
 import type { Page, QuerySpec } from './types';
+import type { FormSchema } from '@/types/lsView';
 import type { OpResult } from './productionModel';
 import type { MyInspection, OrgOption, TimelineItem } from './assetModel';
 
@@ -27,6 +28,8 @@ export const assetApi = {
   create: (concept: string, body: Record<string, unknown>) => crudApi.create(concept, body, key()),
   op,
   upload: (file: File) => formApi.upload(file),
+  /** 已发布的缺陷登记表单（带入设备、位置、登记人、登记时间，记住上次的严重度） */
+  defectForm: () => formApi.get<FormSchema>('ls.asset.defectForm').then((v) => v.schema),
   attach: (ossId: string | number, objectType: string, objectId: string | number, purpose = 'EVIDENCE') =>
     op('ls.core.DocumentLink.attach', undefined, undefined, { ossId: String(ossId), objectType, objectId: String(objectId), purpose }),
   /** 映射到该设备的 DCS 测点及最近快照；无 DCS 查看权限时为空。 */

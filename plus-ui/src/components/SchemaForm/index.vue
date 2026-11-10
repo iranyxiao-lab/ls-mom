@@ -33,6 +33,7 @@ import type { RendererApi } from '@/api/lsmom/form';
 import { lazyFormApi } from '@/api/lsmom/lazyForm';
 import { resolveFieldPolicy, type Access } from '@/utils/lsform/fieldPolicy';
 import { computeFields, validateForm, type FormCheck, type FormContext } from '@/utils/lsform/validate';
+import { rememberValues, smartDefaults, usesSmartDefaults, type FillOrigin } from '@/utils/lsform/smartDefaults';
 import LayoutNodes from './LayoutNodes.vue';
 import type { RenderCtx } from './types';
 
@@ -58,8 +59,12 @@ const props = withDefaults(
     api?: RendererApi;
     showActions?: boolean;
     metrics?: Record<string, unknown>;
+    /** 发起表单的来源对象（如从设备报缺陷时的设备），供 defaultFrom: $source.<字段> 带入 */
+    source?: Record<string, unknown> | null;
+    /** 新单据按 defaultFrom / remember 预填（默认开启；已有记录、只读时不预填） */
+    smart?: boolean;
   }>(),
-  { api: () => lazyFormApi, showActions: true, context: () => ({}) }
+  { api: () => lazyFormApi, showActions: true, context: () => ({}), smart: true }
 );
 const emit = defineEmits<{
   (e: 'update:modelValue', v: Record<string, any>): void;
@@ -67,6 +72,8 @@ const emit = defineEmits<{
 }>();
 
 const errors = reactive<Record<string, string>>({});
+/** 预填字段的来源（用户改动后清除），用于在标签旁区分"上次填写"与"自动带入" */
+const origin = reactive<Record<string, FillOrigin>>({});
 const warnings = ref<string[]>([]);
 const busy = ref(false);
 
@@ -89,6 +96,7 @@ function set(key: string, v: unknown) {
   const next = { ...props.modelValue, [key]: v };
   computeFields(props.schema, next, context.value);
   delete errors[key];
+  delete origin[key];
   emit('update:modelValue', next);
 }
 
@@ -104,7 +112,8 @@ const ctx = computed<RenderCtx>(() => ({
   only: props.only ? new Set(props.only) : undefined,
   single: props.single,
   capture: props.capture,
-  metrics: props.metrics
+  metrics: props.metrics,
+  origin
 }));
 
 /** 默认值与计算字段初始化（只补缺失的键）。 */
@@ -113,7 +122,8 @@ function init() {
   const next: Record<string, any> = { ...props.modelValue };
   let changed = false;
   for (const f of props.schema.fields) {
-    if (f.default !== undefined && next[f.key] === undefined) {
+    // 带入与记忆字段的默认值由 applySmart 按优先级处理
+    if (f.default !== undefined && next[f.key] === undefined && !(useSmart() && (f.defaultFrom || f.remember))) {
       next[f.key] = f.default;
       changed = true;
     }
@@ -128,7 +138,42 @@ function init() {
   computeFields(props.schema, next, context.value);
   if (changed || before !== JSON.stringify(props.schema.fields.filter((f) => f.computed).map((f) => next[f.key]))) emit('update:modelValue', next);
 }
-watch(() => props.schema, init, { immediate: true });
+const useSmart = () => props.smart && !props.readonly && props.modelValue.id == null && usesSmartDefaults(props.schema);
+
+/** 新单据：按来源对象、上次填写、当前人员/组织/班次/时间预填（只填仍为空的字段，不覆盖用户已输入的内容）。 */
+async function applySmart() {
+  if (!useSmart()) return;
+  const schema = props.schema;
+  const server = props.api.formContext ? await props.api.formContext(schema.formCode).catch(() => undefined) : undefined;
+  if (schema !== props.schema) return;
+  const { values, origin: o } = smartDefaults(schema, props.modelValue, { ...(server ?? {}), source: props.source });
+  if (!Object.keys(values).length) return;
+  const next = { ...props.modelValue, ...values };
+  computeFields(schema, next, context.value);
+  Object.assign(origin, o);
+  emit('update:modelValue', next);
+}
+
+watch(
+  () => props.schema,
+  () => {
+    Object.keys(origin).forEach((k) => delete origin[k]);
+    init();
+    void applySmart();
+  },
+  { immediate: true }
+);
+watch(
+  () => props.source,
+  () => void applySmart()
+);
+
+/** 提交成功后调用：记住标了 remember 的字段本次填写的值（保存在服务端，失败不影响业务）。 */
+async function commitRemembered() {
+  const values = rememberValues(props.schema, props.modelValue);
+  if (!props.api.remember || !Object.keys(values).length) return;
+  await props.api.remember(props.schema.formCode, values).catch(() => undefined);
+}
 
 function validate(): FormCheck {
   const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
@@ -169,7 +214,7 @@ async function onAction(a: FormAction) {
   emit('action', { action: a, model: payload() });
 }
 
-defineExpose({ validate, setServerErrors, payload, access, errors });
+defineExpose({ validate, setServerErrors, payload, access, errors, origin, commitRemembered });
 </script>
 
 <style scoped>

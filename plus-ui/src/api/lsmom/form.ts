@@ -23,6 +23,14 @@ export interface PublishResult {
   addedFields: string[];
 }
 
+export interface FormContextData {
+  partyId?: number | null;
+  orgId?: number | null;
+  shift?: string | null;
+  now?: string;
+  remembered?: Record<string, unknown>;
+}
+
 export const formApi = {
   list: (params: { concept?: string; type?: string } = {}) => data<any[]>(request({ url: '/api/form/views', method: 'get', params })),
   get: <S = AnyViewSchema>(code: string, version?: number) =>
@@ -50,6 +58,10 @@ export const formApi = {
     data<{ dictLabel: string; dictValue: string }[]>(request({ url: `/system/dict/data/type/${enc(type)}`, method: 'get' })).then((rows) =>
       (rows ?? []).map((r) => ({ label: r.dictLabel, value: r.dictValue }))
     ),
+  /** 表单自动带入的上下文：当前人员、主组织、班次、时间与本人上次填写的值 */
+  formContext: (form: string) => data<FormContextData>(request({ url: '/api/ui/form-context', method: 'get', params: { form } })),
+  remember: (form: string, values: Record<string, unknown>) =>
+    data<Record<string, unknown>>(request({ url: `/api/ui/form-context/remembered/${enc(form)}`, method: 'put', data: values })),
   upload: (file: File) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -62,4 +74,4 @@ export const formApi = {
 export type FormApi = typeof formApi;
 
 /** 组件只依赖这一小部分接口，测试中可直接替换。 */
-export type RendererApi = Pick<FormApi, 'refSearch' | 'upload' | 'dict'>;
+export type RendererApi = Pick<FormApi, 'refSearch' | 'upload' | 'dict'> & Partial<Pick<FormApi, 'formContext' | 'remember'>>;
