@@ -1,0 +1,5 @@
+字段名,编码,类型,必填,选项
+设备,equipment,entity:设备,是,
+油品,oil,enum,是,GEAR:齿轮油|HYDRAULIC:液压油
+加注量,volume,decimal,是,
+备注,remark,text,否,

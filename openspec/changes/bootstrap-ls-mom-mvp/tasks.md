@@ -152,7 +152,7 @@
 
 - [x] 17.1 定义 `ls-ir-1.0.json` Schema 与 `ls-mom-cli validate`；验证缺少 provenance 的 LS-IR 被拒
 - [x] 17.2 实现 `ls-mom-cli generate`：LS-IR → Pack 目录（Concept、Form、Flow、Operation 骨架、迁移、权限、JUnit 测试）并打包 ChangeSet；验证 AI-02 生成物编译、安装、测试通过
-- [ ] 17.3 实现构建期 Copilot（需求文本/表格 → Requirement Spec → LS-IR，先做语义复用检查），经 `LlmGateway` 调用 OpenAI 兼容端点；验证"设备"复用 `ls.asset.Asset` 用例（LLM 用录制响应做确定性测试）
+- [x] 17.3 实现构建期 Copilot（需求文本/表格 → Requirement Spec → LS-IR，先做语义复用检查），经 `LlmGateway` 调用 OpenAI 兼容端点；验证"设备"复用 `ls.asset.Asset` 用例（LLM 用录制响应做确定性测试）
 - [ ] 17.4 实现 `ls-mom-cli frappe-import`：静态解析 DocType/Child/Workflow/DocPerm/Report/Fixture，Python 与 Server Script 标记 `MANUAL_REQUIRED`，记录来源/许可证/转换器与模型版本；以 frappe/frappe（MIT）中的简单 DocType＋自编 Workflow 样例完成转换与测试；验证 AI-03/AI-04
 - [ ] 17.5 确保生成流水线无生产发布权限并输出生成质量指标报告；验证 AI-01 直接发布被拒
 - [ ] 17.6 编写 `docs/ls-ir.md` 与 `docs/frappe-conversion.md`；验证文档示例 LS-IR 可通过校验

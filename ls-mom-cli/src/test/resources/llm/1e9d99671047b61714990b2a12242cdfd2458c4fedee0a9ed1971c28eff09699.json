@@ -1,0 +1,20 @@
+{
+  "id": "chatcmpl-recorded-lube",
+  "object": "chat.completion",
+  "model": "qwen2.5-72b-instruct",
+  "system_fingerprint": "fp_lube01",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "```json\n{\"title\": \"设备润滑管理\", \"entities\": [{\"name\": \"设备\", \"code\": \"Equipment\", \"fields\": [{\"name\": \"设备编号\", \"code\": \"equipmentNo\", \"type\": \"string\", \"required\": true}, {\"name\": \"设备名称\", \"code\": \"name\", \"type\": \"string\", \"required\": true}]}, {\"name\": \"润滑记录\", \"code\": \"LubricationRecord\", \"description\": \"设备加注润滑油的记录\", \"fields\": [{\"name\": \"设备\", \"code\": \"equipment\", \"type\": \"entity:设备\", \"required\": true}, {\"name\": \"润滑人\", \"code\": \"lubricator\", \"type\": \"entity:人员\", \"required\": false}, {\"name\": \"油品\", \"code\": \"oil\", \"type\": \"enum\", \"required\": true, \"options\": [{\"code\": \"GEAR\", \"label\": \"齿轮油\"}, {\"code\": \"HYDRAULIC\", \"label\": \"液压油\"}, {\"code\": \"GREASE\", \"label\": \"锂基脂\"}]}, {\"name\": \"加注量（升）\", \"code\": \"volume\", \"type\": \"decimal\", \"required\": true}, {\"name\": \"润滑日期\", \"code\": \"lubricatedOn\", \"type\": \"date\", \"required\": true}, {\"name\": \"备注\", \"code\": \"remark\", \"type\": \"text\"}], \"states\": [{\"code\": \"DRAFT\", \"label\": \"草稿\"}, {\"code\": \"SUBMITTED\", \"label\": \"已提交\"}, {\"code\": \"CONFIRMED\", \"label\": \"已确认\"}], \"actions\": [{\"code\": \"submit\", \"label\": \"提交\", \"from\": [\"DRAFT\"], \"to\": \"SUBMITTED\", \"role\": \"设备员\"}, {\"code\": \"confirm\", \"label\": \"确认\", \"from\": [\"SUBMITTED\"], \"to\": \"CONFIRMED\", \"role\": \"车间主任\"}]}], \"roles\": [\"设备员\", \"车间主任\"]}\n```"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 412,
+    "completion_tokens": 356
+  }
+}
