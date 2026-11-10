@@ -34,8 +34,13 @@ import java.util.Set;
  *   - expect: { concept: acme.training.Record, target: r1, status: DONE, values: { score: 90 } }
  *   - expectError: { code: STATE_TRANSITION_INVALID, op: { code: acme.training.Record.complete, target: r1 } }
  * </pre>
+ * 场景默认以系统身份执行；{@code op} 加 {@code as: HUMAN} 时以真人测试身份执行（验证"须由真人执行"类规则）。
  */
 public class PackTester {
+
+    /** 场景中 as: HUMAN 的执行身份：真人、全部权限、不限数据域。 */
+    static final ActorContext HUMAN_TESTER = new ActorContext(ActorContext.ActorType.HUMAN, -2L, null, null, true, Set.of(),
+        DataScope.unrestricted(), "场景测试（真人）");
 
     public record Case(String name, boolean passed, String message) {
     }
@@ -186,8 +191,9 @@ public class PackTester {
         }
         ObjectNode input = o.path("input").isObject() ? ((ObjectNode) o.get("input")).deepCopy() : PackJson.JSON.createObjectNode();
         resolveVars(input, vars);
+        ActorContext who = "HUMAN".equals(o.path("as").asText()) ? HUMAN_TESTER : actor;
         gateway.execute(code, new OperationRequest(input, target, version,
-            null, false), actor);
+            null, false), who);
     }
 
     private void expect(JsonNode e, ActorContext actor, Map<String, Long> vars) {

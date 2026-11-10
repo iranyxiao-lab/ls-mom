@@ -1,0 +1,373 @@
+{
+  "irVersion": "1.0",
+  "namespace": "acme.permit",
+  "pack": {
+    "version": "1.0.0",
+    "name": "作业许可",
+    "description": "动火、受限空间等作业许可票",
+    "owner": {
+      "name": "安全部"
+    },
+    "requester": {
+      "name": "一车间"
+    },
+    "reviewDue": "2027-12-31"
+  },
+  "reuse": [],
+  "concepts": [
+    {
+      "code": "acme.permit.Permit",
+      "displayName": "作业许可",
+      "description": "作业许可票（申请、审批、关闭）",
+      "fields": [
+        {
+          "code": "permitNo",
+          "displayName": "许可编号",
+          "dataType": "STRING",
+          "required": true,
+          "queryable": true,
+          "unique": true,
+          "maxLength": 40
+        },
+        {
+          "code": "workType",
+          "displayName": "作业类型",
+          "dataType": "ENUM",
+          "required": true,
+          "options": [
+            "HOT",
+            "CONFINED",
+            "HEIGHT"
+          ],
+          "optionLabels": {
+            "HOT": "动火",
+            "CONFINED": "受限空间",
+            "HEIGHT": "高处"
+          },
+          "queryable": true
+        },
+        {
+          "code": "location",
+          "displayName": "作业地点",
+          "dataType": "STRING",
+          "required": true
+        },
+        {
+          "code": "applicant",
+          "displayName": "申请人",
+          "dataType": "REF",
+          "refConcept": "ls.core.Party"
+        },
+        {
+          "code": "startAt",
+          "displayName": "开始时间",
+          "dataType": "DATETIME"
+        },
+        {
+          "code": "measures",
+          "displayName": "安全措施",
+          "dataType": "TEXT"
+        }
+      ],
+      "children": [
+        {
+          "code": "acme.permit.PermitCheck",
+          "displayName": "检查项",
+          "fields": [
+            {
+              "code": "item",
+              "displayName": "检查项",
+              "dataType": "STRING",
+              "required": true
+            },
+            {
+              "code": "ok",
+              "displayName": "已落实",
+              "dataType": "BOOLEAN"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "views": [
+    {
+      "code": "acme.permit.permitForm",
+      "concept": "acme.permit.Permit",
+      "title": "作业许可",
+      "fields": [
+        {
+          "key": "permitNo"
+        },
+        {
+          "key": "workType"
+        },
+        {
+          "key": "location"
+        },
+        {
+          "key": "applicant"
+        },
+        {
+          "key": "startAt"
+        },
+        {
+          "key": "measures"
+        },
+        {
+          "key": "permitCheck"
+        }
+      ],
+      "actions": [
+        {
+          "key": "submit",
+          "label": "提交审批",
+          "operation": "acme.permit.Permit.submit"
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "operations": [
+    {
+      "kind": "STATE_MACHINE",
+      "code": "acme.permit.Permit.lifecycle",
+      "concept": "acme.permit.Permit",
+      "displayName": "作业许可状态",
+      "states": [
+        "DRAFT",
+        "SUBMITTED",
+        "APPROVED",
+        "CLOSED"
+      ],
+      "initial": "DRAFT",
+      "transitions": [
+        {
+          "operation": "acme.permit.Permit.submit",
+          "name": "提交",
+          "from": [
+            "DRAFT"
+          ],
+          "to": "SUBMITTED",
+          "permission": "acme:permit:apply",
+          "risk": "C1"
+        },
+        {
+          "operation": "acme.permit.Permit.approve",
+          "name": "批准",
+          "from": [
+            "SUBMITTED"
+          ],
+          "to": "APPROVED",
+          "permission": "acme:permit:approve",
+          "risk": "C1"
+        },
+        {
+          "operation": "acme.permit.Permit.reject",
+          "name": "退回",
+          "from": [
+            "SUBMITTED"
+          ],
+          "to": "DRAFT",
+          "permission": "acme:permit:approve",
+          "risk": "C1"
+        },
+        {
+          "operation": "acme.permit.Permit.close",
+          "name": "关闭",
+          "from": [
+            "APPROVED"
+          ],
+          "to": "CLOSED",
+          "permission": "acme:permit:apply",
+          "risk": "C1"
+        }
+      ]
+    },
+    {
+      "kind": "HANDLER",
+      "code": "acme.permit.Permit.extend",
+      "concept": "acme.permit.Permit",
+      "name": "延期",
+      "description": "按审批意见延长作业时间（须人工实现）",
+      "permission": "acme:permit:approve",
+      "risk": "C1",
+      "exposure": "DENY",
+      "inputSchema": {
+        "type": "object",
+        "required": [
+          "permitId",
+          "hours"
+        ],
+        "properties": {
+          "permitId": {
+            "type": "integer"
+          },
+          "hours": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 24
+          }
+        }
+      }
+    }
+  ],
+  "rules": [
+    {
+      "code": "acme.permit.approveByHuman",
+      "concept": "acme.permit.Permit",
+      "name": "作业许可须由真人批准",
+      "message": "作业许可须由真人批准",
+      "level": "L2",
+      "assert": "$context.actor.type == 'HUMAN'",
+      "appliesTo": [
+        "acme.permit.Permit.approve"
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "code": "acme:permit:apply",
+      "name": "申请与关闭作业许可",
+      "kind": "OPERATION",
+      "roles": [
+        "班组长"
+      ]
+    },
+    {
+      "code": "acme:permit:approve",
+      "name": "批准作业许可",
+      "kind": "OPERATION",
+      "roles": [
+        "车间主任"
+      ]
+    }
+  ],
+  "metrics": [
+    {
+      "code": "acme.permit.permitCount",
+      "name": "作业许可数",
+      "concept": "acme.permit.Permit",
+      "measure": {
+        "fn": "count"
+      },
+      "timeField": "createdAt",
+      "grains": [
+        "DAY"
+      ],
+      "dimensions": [
+        "status"
+      ]
+    }
+  ],
+  "migrations": [
+    {
+      "version": "1",
+      "description": "permit_location_index",
+      "sql": "create index if not exists idx_acme_permit_location on c_acme_permit_permit (location);"
+    }
+  ],
+  "seeds": [],
+  "tests": [
+    {
+      "name": "申请、批准并关闭作业许可",
+      "steps": [
+        {
+          "create": {
+            "concept": "acme.permit.Permit",
+            "as": "p1",
+            "values": {
+              "permitNo": "HP-001",
+              "workType": "HOT",
+              "location": "储罐区"
+            }
+          }
+        },
+        {
+          "op": {
+            "code": "acme.permit.Permit.submit",
+            "target": "p1"
+          }
+        },
+        {
+          "expectError": {
+            "code": "GUARD_FAILED",
+            "op": {
+              "code": "acme.permit.Permit.approve",
+              "target": "p1"
+            }
+          }
+        },
+        {
+          "op": {
+            "code": "acme.permit.Permit.approve",
+            "target": "p1",
+            "as": "HUMAN"
+          }
+        },
+        {
+          "expect": {
+            "concept": "acme.permit.Permit",
+            "target": "p1",
+            "status": "APPROVED",
+            "values": {
+              "location": "储罐区"
+            }
+          }
+        },
+        {
+          "op": {
+            "code": "acme.permit.Permit.close",
+            "target": "p1"
+          }
+        },
+        {
+          "expect": {
+            "concept": "acme.permit.Permit",
+            "target": "p1",
+            "status": "CLOSED"
+          }
+        },
+        {
+          "expectError": {
+            "code": "INVALID_TRANSITION",
+            "op": {
+              "code": "acme.permit.Permit.approve",
+              "target": "p1",
+              "as": "HUMAN"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "sourceType": "MANUAL",
+    "source": {
+      "app": "需求评审会",
+      "version": "2026-11",
+      "ref": "REQ-PERMIT-01"
+    },
+    "license": "LicenseRef-Customer-Owned",
+    "converter": {
+      "name": "ls-mom-cli",
+      "version": "1.0.0"
+    },
+    "model": null,
+    "generatedAt": "2026-11-10T08:00:00Z",
+    "manualEdits": [
+      {
+        "at": "2026-11-10T09:00:00Z",
+        "by": "实施顾问",
+        "path": "concepts/permit.yaml",
+        "reason": "补充作业类型枚举",
+        "lines": 3
+      }
+    ],
+    "manualRequired": [],
+    "metrics": {
+      "requirementAt": "2026-11-10T08:00:00Z",
+      "uatAt": "2026-11-10T16:30:00Z"
+    }
+  }
+}

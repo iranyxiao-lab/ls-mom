@@ -76,6 +76,7 @@
         <module>ls-mom-dcs</module>
         <module>../ls-mom-dcs-simulator</module>
         <module>ls-mom-biz</module>
+        <module>../ls-mom-cli</module>
         <module>ls-mom-architecture-test</module>
     </modules>
 </project>

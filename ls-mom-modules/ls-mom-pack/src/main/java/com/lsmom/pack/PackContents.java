@@ -44,6 +44,9 @@ public record PackContents(PackManifest manifest, List<Item> concepts, List<Item
     public record Issue(String path, String code, String message) {
     }
 
+    /** 生成 / 转换来源（LS-IR provenance）：来源、许可证、转换器与模型版本、人工修改记录、需人工处理项。 */
+    public static final String PROVENANCE = "provenance.json";
+
     private static final Pattern MIGRATION = Pattern.compile("^V(\\d+(?:_\\d+)*)__([A-Za-z0-9_]+)\\.sql$");
     private static final Set<String> DIRS = Set.of("concepts/", "operations/", "rules/", "views/", "metrics/", "flows/", "migrations/", "seed/",
         "tests/scenarios/");
@@ -52,7 +55,7 @@ public record PackContents(PackManifest manifest, List<Item> concepts, List<Item
         PackManifest m = PackManifest.parse(src);
         List<Issue> issues = new ArrayList<>();
         for (String f : src.files().keySet()) {
-            if (f.equals(PackSource.MANIFEST) || f.equals("README.md") || f.startsWith("docs/")) continue;
+            if (f.equals(PackSource.MANIFEST) || f.equals("README.md") || f.equals(PROVENANCE) || f.startsWith("docs/")) continue;
             String dir = f.contains("/") ? f.substring(0, f.lastIndexOf('/') + 1) : "";
             if (!DIRS.contains(dir)) issues.add(new Issue(f, "PACK_FILE_UNEXPECTED", "不在约定目录中的文件：" + f));
         }

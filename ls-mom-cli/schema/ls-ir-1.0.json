@@ -1,0 +1,1076 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lsmom.example/schema/ls-ir-1.0.json",
+  "title": "LS-IR 1.0",
+  "description": "LS MOM 中间表示：需求、外部低代码资产与 Pack 元数据 / 代码之间的版本化文档。由 ls-mom-cli validate 校验，ls-mom-cli generate 生成 Pack 与 ChangeSet。",
+  "type": "object",
+  "required": [
+    "irVersion",
+    "namespace",
+    "pack",
+    "concepts",
+    "views",
+    "flows",
+    "operations",
+    "rules",
+    "permissions",
+    "metrics",
+    "migrations",
+    "tests",
+    "provenance"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "irVersion": {
+      "const": "1.0"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+$",
+      "maxLength": 64,
+      "description": "Pack 编码，所有定义都在其下"
+    },
+    "pack": {
+      "type": "object",
+      "required": [
+        "version",
+        "name",
+        "owner",
+        "requester",
+        "reviewDue"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/$defs/person"
+        },
+        "requester": {
+          "$ref": "#/$defs/person"
+        },
+        "reviewDue": {
+          "type": "string",
+          "format": "date"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "code",
+              "version"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+$"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "path"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "reuse": {
+      "type": "array",
+      "description": "语义复用检查结果：引用的已有对象（不新建）",
+      "items": {
+        "type": "object",
+        "required": [
+          "concept",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "concept": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "term": {
+            "type": "string"
+          },
+          "pack": {
+            "type": "string"
+          },
+          "labelField": {
+            "type": "string",
+            "description": "引用控件显示的字段"
+          }
+        }
+      }
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "displayName",
+          "fields"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+          },
+          "displayName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "displayName",
+                "dataType"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$",
+                  "maxLength": 40
+                },
+                "displayName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "dataType": {
+                  "enum": [
+                    "STRING",
+                    "TEXT",
+                    "INTEGER",
+                    "DECIMAL",
+                    "BOOLEAN",
+                    "DATE",
+                    "DATETIME",
+                    "ENUM",
+                    "REF",
+                    "FILE",
+                    "JSON"
+                  ]
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "refConcept": {
+                  "type": "string"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "optionLabels": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "queryable": {
+                  "type": "boolean"
+                },
+                "sortable": {
+                  "type": "boolean"
+                },
+                "unique": {
+                  "type": "boolean"
+                },
+                "maxLength": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": {
+                  "type": "string"
+                },
+                "source": {
+                  "$ref": "#/$defs/itemSource"
+                }
+              }
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "code",
+                "displayName",
+                "fields"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "fields": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "code",
+                      "displayName",
+                      "dataType"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "code": {
+                        "type": "string",
+                        "pattern": "^[a-z][A-Za-z0-9]*$",
+                        "maxLength": 40
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "dataType": {
+                        "enum": [
+                          "STRING",
+                          "TEXT",
+                          "INTEGER",
+                          "DECIMAL",
+                          "BOOLEAN",
+                          "DATE",
+                          "DATETIME",
+                          "ENUM",
+                          "REF",
+                          "FILE",
+                          "JSON"
+                        ]
+                      },
+                      "required": {
+                        "type": "boolean"
+                      },
+                      "refConcept": {
+                        "type": "string"
+                      },
+                      "options": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "optionLabels": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "queryable": {
+                        "type": "boolean"
+                      },
+                      "sortable": {
+                        "type": "boolean"
+                      },
+                      "unique": {
+                        "type": "boolean"
+                      },
+                      "maxLength": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "$ref": "#/$defs/itemSource"
+                      }
+                    }
+                  }
+                },
+                "source": {
+                  "$ref": "#/$defs/itemSource"
+                }
+              }
+            }
+          },
+          "source": {
+            "$ref": "#/$defs/itemSource"
+          }
+        }
+      }
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "concept",
+          "fields"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "key"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "widget": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "label",
+                "operation"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "operation": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "flows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "concept",
+          "name",
+          "startOn",
+          "nodes",
+          "callbacks"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "name",
+                "assignee"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "assignee": {
+                  "type": "object"
+                },
+                "permission": {
+                  "type": "string"
+                },
+                "form": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "callbacks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "startOn": {
+            "type": "string",
+            "description": "发起流程的 Operation"
+          },
+          "form": {
+            "type": "object",
+            "required": [
+              "code",
+              "version"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "code",
+              "concept",
+              "states",
+              "initial",
+              "transitions"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "STATE_MACHINE"
+              },
+              "code": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+              },
+              "concept": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "states": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Z][A-Z0-9_]*$"
+                }
+              },
+              "initial": {
+                "type": "string"
+              },
+              "transitions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "operation",
+                    "name",
+                    "from",
+                    "to",
+                    "permission"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "operation": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "permission": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "risk": {
+                      "enum": [
+                        "C0",
+                        "C1",
+                        "C2",
+                        "C3"
+                      ]
+                    },
+                    "inputSchema": {
+                      "type": "object"
+                    },
+                    "source": {
+                      "$ref": "#/$defs/itemSource"
+                    }
+                  }
+                }
+              },
+              "source": {
+                "$ref": "#/$defs/itemSource"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "kind",
+              "code",
+              "concept",
+              "name",
+              "permission"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "HANDLER"
+              },
+              "code": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+              },
+              "concept": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "permission": {
+                "type": "string",
+                "minLength": 1
+              },
+              "risk": {
+                "enum": [
+                  "C0",
+                  "C1",
+                  "C2",
+                  "C3"
+                ]
+              },
+              "exposure": {
+                "enum": [
+                  "DENY",
+                  "QUERY",
+                  "DRAFT",
+                  "SIMULATE",
+                  "APPROVAL_REQUIRED"
+                ]
+              },
+              "inputSchema": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "concept",
+          "name",
+          "assert",
+          "appliesTo"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "L1",
+              "L2",
+              "L3"
+            ]
+          },
+          "assert": {
+            "type": "string",
+            "minLength": 1,
+            "description": "CEL 表达式"
+          },
+          "appliesTo": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "$ref": "#/$defs/itemSource"
+          }
+        }
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.]+(:[A-Za-z0-9_.]+)+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "OPERATION",
+              "CRUD",
+              "PAGE"
+            ]
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "concept",
+          "measure"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)+\\.[A-Za-z][A-Za-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)?$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "concept": {
+            "type": "string"
+          },
+          "measure": {
+            "type": "object",
+            "required": [
+              "fn"
+            ],
+            "properties": {
+              "fn": {
+                "enum": [
+                  "count",
+                  "sum",
+                  "avg",
+                  "min",
+                  "max"
+                ]
+              },
+              "field": {
+                "type": "string"
+              }
+            }
+          },
+          "timeField": {
+            "type": "string"
+          },
+          "grains": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "DAY",
+                "WEEK",
+                "MONTH"
+              ]
+            }
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "migrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "version",
+          "description",
+          "sql"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+(_\\d+)*$"
+          },
+          "description": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_]+$"
+          },
+          "sql": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "seeds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "concept",
+          "key",
+          "rows"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "concept": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "steps"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "minProperties": 1,
+              "maxProperties": 1
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "sourceType",
+        "source",
+        "license",
+        "converter",
+        "generatedAt",
+        "manualEdits",
+        "manualRequired"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sourceType": {
+          "enum": [
+            "REQUIREMENT",
+            "FRAPPE",
+            "LEGACY_SCHEMA",
+            "MANUAL"
+          ]
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "app"
+          ],
+          "properties": {
+            "app": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "ref": {
+              "type": "string"
+            },
+            "digest": {
+              "type": "string"
+            }
+          }
+        },
+        "license": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SPDX 标识；UNKNOWN 表示无法确认（禁止自动转换）"
+        },
+        "converter": {
+          "type": "object",
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        },
+        "model": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "endpoint": {
+              "type": "string"
+            },
+            "promptDigest": {
+              "type": "string"
+            }
+          }
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "manualEdits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "at",
+              "by",
+              "path",
+              "reason"
+            ],
+            "properties": {
+              "at": {
+                "type": "string"
+              },
+              "by": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "lines": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "manualRequired": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "kind",
+              "reason",
+              "status"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "MANUAL",
+                  "BLOCKED"
+                ]
+              },
+              "reason": {
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "OPEN",
+                  "RESOLVED"
+                ]
+              },
+              "resolution": {
+                "type": "string"
+              },
+              "resolvedBy": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "metrics": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "person": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "party": {
+          "type": "string"
+        }
+      }
+    },
+    "itemSource": {
+      "type": "object",
+      "description": "该元素的来源（如 Frappe DocType 与字段名）",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "field": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
