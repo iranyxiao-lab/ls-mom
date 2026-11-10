@@ -8,5 +8,5 @@ IMAGE=mcr.microsoft.com/playwright:v$(node -p "require('@playwright/test/package
 [ -f storybook-static/index.json ] || pnpm storybook:build
 docker run --rm --network host --ipc host -u "$(id -u):$(id -g)" -e HOME=/tmp -e CI="${CI:-}" -e LS_VISUAL_PAGES="${LS_VISUAL_PAGES:-}" \
   -e LSMOM_E2E_BASE="${LSMOM_E2E_BASE:-http://127.0.0.1:18081}" \
-  -v "$PWD:$PWD" -w "$PWD" "$IMAGE" \
+  -v "$(dirname "$PWD"):$(dirname "$PWD")" -w "$PWD" "$IMAGE" \
   node node_modules/@playwright/test/cli.js test --project=visual "$@"

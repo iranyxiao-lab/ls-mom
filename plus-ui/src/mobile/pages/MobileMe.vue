@@ -112,7 +112,7 @@ async function logout() {
 }
 .m-outbox__err {
   margin: 6px 0;
-  color: #cb2634;
+  color: var(--ls-color-danger);
 }
 .m-outbox__drop {
   margin-top: 6px;

@@ -195,14 +195,14 @@ onMounted(load);
   min-height: 72px;
   border-radius: 12px;
   border: 0;
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   color: inherit;
   font-size: 14px;
   text-decoration: none;
 }
 .m-quick__btn span {
   font-size: 22px;
-  color: var(--ls-color-primary, #1677ff);
+  color: var(--ls-color-primary-text);
 }
 :deep(.m-task) {
   display: flex;

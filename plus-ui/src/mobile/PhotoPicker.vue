@@ -178,7 +178,7 @@ async function saveMark() {
   justify-content: center;
   border: 1px dashed var(--ls-color-border, #c9cdd4);
   font-size: 28px;
-  color: var(--ls-color-primary, #1677ff);
+  color: var(--ls-color-primary-text);
 }
 .m-photo--add input {
   position: absolute;

@@ -226,8 +226,8 @@ onMounted(loadMine);
   width: 100%;
 }
 .m-inspect__hint {
-  color: #ad4e00;
-  background: #fff7e6;
+  color: var(--ls-color-warning);
+  background: var(--ls-color-warning-soft);
 }
 .m-inspect__item {
   display: flex;
@@ -269,18 +269,18 @@ onMounted(loadMine);
   min-height: 48px;
   border-radius: 10px;
   border: 1px solid var(--ls-color-border, #dcdfe6);
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   color: inherit;
   font-size: 16px;
 }
 .m-chip-lg.is-ok {
-  background: #e8f7ee;
-  border-color: #00b42a;
-  color: #00802a;
+  background: var(--ls-color-success-soft);
+  border-color: var(--ls-color-success);
+  color: var(--ls-color-success);
 }
 .m-chip-lg.is-bad {
-  background: #ffece8;
-  border-color: #f53f3f;
-  color: #cb2634;
+  background: var(--ls-color-danger-soft);
+  border-color: var(--ls-color-danger);
+  color: var(--ls-color-danger);
 }
 </style>

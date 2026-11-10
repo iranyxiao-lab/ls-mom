@@ -2,22 +2,10 @@
 import { test } from '@playwright/test';
 import { loggedIn } from '../support/auth';
 import { expectAccessible, scan } from '../support/a11y';
+import { CORE_PAGES } from '../support/pages';
 
-export const CORE_PAGES = [
-  { path: '/index', name: '首页' },
-  { path: '/lsmom/workbench', name: '协同工作中心' },
-  { path: '/lsmom/apps', name: '协同应用中心' },
-  { path: '/production/requests', name: '生产需求' },
-  { path: '/production/board', name: '班次看板' },
-  { path: '/production/report', name: '报工' },
-  { path: '/production/handover', name: '交接班' },
-  { path: '/asset/center', name: '设备中心' },
-  { path: '/asset/defects', name: '设备缺陷' },
-  { path: '/quality/records', name: '质量记录' },
-  { path: '/dcs/alarms', name: 'DCS 报警' },
-  { path: '/agent/summaries', name: '摘要确认' },
-  { path: '/agent/knowledge', name: '知识问答' }
-];
+export { CORE_PAGES };
+
 
 for (const theme of ['light', 'dark'] as const) {
   test(`登录页（${theme}）无严重无障碍问题`, async ({ browser }) => {
@@ -34,6 +22,26 @@ for (const theme of ['light', 'dark'] as const) {
   for (const p of CORE_PAGES) {
     test(`${p.name}（${p.path}，${theme}）无严重无障碍问题`, async ({ browser }) => {
       const { context, page } = await loggedIn(browser, 'admin');
+      await context.addInitScript((t) => localStorage.setItem('ls-theme', t), theme);
+      await page.goto(p.path);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(500);
+      await expectAccessible(page, `${p.name}（${theme}）`);
+      await context.close();
+    });
+  }
+}
+
+// 移动端（操作工）：工作台、点检、报缺陷、我的
+for (const theme of ['light', 'dark'] as const) {
+  for (const p of [
+    { path: '/m', name: '移动工作台' },
+    { path: '/m/inspect', name: '移动点检' },
+    { path: '/m/defect', name: '移动报缺陷' },
+    { path: '/m/me', name: '移动我的' }
+  ]) {
+    test(`${p.name}（${p.path}，${theme}）无严重无障碍问题`, async ({ browser }) => {
+      const { context, page } = await loggedIn(browser, 'demo_operator', { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
       await context.addInitScript((t) => localStorage.setItem('ls-theme', t), theme);
       await page.goto(p.path);
       await page.waitForLoadState('networkidle');

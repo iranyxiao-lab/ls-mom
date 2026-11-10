@@ -195,7 +195,7 @@ function onDate(e: Event) {
   border: 1px solid var(--ls-color-border, #dcdfe6);
   border-radius: 8px;
   padding: 0 10px;
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   color: inherit;
 }
 .m-chips {
@@ -209,13 +209,13 @@ function onDate(e: Event) {
   padding: 0 14px;
   border-radius: 22px;
   border: 1px solid var(--ls-color-border, #dcdfe6);
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   color: inherit;
   font-size: 15px;
 }
 .m-chip.is-on {
   border-color: var(--ls-color-primary, #1677ff);
   background: var(--ls-color-primary, #1677ff);
-  color: #fff;
+  color: var(--ls-color-on-solid);
 }
 </style>

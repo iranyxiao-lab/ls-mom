@@ -63,8 +63,8 @@ function stop() {
   min-height: 44px;
   border: 1px solid var(--ls-color-border, #dcdfe6);
   border-radius: 22px;
-  background: var(--ls-color-surface, #fff);
-  color: var(--ls-color-primary, #1677ff);
+  background: var(--ls-color-bg-elevated);
+  color: var(--ls-color-primary-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -75,7 +75,7 @@ function stop() {
 }
 .m-voice.is-on {
   background: var(--ls-color-primary, #1677ff);
-  color: #fff;
+  color: var(--ls-color-on-solid);
 }
 .m-voice__tip {
   font-size: 13px;

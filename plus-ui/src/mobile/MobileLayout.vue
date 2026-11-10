@@ -80,7 +80,7 @@ onBeforeUnmount(() => unwatch?.());
   --m-tab-h: 56px;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--ls-color-bg, #f5f6f8);
+  background: var(--ls-color-bg-page);
   color: var(--ls-color-text, #1f2329);
   font-size: 16px;
   padding-bottom: calc(var(--m-tab-h) + env(safe-area-inset-bottom));
@@ -101,7 +101,7 @@ onBeforeUnmount(() => unwatch?.());
   gap: 8px;
   height: 52px;
   padding: 0 12px;
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   border-bottom: 1px solid var(--ls-color-border, #e5e6eb);
 }
 .m-bar__title {
@@ -126,15 +126,15 @@ onBeforeUnmount(() => unwatch?.());
   align-items: center;
   padding: 0 12px;
   border-radius: 22px;
-  background: var(--ls-color-warning-bg, #fff7e6);
+  background: var(--ls-color-warning-soft);
   color: var(--ls-color-warning, #d46b08);
   font-size: 14px;
   text-decoration: none;
 }
 .m-offline {
   padding: 8px 12px;
-  background: #fff7e6;
-  color: #ad4e00;
+  background: var(--ls-color-warning-soft);
+  color: var(--ls-color-warning);
   font-size: 14px;
 }
 .m-main {
@@ -149,7 +149,7 @@ onBeforeUnmount(() => unwatch?.());
   display: flex;
   height: calc(var(--m-tab-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   border-top: 1px solid var(--ls-color-border, #e5e6eb);
 }
 .m-tab {
@@ -170,10 +170,10 @@ onBeforeUnmount(() => unwatch?.());
   line-height: 1;
 }
 .m-tab.is-on {
-  color: var(--ls-color-primary, #1677ff);
+  color: var(--ls-color-primary-text);
 }
 .m-tab--scan span {
-  color: var(--ls-color-primary, #1677ff);
+  color: var(--ls-color-primary-text);
 }
 /* 页面底部固定的主操作区（在导航栏之上） */
 .m-actions {
@@ -185,7 +185,7 @@ onBeforeUnmount(() => unwatch?.());
   display: flex;
   gap: 12px;
   padding: 10px 12px;
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   border-top: 1px solid var(--ls-color-border, #e5e6eb);
 }
 .m-actions .m-btn {
@@ -198,7 +198,7 @@ onBeforeUnmount(() => unwatch?.());
   min-height: 48px;
   border-radius: 10px;
   border: 1px solid var(--ls-color-border, #dcdfe6);
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   color: inherit;
   font-size: 16px;
   padding: 0 16px;
@@ -206,7 +206,7 @@ onBeforeUnmount(() => unwatch?.());
 .m-btn--primary {
   background: var(--ls-color-primary, #1677ff);
   border-color: var(--ls-color-primary, #1677ff);
-  color: #fff;
+  color: var(--ls-color-on-solid);
   font-weight: 600;
 }
 .m-btn--danger-text {
@@ -219,7 +219,7 @@ onBeforeUnmount(() => unwatch?.());
   opacity: 0.6;
 }
 .m-card {
-  background: var(--ls-color-surface, #fff);
+  background: var(--ls-color-bg-elevated);
   border-radius: 12px;
   padding: 12px;
   margin-bottom: 12px;
@@ -253,11 +253,11 @@ onBeforeUnmount(() => unwatch?.());
   background: var(--ls-color-fill, #f2f3f5);
 }
 .m-tag--warn {
-  background: #fff7e6;
-  color: #d46b08;
+  background: var(--ls-color-warning-soft);
+  color: var(--ls-color-warning);
 }
 .m-tag--danger {
-  background: #ffece8;
-  color: #cb2634;
+  background: var(--ls-color-danger-soft);
+  color: var(--ls-color-danger);
 }
 </style>
