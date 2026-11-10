@@ -33,13 +33,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * 14.3：packs/examples/acme-toolloan 只用配置（YAML/JSON，无 Java）交付"工器具借还"台账：
  * 主子表、设备/人员引用、附件、条件必填（表单规则与提交规则）、提交 → 部门审核 → 退回 → 修改后再提交 → 设备员确认归档；
- * 发布后修改布局生成 v2，按 v1 保存的记录仍冻结在 v1（FORM-07）。
+ * 发布后修改布局生成 v2，按 v1 保存的记录仍冻结在 v1（FORM-07）。业务数据来自切片 D 黄金场景数据集 {@code golden/slice-d.yaml}。
  */
 class ToolLoanConfigPackTest {
 
     private static final Path EXAMPLE = Path.of("../../..").toAbsolutePath().normalize().resolve("packs/examples/acme-toolloan");
 
     final PackFixture f = new PackFixture();
+    /** 切片 D 黄金场景数据集。 */
+    final JsonNode ds = load();
+
+    private static JsonNode load() {
+        try (java.io.InputStream in = new org.springframework.core.io.ClassPathResource("golden/slice-d.yaml").getInputStream()) {
+            return new com.fasterxml.jackson.dataformat.yaml.YAMLMapper().readTree(in);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     ToolLoanConfigPackTest() {
         f.installer.install(AssetPackTest.source(f), null);
@@ -78,23 +88,24 @@ class ToolLoanConfigPackTest {
         ActorContext lead = f.flow.actor(leader, "acme:toolloan:flow", perm(order, "query"));
         ActorContext keep = f.flow.actor(keeper, "acme:toolloan:flow", perm(order, "query"));
         String assetCode = PgTestSupport.uniq("WM");
+        JsonNode a = ds.get("asset");
         long asset = ((Number) f.crud.crud.create(AssetPack.ASSET, json("""
-            {"assetCode":"%s","name":"焊机","assetType":"STATION","orgId":%d}""".formatted(assetCode, dept.id())),
-            ActionFixture.admin(), null).get("id")).longValue();
+            {"assetCode":"%s","name":"%s","assetType":"%s","orgId":%d}""".formatted(assetCode, a.get("name").asText(), a.get("type").asText(),
+            dept.id())), ActionFixture.admin(), null).get("id")).longValue();
 
         // 条件必填：外协用途不填外协单位，通用保存即被表单规则拦下
-        ObjectNode body = (ObjectNode) json("""
-            {"loanNo":"T-1","borrower":%d,"loanDate":"2026-11-10","purpose":"OUTSOURCE","asset":%d,"orgId":%d,
-             "attachments":[{"ossId":"1","name":"委托书.pdf"}],"loanLine":[{"tool":"扭力扳手","spec":"20-100N·m","qty":2}],
-             "_form":{"code":"%s","version":1}}""".formatted(applicant.id(), asset, dept.id(), form));
+        ObjectNode body = ds.get("loan").deepCopy();
+        String outsourceUnit = body.remove("outsourceUnit").asText();
+        body.put("borrower", applicant.id()).put("asset", asset).put("orgId", dept.id());
+        body.putObject("_form").put("code", form).put("version", 1);
         ActorContext creator = app;
         assertThatThrownBy(() -> f.crud.crud.create(order, body, creator, null))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getMessage()).contains("外协单位"));
-        body.put("outsourceUnit", "华东检测站");
+        body.put("outsourceUnit", outsourceUnit);
         String id = String.valueOf(f.crud.crud.create(order, body, app, null).get("id"));
         Map<String, Object> rec = f.crud.crud.get(order, Long.parseLong(id), app);
-        assertThat(rec.get("schemaVersion")).hasToString("1");
-        assertThat(((java.util.List<?>) rec.get("loanLine"))).hasSize(1);
+        assertThat(rec.get("schemaVersion")).hasToString(ds.get("expect").get("formVersionBefore").asText());
+        assertThat(((java.util.List<?>) rec.get("loanLine"))).hasSize(ds.get("loan").get("loanLine").size());
         // 列表筛选（按设备引用）并展开设备、人员引用
         var page = f.crud.crud.list(order, new com.lsmom.crud.query.QuerySpec(
             java.util.List.of(new com.lsmom.crud.query.QuerySpec.Filter("asset", "eq", asset)), java.util.List.of(), 1, 20,
@@ -102,7 +113,7 @@ class ToolLoanConfigPackTest {
         assertThat(page.rows()).singleElement().satisfies(row -> {
             assertThat(((Map<?, ?>) row.get("assetRef")).get("label")).isEqualTo(assetCode);
             assertThat(((Map<?, ?>) row.get("borrowerRef")).get("label")).isEqualTo("郑师傅");
-            assertThat(String.valueOf(row.get("attachments"))).contains("委托书.pdf");
+            assertThat(String.valueOf(row.get("attachments"))).contains(ds.get("loan").get("attachments").get(0).get("name").asText());
         });
 
         // 导入预检与通用新增同一套表单校验：外协缺外协单位被拒；主表行不要求明细行数，并冻结表单版本
@@ -119,25 +130,27 @@ class ToolLoanConfigPackTest {
         f.action.on(order + ".submit", app, id, version(order, id), "{}");
         FlowInstances.Instance inst = f.flow.instances.ofBiz(order, id).get(0);
         Task audit = f.flow.task(inst.procInstId(), "deptAudit");
-        f.flow.runtime.returnTask(audit.getId(), null, "请补充预计归还日期", lead);
+        JsonNode ap = ds.get("approval");
+        f.flow.runtime.returnTask(audit.getId(), null, ap.get("returnReason").asText(), lead);
         assertThat(status(order, id)).isEqualTo("RETURNED");
         Task back = f.flow.task(inst.procInstId(), "initiator");
         ActorContext a2 = app;
-        assertThatThrownBy(() -> f.flow.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "改单号", json("{\"loanNo\":\"T-9\"}"), a2))
+        assertThatThrownBy(() -> f.flow.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "改单号", ap.get("forbiddenEdit"), a2))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getCode()).isEqualTo("FIELD_READONLY"));
-        f.flow.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "已补充", json("{\"returnDue\":\"2026-11-20\"}"), app);
+        f.flow.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "已补充", ap.get("resubmitEdit"), app);
         assertThat(status(order, id)).isEqualTo("IN_REVIEW");
-        assertThat(f.action.stores.of(order).attributes(id).get("returnDue")).hasToString("2026-11-20");
+        assertThat(f.action.stores.of(order).attributes(id).get("returnDue")).hasToString(ap.get("resubmitEdit").get("returnDue").asText());
 
         // 部门审核必须填审核意见 → 设备员确认归档
         Task audit2 = f.flow.task(inst.procInstId(), "deptAudit");
         assertThatThrownBy(() -> f.flow.runtime.complete(audit2.getId(), FlowRuntime.Action.APPROVE, "同意", json("{}"), lead))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getCode()).isEqualTo("VALIDATION_FAILED"));
-        f.flow.runtime.complete(audit2.getId(), FlowRuntime.Action.APPROVE, "同意", json("{\"auditNote\":\"同意外协借用\"}"), lead);
+        String auditNote = ap.get("auditNote").asText();
+        f.flow.runtime.complete(audit2.getId(), FlowRuntime.Action.APPROVE, "同意", json("{\"auditNote\":\"" + auditNote + "\"}"), lead);
         Task confirm = f.flow.task(inst.procInstId(), "confirm");
-        f.flow.runtime.complete(confirm.getId(), FlowRuntime.Action.APPROVE, "已核对", null, keep);
-        assertThat(status(order, id)).isEqualTo("ARCHIVED");
-        assertThat(f.action.stores.of(order).attributes(id).get("auditNote")).isEqualTo("同意外协借用");
+        f.flow.runtime.complete(confirm.getId(), FlowRuntime.Action.APPROVE, ap.get("confirmComment").asText(), null, keep);
+        assertThat(status(order, id)).isEqualTo(ds.get("expect").get("finalStatus").asText());
+        assertThat(f.action.stores.of(order).attributes(id).get("auditNote")).isEqualTo(auditNote);
 
         // 已归档记录不能通用编辑
         assertThatThrownBy(() -> f.crud.crud.update(order, Long.parseLong(id), version(order, id), json("{\"remark\":\"改\"}"), creator, null))
@@ -150,7 +163,7 @@ class ToolLoanConfigPackTest {
         layout.insert(0, json("{\"type\":\"text\",\"text\":\"借用前请核对工器具编号\"}"));
         f.form.forms.saveDraft(s2, 1L, "调整布局");
         assertThat(f.form.forms.publish(form, v2.version(), 1L).status()).isEqualTo("APPLIED");
-        assertThat(v2.version()).isEqualTo(2);
+        assertThat(v2.version()).isEqualTo(ds.get("expect").get("formVersionAfter").asInt());
         assertThat(f.crud.crud.get(order, Long.parseLong(id), app).get("schemaVersion")).hasToString("1");
         JsonNode v1 = f.form.forms.get(form, 1).schema();
         assertThat(v1.get("layout").get(0).path("key").asText()).isEqualTo("loanNo");

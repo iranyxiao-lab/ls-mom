@@ -1,0 +1,33 @@
+# 切片 B 黄金场景数据集：设备点检 → 异常 → 缺陷 → 维修 → 验证关闭（含验证不通过返修、验证人分离）。
+# 由 SliceBGoldenScenariosTest 加载。
+name: 切片 B：设备点检与维修闭环
+people:
+  - { key: keeper, name: 王工, org: workshop }        # 设备员：登记设备、建计划、派维修
+  - { key: inspector, name: 郑师傅, org: teamA }     # 点检员
+  - { key: fitter, name: 钱师傅, org: teamA }        # 维修工
+  - { key: verifier, name: 周主任, org: workshop }   # 验证人
+asset: { code: P-101, name: P-101 循环泵, type: PUMP, location: A 线 }
+plan:
+  name: P-101 日检
+  cycle: DAILY
+  responsible: inspector
+  items:
+    - { itemCode: TEMP, name: 轴承温度, valueType: NUMBER, unit: ℃, upperLimit: 70, standard: ≤70℃ }
+    - { itemCode: VIB, name: 振动值, valueType: NUMBER, unit: mm/s, upperLimit: 4.5, standard: ≤4.5mm/s }
+    - { itemCode: LEAK, name: 机封泄漏, valueType: CHECK, standard: 无滴漏 }
+readings:
+  - { itemCode: TEMP, valueNum: 82 }
+  - { itemCode: VIB, valueNum: 3.1 }
+  - { itemCode: LEAK, outcome: OK }
+repairs:
+  - { assignee: fitter, checklist: [更换轴承, 复测温度] }
+  - { assignee: fitter, titles: [补加润滑脂] }         # 第一次验证不通过后的返修
+verify:
+  fail: { by: verifier, conclusion: 温度仍 76℃ }
+  pass: { by: verifier, conclusion: 轴承温度降至 58℃ }
+expect:
+  abnormal: [TEMP]
+  observations: 3
+  badObservations: 1
+  timelineKinds: [STATUS, INSPECTION, OBSERVATION, DEFECT, REPAIR, VERIFY]
+  repairWorks: 2

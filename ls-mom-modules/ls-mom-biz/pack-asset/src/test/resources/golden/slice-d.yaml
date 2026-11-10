@@ -1,0 +1,21 @@
+# 切片 D 黄金场景数据集：只用配置交付的工器具借还台账（引用设备与人员）。
+# 由 ToolLoanConfigPackTest 加载，配置包为 packs/examples/acme-toolloan。
+name: 切片 D：工器具借还台账（配置交付）
+asset: { name: 焊机, type: STATION }
+loan:
+  loanNo: T-1
+  loanDate: "2026-11-10"
+  purpose: OUTSOURCE
+  outsourceUnit: 华东检测站          # 外协用途的条件必填字段：先不填，被表单规则拦下
+  attachments: [{ ossId: "1", name: 委托书.pdf }]
+  loanLine: [{ tool: 扭力扳手, spec: 20-100N·m, qty: 2 }]
+approval:
+  returnReason: 请补充预计归还日期
+  forbiddenEdit: { loanNo: T-9 }      # 退回后发起人不能改单号
+  resubmitEdit: { returnDue: "2026-11-20" }
+  auditNote: 同意外协借用
+  confirmComment: 已核对
+expect:
+  finalStatus: ARCHIVED
+  formVersionBefore: 1
+  formVersionAfter: 2

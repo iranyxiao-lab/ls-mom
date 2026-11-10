@@ -1,0 +1,24 @@
+# 切片 C 黄金场景数据集：质量记录（可独立、可多对象关联）与不符合项受控整改闭环。
+# 由 SliceCGoldenScenariosTest 加载。
+name: 切片 C：质量记录与不符合项整改
+people:
+  - { key: qa, name: 冯工, org: workshop }          # 质检员：登记、终判
+  - { key: leader, name: 周主任, org: workshop }    # 车间主任：审核
+  - { key: owner, name: 吴班长, org: teamA }        # 整改负责人（班组数据域）
+records:
+  - { title: 来料抽检, recordType: SAMPLING, result: PASS, links: [] }
+  - { title: 焊缝外观检验, recordType: INSPECTION, result: FAIL, links: [WORK, ASSET] }
+highSeverity:
+  # 高严重度缺设备与立即措施：保存即被拒，两个字段都标出
+  nc: { title: 焊缝气孔, description: 抽检发现焊缝气孔, severity: HIGH }
+  missing: [asset, immediateAction]
+controlled:
+  nc: { title: 尺寸超差, description: 轴径 50.08，公差 ±0.05, severity: MEDIUM }
+  audit: { by: leader, auditOpinion: 同意整改，先隔离, immediateAction: 隔离 3 件, owner: owner, titles: [调整刀补并复检] }
+  evidence: { code: SHAFT_DIA, value: 50.01, unit: mm }
+  verifyFail: { by: qa, conclusion: 复检 2 件仍超差 }
+  close: { by: qa, conclusion: 复检 5 件合格 }
+expect:
+  rectificationType: IMPROVEMENT
+  issueType: NONCONFORMITY
+  agentRejected: [close, verifyFail]
