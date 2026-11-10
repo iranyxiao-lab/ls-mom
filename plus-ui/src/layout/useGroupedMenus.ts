@@ -47,3 +47,30 @@ function withFavorites(menus: RouteRecordRaw[], favorites: { path: string; title
   const at = menus.findIndex((r) => r.path.startsWith('/menu-group/'));
   return at < 0 ? [...menus, fav] : [...menus.slice(0, at), fav, ...menus.slice(at)];
 }
+
+export interface MenuLeaf {
+  path: string;
+  title: string;
+  /** 所在分组与模块，例如"台账 / 设备" */
+  trail: string;
+  icon?: string;
+}
+
+const joinPath = (base: string, p: string) => (p.startsWith('/') ? p : `${base.replace(/\/$/, '')}/${p}`).replace(/\/+/g, '/');
+
+/** 分组菜单里的全部页面（不含收藏分组里的重复项、外链）。命令面板、首页卡片用来判断用户能打开哪些页面。 */
+export function menuLeaves(grouped: RouteRecordRaw[]): MenuLeaf[] {
+  const out: MenuLeaf[] = [];
+  const walk = (rs: RouteRecordRaw[], base: string, trail: string[]) => {
+    for (const r of rs) {
+      if ((r as any).hidden || r.path === FAVORITES_GROUP) continue;
+      const full = joinPath(base, r.path);
+      const title = r.meta?.title as string | undefined;
+      const kids = (r.children ?? []).filter((c) => !(c as any).hidden);
+      if (kids.length) walk(kids, r.path.startsWith('/menu-group') ? '' : full, title ? [...trail, title] : trail);
+      else if (title && !/^https?:/.test(r.path)) out.push({ path: full, title, trail: trail.join(' / '), icon: r.meta?.icon as string });
+    }
+  };
+  walk(grouped, '', []);
+  return out;
+}

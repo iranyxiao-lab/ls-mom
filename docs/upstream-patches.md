@@ -55,6 +55,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 38 | `plus-ui/src/permission.ts`、`plus-ui/src/store/modules/user.ts`、`plus-ui/src/layout/components/Settings/index.vue`、`plus-ui/src/layout/components/Navbar.vue`、`plus-ui/src/router/index.ts` | 登录后先读取服务端偏好（主题、密度、布局、页签、快捷键提示、收藏与最近访问）再进入页面；退出登录清掉本机的收藏与最近访问；布局设置抽屉跟随偏好中心的修改；用户菜单增加「偏好设置」（`/user/prefs`） | 偏好中心 | UI 3.6 |
 | 39 | `plus-ui/src/layout/components/Navbar.vue` | 顶栏消息弹框（上游 `notice/index.vue`，保留未用）换为通知抽屉 `NotificationDrawer`：按待办提醒／系统消息／@我分组、未读数、点通知直达对象、抽屉内完成简单确认；SSE 推送的公告归入系统消息 | 通知抽屉 | UI 3.7 |
 | 40 | `plus-ui/src/views/error/404.vue`、`plus-ui/src/router/index.ts`、`plus-ui/src/permission.ts`、`plus-ui/src/utils/request.ts`、`plus-ui/src/layout/index.vue` | 404 页改为先查地址是否为系统页面：是则显示缺少的权限并可申请（403），否则显示找不到页面；新增 `/500`、`/offline`（随主包加载、免登录）；页面资源加载失败时跳到断网页或出错页；错误提示附追踪编号；顶部断网提示 | 错误页 | UI 3.8 |
+| 41 | `plus-ui/src/views/index.vue`、`plus-ui/src/views/lsmom/workbench/WorkCenter.vue` | 上游演示首页改为注册式卡片首页（角色默认布局、个人调整与恢复默认）；工作中心支持 `?task=` 直接打开任务 | 首页卡片 | UI 3.9 |
 
 ## 生产前必须替换的上游密钥
 

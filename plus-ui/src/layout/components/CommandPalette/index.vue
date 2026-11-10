@@ -78,12 +78,12 @@
  * 空输入时显示收藏和最近访问。编号完全一致的对象排在首位，回车直接打开详情。
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useRouter, type RouteRecordRaw } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { Star, StarFilled } from '@element-plus/icons-vue';
 import { usePermissionStore } from '@/store/modules/permission';
 import { useUserStore } from '@/store/modules/user';
 import { useNavHistoryStore, type NavEntry } from '@/store/modules/navHistory';
-import { FAVORITES_GROUP, useGroupedMenus } from '@/layout/useGroupedMenus';
+import { menuLeaves, useGroupedMenus } from '@/layout/useGroupedMenus';
 import { availableCommands, type Command } from '@/layout/commands';
 import { registerBuiltinCommands } from '@/layout/builtinCommands';
 import { loadPinyin, rankBy } from '@/utils/pinyinMatch';
@@ -119,24 +119,8 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
 
 registerBuiltinCommands();
 
-const join = (base: string, p: string) => (p.startsWith('/') ? p : `${base.replace(/\/$/, '')}/${p}`).replace(/\/+/g, '/');
 /** 菜单叶子页面：完整路径与"分组 / 模块"路径。 */
-const menus = computed(() => {
-  const out: { path: string; title: string; trail: string; icon?: string }[] = [];
-  const walk = (rs: RouteRecordRaw[], base: string, trail: string[]) => {
-    for (const r of rs) {
-      // 收藏分组里的页面在各自的分组中已经有了
-      if ((r as any).hidden || r.path === FAVORITES_GROUP) continue;
-      const full = join(base, r.path);
-      const title = r.meta?.title as string | undefined;
-      const kids = (r.children ?? []).filter((c) => !(c as any).hidden);
-      if (kids.length) walk(kids, r.path.startsWith('/menu-group') ? '' : full, title ? [...trail, title] : trail);
-      else if (title && !/^https?:/.test(r.path)) out.push({ path: full, title, trail: trail.join(' / '), icon: r.meta?.icon as string });
-    }
-  };
-  walk(grouped.value, '', []);
-  return out;
-});
+const menus = computed(() => menuLeaves(grouped.value));
 const menuTitle = (path: string) => menus.value.find((m) => m.path === path);
 
 const objectSub = (h: SearchHit) =>

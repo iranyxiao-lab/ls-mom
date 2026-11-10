@@ -1,0 +1,38 @@
+.hc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ls-space-2);
+  min-height: 36px;
+  padding: 0 var(--ls-space-1);
+  border-radius: var(--ls-radius-md, 6px);
+  color: inherit;
+}
+.hc-row:hover {
+  background: var(--el-fill-color-light);
+}
+.hc-code {
+  flex: none;
+  font-family: var(--ls-font-mono, monospace);
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.hc-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hc-sub {
+  flex: none;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+.hc-overdue {
+  color: var(--el-color-danger);
+}

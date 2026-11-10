@@ -168,6 +168,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import type { WorkbenchApi, WorkFilter, WorkItem } from '@/api/lsmom/workbench';
 import TaskPanel, { type TaskActionsApi } from './TaskPanel.vue';
@@ -247,6 +248,8 @@ async function load() {
   }
 }
 
+const route = useRoute();
+
 async function openTask(taskId: string, row?: WorkItem) {
   if (row?.task.kind === 'CC' && row.task.status === 'TODO' && props.actions.readCc) {
     await props.actions.readCc(row.task.id);
@@ -267,7 +270,12 @@ async function readAll() {
   await load();
 }
 
-onMounted(load);
+onMounted(async () => {
+  await load();
+  // ?task=<待办 id>：首页卡片、通知等入口直接打开该待办
+  const task = route?.query?.task;
+  if (typeof task === 'string' && task) panel.value?.open(task);
+});
 defineExpose({ load, tab, items, counts, panel });
 </script>
 

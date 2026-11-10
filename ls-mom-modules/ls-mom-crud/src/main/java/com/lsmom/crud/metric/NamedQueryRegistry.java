@@ -40,6 +40,8 @@ public class NamedQueryRegistry {
 
     private static final Logger log = LoggerFactory.getLogger(NamedQueryRegistry.class);
     public static final Pattern CODE = MetricRegistry.CODE;
+    /** 调用者本人占位（替换为调用者的 Party id）。 */
+    public static final String ACTOR = "{{actor}}";
     private static final Pattern SCOPE = Pattern.compile("\\{\\{scope:([a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*)(?:\\|([a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*))?}}");
     private static final Pattern FORBIDDEN = Pattern.compile("(?is)(;|\\b(insert|update|delete|merge|drop|alter|create|truncate|grant|revoke|copy|call|do)\\b|pg_read|lo_import|dblink)");
     public static final int MAX_ROWS = 1000;
@@ -103,7 +105,7 @@ public class NamedQueryRegistry {
         String sql = d.sql() == null ? "" : d.sql().trim();
         String lower = sql.toLowerCase();
         if (!(lower.startsWith("select") || lower.startsWith("with"))) p.add("只能是 select / with 查询");
-        String scrubbed = SCOPE.matcher(sql).replaceAll("true").replaceAll("'[^']*'", "''");
+        String scrubbed = SCOPE.matcher(sql).replaceAll("true").replace(ACTOR, "0").replaceAll("'[^']*'", "''");
         if (FORBIDDEN.matcher(scrubbed).find()) p.add("语句含写操作、多语句或危险函数");
         if (!SCOPE.matcher(sql).find()) p.add("缺少数据域占位 {{scope:别名.组织列}}");
         JsonNode schema = null;
@@ -124,7 +126,7 @@ public class NamedQueryRegistry {
                 continue;
             }
             try {
-                Bound b = bind(d, schema, params, DataScope.unrestricted());
+                Bound b = bind(d, schema, params, DataScope.unrestricted(), null);
                 readTx.execute(st -> named.queryForList("explain " + b.sql(), b.params()));
             } catch (DataAccessException e) {
                 p.add("样例无法执行：" + rootMessage(e));
@@ -142,7 +144,7 @@ public class NamedQueryRegistry {
         }
         JsonNode p = params == null || params.isNull() ? JSON.createObjectNode() : params;
         validator.validate(r.schema(), p);
-        Bound b = bind(d, r.schema(), p, actor.dataScope());
+        Bound b = bind(d, r.schema(), p, actor.dataScope(), actor.effectiveParty());
         try {
             return readTx.execute(st -> {
                 jdbc.execute("set local statement_timeout = " + d.timeoutMs());
@@ -195,8 +197,10 @@ public class NamedQueryRegistry {
     }
 
     /** 参数按 Schema 声明的类型转换后绑定；数据域占位替换为条件（参数名带双下划线前缀，不与业务参数冲突）。 */
-    private static Bound bind(NamedQueryDef d, JsonNode schema, JsonNode params, DataScope scope) {
+    private static Bound bind(NamedQueryDef d, JsonNode schema, JsonNode params, DataScope scope, Long actorParty) {
         MapSqlParameterSource ps = new MapSqlParameterSource();
+        // {{actor}}：调用者本人（Party id），用于"我的待办"等只看本人的查询
+        ps.addValue("__actor", actorParty);
         JsonNode props = schema.path("properties");
         for (Iterator<String> it = props.fieldNames(); it.hasNext(); ) {
             String k = it.next();
@@ -226,7 +230,7 @@ public class NamedQueryRegistry {
             i++;
         }
         m.appendTail(sb);
-        return new Bound(sb.toString(), ps);
+        return new Bound(sb.toString().replace(ACTOR, "cast(:__actor as bigint)"), ps);
     }
 
     private static Object convert(JsonNode prop, JsonNode v) {
