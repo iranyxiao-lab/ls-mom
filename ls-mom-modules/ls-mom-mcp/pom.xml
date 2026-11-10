@@ -11,13 +11,32 @@
 
     <artifactId>ls-mom-mcp</artifactId>
 
-    <description>MCP 适配器（只依赖 Operation）</description>
+    <description>MCP 适配器（经 Agent 门面只调用白名单 Operation）</description>
 
     <dependencies>
         <dependency>
             <groupId>com.lsmom</groupId>
             <artifactId>ls-mom-action</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-ai</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-action</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

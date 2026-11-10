@@ -35,8 +35,10 @@ public class LsBizExceptionHandler {
     static int status(String code) {
         return switch (code) {
             case "VALIDATION_FAILED", "TARGET_REQUIRED", "QUERY_REJECTED" -> 400;
-            case "UNAUTHENTICATED" -> 401;
-            case "ACCESS_DENIED" -> 403;
+            case "UNAUTHENTICATED", "AGENT_KEY_INVALID", "AGENT_KEY_EXPIRED", "AGENT_KEY_REVOKED", "AGENT_DISABLED" -> 401;
+            case "ACCESS_DENIED", "AGENT_TOOL_DENIED", "AGENT_SIMULATE_ONLY", "AGENT_APPROVAL_REQUIRED", "AGENT_APPROVAL_INVALID",
+                 "AGENT_APPROVAL_MISMATCH", "AGENT_APPROVAL_USED", "AGENT_APPROVAL_EXPIRED", "AGENT_OBO_REQUIRED" -> 403;
+            case "AGENT_RATE_LIMITED" -> 429;
             case "NOT_FOUND", "OPERATION_NOT_FOUND", "CONCEPT_NOT_FOUND" -> 404;
             case "VERSION_CONFLICT", "CONCURRENT_MODIFICATION", "IDEMPOTENCY_CONFLICT", "FORM_VERSION_IMMUTABLE" -> 409;
             default -> 422;

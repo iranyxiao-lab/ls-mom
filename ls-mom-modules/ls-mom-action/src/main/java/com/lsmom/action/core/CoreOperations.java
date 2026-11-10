@@ -74,6 +74,44 @@ public final class CoreOperations {
         }
     }
 
+    /** 按调用者数据域查询工作（只读）；指定数据域以外的组织直接拒绝。 */
+    @Component
+    @LsOperation(code = "ls.core.Work.find", concept = "ls.core.Work", name = "查询工作", risk = Risk.C0, exposure = Exposure.QUERY,
+        permission = "lsmom:work:execute", inputSchema = """
+        {"type":"object","properties":{"orgUnitId":{"type":"integer"},
+          "status":{"enum":["DRAFT","READY","ASSIGNED","IN_PROGRESS","PENDING_CONFIRM","DONE","BLOCKED","CANCELLED"]},
+          "keyword":{"type":"string","maxLength":100},"limit":{"type":"integer","minimum":1,"maximum":100}}}""")
+    public static class FindWork implements OperationHandler {
+        private final WorkItemService works;
+
+        public FindWork(WorkItemService works) {
+            this.works = works;
+        }
+
+        @Override
+        public Object handle(OperationContext ctx) {
+            JsonNode in = ctx.input();
+            Long org = lng(in, "orgUnitId");
+            var scope = ctx.actor().dataScope();
+            if (org != null && !scope.all() && !scope.allowsOrg(org)) {
+                throw new com.lsmom.core.error.LsBizException("ACCESS_DENIED", "无权查看该组织的工作", Map.of("orgUnitId", org));
+            }
+            List<WorkItem> list = works.list(new WorkItemService.WorkQuery(null,
+                in.hasNonNull("status") ? com.lsmom.core.work.WorkStatus.valueOf(str(in, "status")) : null,
+                in.hasNonNull("keyword") ? str(in, "keyword") : null, org, 1, in.hasNonNull("limit") ? in.get("limit").asInt() : 20), scope);
+            return Map.of("total", list.size(), "rows", list.stream().map(w -> {
+                Map<String, Object> m = new java.util.LinkedHashMap<>();
+                m.put("id", w.id());
+                m.put("code", w.code());
+                m.put("title", w.title());
+                m.put("status", w.status().name());
+                m.put("orgUnitId", w.orgUnitId());
+                m.put("plannedEnd", w.plannedEnd());
+                return m;
+            }).toList());
+        }
+    }
+
     @Component
     @LsOperation(code = "ls.core.Work.split", concept = "ls.core.Work", name = "拆分工作", risk = Risk.C1,
         permission = "lsmom:work:edit", requiresVersion = true, inputSchema = """
@@ -221,7 +259,7 @@ public final class CoreOperations {
 
     @Component
     @LsOperation(code = "ls.core.Issue.createRectification", concept = "ls.core.Issue", name = "生成整改工作", risk = Risk.C1,
-        permission = "lsmom:issue:handle", inputSchema = """
+        exposure = Exposure.APPROVAL_REQUIRED, version = 2, permission = "lsmom:issue:handle", inputSchema = """
         {"type":"object","required":["titles"],"properties":{"titles":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}}}""")
     public static class CreateRectification implements OperationHandler {
         private final IssueService issues;

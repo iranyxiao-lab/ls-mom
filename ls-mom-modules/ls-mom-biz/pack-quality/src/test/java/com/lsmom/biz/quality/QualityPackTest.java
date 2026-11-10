@@ -208,13 +208,13 @@ class QualityPackTest {
         step(NC + ".submitVerify", fixer, NC, nc, "{}");
         assertThat(f.action.issues.get(issue.id()).status()).isEqualTo(IssueStatus.PENDING_VERIFY);
 
-        // Agent 代质检员终判：被拒并审计
+        // Agent 代质检员终判：网关的永不暴露清单（质量终判）先拒绝并审计；规则层的"仅限真人"守卫作为第二道防线
         ActorContext agent = agentFor(qa);
         assertThatThrownBy(() -> step(NC + ".close", agent, NC, nc, "{\"conclusion\":\"复检合格\"}"))
-            .satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("GUARD_FAILED"))
-            .satisfies(e -> assertThat(e.getMessage()).contains("真人"));
+            .satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("AGENT_TOOL_DENIED"))
+            .satisfies(e -> assertThat(e.getMessage()).contains("质量终判").contains("真人"));
         assertThatThrownBy(() -> step(NC + ".verifyFail", agent, NC, nc, "{\"conclusion\":\"不行\"}"))
-            .satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("GUARD_FAILED"));
+            .satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("AGENT_TOOL_DENIED"));
         assertThat(f.action.count("select count(*) from op_audit where op_code = ? and target_id = ? and result = 'FAILED' and actor_type = 'AGENT'",
             NC + ".close", String.valueOf(nc))).isEqualTo(1);
         assertThat(records.row(NC, nc).get("status")).isEqualTo("PENDING_VERIFY");

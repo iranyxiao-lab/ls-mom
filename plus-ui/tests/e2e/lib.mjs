@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 export const BASE = process.env.LSMOM_E2E_BASE ?? 'http://127.0.0.1:18081';
 const env = fs.readFileSync(path.join(root, 'plus-ui/.env.production'), 'utf8');
-const CLIENT_ID = /^VITE_APP_CLIENT_ID\s*=\s*'([^']*)'/m.exec(env)[1];
-const API = /^VITE_APP_BASE_API\s*=\s*'([^']*)'/m.exec(env)[1];
+export const CLIENT_ID = /^VITE_APP_CLIENT_ID\s*=\s*'([^']*)'/m.exec(env)[1];
+export const API = /^VITE_APP_BASE_API\s*=\s*'([^']*)'/m.exec(env)[1];
 
 function seedPassword(user) {
   const row = fs

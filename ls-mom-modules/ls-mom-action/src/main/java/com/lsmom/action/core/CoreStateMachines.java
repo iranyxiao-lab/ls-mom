@@ -31,8 +31,18 @@ public final class CoreStateMachines {
     private static final String CONCLUSION = """
         {"type":"object","required":["conclusion"],"properties":{"conclusion":{"type":"string","minLength":1,"maxLength":1000}}}""";
 
+    /**
+     * Agent 暴露等级：推进类迁移只允许模拟（关闭前检查等）；确认、验证、驳回属于代审批 / 质量终判，永不暴露；
+     * 取消须真人逐次批准。
+     */
     private static Transition t(String op, String name, List<String> from, String to, String perm, String schema, List<String> guards) {
-        return new Transition(op, name, from, to, guards, perm, "C1", schema(schema), "DRAFT");
+        String last = op.substring(op.lastIndexOf('.') + 1);
+        String exposure = switch (last) {
+            case "confirm", "rejectConfirm", "verifyPass", "verifyFail", "reject" -> "DENY";
+            case "cancel" -> "APPROVAL_REQUIRED";
+            default -> "SIMULATE";
+        };
+        return new Transition(op, name, from, to, guards, perm, "C1", schema(schema), exposure);
     }
 
     public static StateMachineDefinition work() {

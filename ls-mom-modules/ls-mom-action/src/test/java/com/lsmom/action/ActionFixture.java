@@ -109,7 +109,8 @@ public class ActionFixture {
     public List<OperationHandler> handlers() {
         List<OperationHandler> list = new ArrayList<>(List.of(new CoreOperations.CreateWork(core.works), new CoreOperations.SplitWork(core.relations),
             new CoreOperations.LinkWork(core.relations), new CoreOperations.SaveReport(core.reports), new CoreOperations.SubmitReport(core.reports),
-            new CoreOperations.RaiseIssue(issues), new CoreOperations.CreateRectification(issues), new CoreOperations.AttachDocument(docs), new com.lsmom.action.core.ReprioritizeWork(core.works)));
+            new CoreOperations.RaiseIssue(issues), new CoreOperations.CreateRectification(issues), new CoreOperations.AttachDocument(docs), new com.lsmom.action.core.ReprioritizeWork(core.works),
+            new CoreOperations.FindWork(core.works)));
         list.addAll(TestOperations.all(core));
         list.addAll(extraHandlers.apply(this));
         return list;

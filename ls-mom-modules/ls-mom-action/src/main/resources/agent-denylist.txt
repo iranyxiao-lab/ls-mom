@@ -1,0 +1,45 @@
+# Agent 永不暴露清单（spec ai/agent-gateway「永不暴露的高风险行动」）。
+# 格式：<类别> <匹配>；匹配为 Operation 编码通配（* 匹配任意字符）、guard:<守卫编码> 或 perm:<权限点通配>。
+# 命中任一条的 Operation 无论声明何种暴露等级都不会出现在 Agent 工具清单中，调用一律拒绝并审计；
+# CI（scripts/ci/scan-agent-exposure.py）检查：命中本清单的 Operation 不得声明 DENY / NONE 以外的暴露等级。
+# docs/agent-boundary.md 的 DENY 清单须与本文件一致（由测试校验）。
+
+# 代审批：批准、驳回、审核、确认完成、验收、接班、发布、判分
+APPROVAL *.approve
+APPROVAL *.reject
+APPROVAL *.audit
+APPROVAL *.confirm
+APPROVAL *.rejectConfirm
+APPROVAL *.accept
+APPROVAL *.returnBack
+APPROVAL *.return
+APPROVAL *.publish
+APPROVAL *.gradeEssay
+
+# 双签
+DUAL_SIGN guard:ls.std.dualSign.exclusive
+DUAL_SIGN *.countersign
+
+# 质量终判：验证结论、不合格品关闭与处置判定
+QUALITY_FINAL *.verifyPass
+QUALITY_FINAL *.verifyFail
+QUALITY_FINAL ls.quality.*.close
+QUALITY_FINAL *.judge
+QUALITY_FINAL *.disposition
+
+# 通用删除
+GENERIC_DELETE *.delete
+GENERIC_DELETE *.remove
+GENERIC_DELETE perm:crud:*:remove
+
+# 任意方法调用
+ARBITRARY_INVOKE *.invoke
+ARBITRARY_INVOKE *.execute
+ARBITRARY_INVOKE *.script
+ARBITRARY_INVOKE *.sql
+
+# DCS 写入
+DCS_WRITE ls.dcs.*
+DCS_WRITE *.writeValue
+DCS_WRITE *.setpoint
+DCS_WRITE perm:ls:dcs:write*

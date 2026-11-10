@@ -62,6 +62,16 @@ public class OperationGateway {
     private final TransactionTemplate tx;
     private List<com.lsmom.action.api.OperationListener> listeners = List.of();
     private com.lsmom.meta.pack.PackGate packGate;
+    private AgentPolicy agentPolicy = AgentPolicy.standard();
+
+    public AgentPolicy agentPolicy() {
+        return agentPolicy;
+    }
+
+    /** 替换 Agent 禁用清单（测试用）。 */
+    public void setAgentPolicy(AgentPolicy agentPolicy) {
+        this.agentPolicy = agentPolicy;
+    }
 
     /** 所属 Pack 停用后其 Operation 不可执行（含 Agent 工具调用）。 */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -154,6 +164,8 @@ public class OperationGateway {
     }
 
     private OperationResult run(OperationDefinition op, OperationRequest req, ActorContext actor) {
+        // Agent：永不暴露清单与暴露等级先于一切检查
+        if (actor.type() == ActorContext.ActorType.AGENT) agentPolicy.check(op, req.simulate(), guardCodes(op), actor);
         if (!actor.hasPermission(op.permission())) {
             throw new LsBizException("ACCESS_DENIED", "没有执行「" + op.name() + "」的权限", Map.of("permission", op.permission()));
         }
@@ -239,6 +251,7 @@ public class OperationGateway {
                 actor.actorParty(), actor.onBehalfOf(), key + "#" + (++n), pe.payload()));
             eventIds.add(e.eventId().toString());
         }
+        agentPolicy.checkResult(op, ctx.targetStatus(), actor);
         OperationResult result = new OperationResult(op.code(), ctx.targetId(), ctx.targetVersion(), ctx.targetStatus(), data,
             List.copyOf(ctx.warnings()), eventIds, false, req.simulate());
         for (com.lsmom.action.api.OperationListener l : listeners) l.afterSuccess(ctx, result);
@@ -298,6 +311,22 @@ public class OperationGateway {
             else if (copy.get(f).isObject()) copy.set(f, mask(copy.get(f)));
         }
         return copy;
+    }
+
+    /** Operation 生效的全部守卫编码（声明的、状态机迁移的、规则挂接的）。 */
+    public List<String> guardCodes(OperationDefinition op) {
+        List<String> all = new ArrayList<>(op.guards());
+        if (op.kind() == OperationDefinition.Kind.TRANSITION) {
+            var t = machines.forConcept(op.concept()).transition(op.code());
+            if (t != null && t.guards() != null) t.guards().stream().filter(g -> !all.contains(g)).forEach(all::add);
+        }
+        guards.attachedFor(op.code()).stream().filter(g -> !all.contains(g)).forEach(all::add);
+        return all;
+    }
+
+    /** 输入摘要（审批绑定与幂等使用同一算法）。 */
+    public static String inputDigest(JsonNode input) {
+        return sha256(canonical(input == null ? JsonNodeFactory.instance.objectNode() : input));
     }
 
     static String canonical(JsonNode node) {

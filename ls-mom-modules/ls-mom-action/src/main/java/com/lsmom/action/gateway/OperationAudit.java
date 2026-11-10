@@ -27,14 +27,15 @@ public class OperationAudit {
     }
 
     public void write(Entry e) {
+        com.lsmom.action.api.AgentCall call = com.lsmom.action.api.AgentCall.current();
         jdbc.update("""
             insert into op_audit (op_code, actor_type, actor_user, actor_party, on_behalf_of, target_concept, target_id, data_version,
-              result, error_code, error_message, input_digest, input_summary, duration_ms, trace_id, idempotency_key)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+              result, error_code, error_message, input_digest, input_summary, duration_ms, trace_id, idempotency_key, batch_id, approval_id)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             e.opCode(), e.actor().type().name(), e.actor().userId(), e.actor().actorParty(), e.actor().onBehalfOf(),
             e.targetConcept(), e.targetId(), e.dataVersion(), e.result(), e.errorCode(), truncate(e.errorMessage(), 1000),
             e.inputDigest(), truncate(e.inputSummary(), 2000), (int) Math.min(e.durationMs(), Integer.MAX_VALUE),
-            TraceContext.current(), e.idempotencyKey());
+            TraceContext.current(), e.idempotencyKey(), call == null ? null : call.batchId(), call == null ? null : call.approvalId());
     }
 
     public void writeIndependently(Entry e) {
