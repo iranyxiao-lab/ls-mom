@@ -77,6 +77,26 @@ public class SchemaFingerprintService {
         return rows.stream().findFirst().map(s -> s.isEmpty() ? List.of() : List.of(s.split("\n")));
     }
 
+    /**
+     * 最近一次记录之后是否有 Pack 迁移成功执行（{@code pack_schema_history} 或 {@code flyway_history_*}）。
+     * 迁移已提交、但进程在记录指纹前退出时（例如启动安装中途被重启），差异来自有记录的迁移脚本，不是手工 DDL。
+     */
+    public boolean packMigratedSinceLatest() {
+        List<java.sql.Timestamp> latest = jdbc.queryForList("select max(recorded_at) from " + TABLE, java.sql.Timestamp.class);
+        if (latest.isEmpty() || latest.get(0) == null) return false;
+        List<String> tables = jdbc.queryForList("""
+            select table_schema || '.' || table_name from information_schema.tables
+            where table_type = 'BASE TABLE' and (table_name = 'pack_schema_history' or table_name like 'flyway\\_history\\_%')""",
+            String.class);
+        for (String t : tables) {
+            String[] parts = t.split("\\.", 2);
+            String q = "\"" + parts[0].replace("\"", "\"\"") + "\".\"" + parts[1].replace("\"", "\"\"") + "\"";
+            Integer n = jdbc.queryForObject("select count(*) from " + q + " where success and installed_on > ?", Integer.class, latest.get(0));
+            if (n != null && n > 0) return true;
+        }
+        return false;
+    }
+
     /** 比对当前结构与最近记录，返回差异（无差异或从未记录时为空列表）。 */
     public List<String> diffAgainstLatest() {
         Optional<List<String>> recorded = latestRecorded();

@@ -51,6 +51,12 @@ public class SchemaGuardMigrationStrategy implements FlywayMigrationStrategy {
             return;
         }
 
+        if (fingerprints.packMigratedSinceLatest()) {
+            fingerprints.record(version, "pack-migrate-recovered");
+            log.warn("[LS-MOM] 上次 Pack 迁移已执行但未记录表结构指纹（进程中途退出），已按迁移结果补记基准：{} 处变更", diff.size());
+            return;
+        }
+
         String detail = String.join("\n", diff.subList(0, Math.min(diff.size(), MAX_DIFF_LINES)))
             + (diff.size() > MAX_DIFF_LINES ? "\n...（共 " + diff.size() + " 处差异）" : "");
         String message = "检测到未经迁移脚本的表结构变更（漂移），差异如下（- 迁移记录中有，+ 实际库中有）：\n" + detail;

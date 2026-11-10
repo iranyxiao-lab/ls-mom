@@ -21,5 +21,22 @@ class PackFingerprintTest {
         CrudFixture g = new CrudFixture();
         g.loanLedger();
         assertThat(fp.diffAgainstLatest()).isNotEmpty();
+        // 迁移已提交但指纹未记（进程中途退出）：可识别为有记录的迁移，启动时补记基准
+        assertThat(fp.packMigratedSinceLatest()).isTrue();
+    }
+
+    @Test
+    void 手工DDL不被当作Pack迁移() throws Exception {
+        CrudFixture f = new CrudFixture();
+        SchemaFingerprintService fp = new SchemaFingerprintService(f.action.core.jdbc, new SchemaDriftProperties());
+        fp.record("manual-base", "test");
+        Thread.sleep(5);
+        f.action.core.jdbc.execute("create table if not exists manual_drift_probe (id bigint)");
+        try {
+            assertThat(fp.diffAgainstLatest()).anyMatch(l -> l.contains("manual_drift_probe"));
+            assertThat(fp.packMigratedSinceLatest()).isFalse();
+        } finally {
+            f.action.core.jdbc.execute("drop table manual_drift_probe");
+        }
     }
 }

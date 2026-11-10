@@ -54,14 +54,14 @@ public class LedgerPublisher {
         }
         List<String> problems = new ArrayList<>(concepts.validateForPublish(master));
         List<DdlPlan> plans = new ArrayList<>();
-        DdlPlan mp = planner.plan(master, concepts.find(master.code()), Optional.empty());
+        DdlPlan mp = planner.plan(master, previous(master), Optional.empty());
         plans.add(mp);
         for (ConceptDef c : children) {
             List<String> cp = concepts.validateForPublish(c);
             // 子表的主表可能尚未发布：主表问题已在上面校验，这里忽略"主表不存在"
             cp.removeIf(p -> p.startsWith("子表所属的主表 Concept 不存在") && concepts.find(master.code()).isEmpty());
             problems.addAll(cp);
-            plans.add(planner.plan(c, concepts.find(c.code()), Optional.of(master)));
+            plans.add(planner.plan(c, previous(c), Optional.of(master)));
         }
         List<String> breaking = plans.stream().flatMap(p -> p.breakingReasons().stream()).toList();
         problems.removeIf(p -> p.contains("破坏性变更") || p.contains("不能直接删除") || p.contains("存储位置"));
@@ -82,6 +82,21 @@ public class LedgerPublisher {
             for (ConceptDef c : children) outChildren.add(concepts.publish(c));
         });
         return new Published(out[0], outChildren, ids);
+    }
+
+    /**
+     * 上一版本定义。Concept 未登记、但其建表脚本已由迁移器成功执行时（DDL 已提交而登记前进程退出，例如启动安装中途被重启），
+     * 按库中实际存在的列还原上一版本：只补缺失的列，不重复建表。
+     */
+    Optional<ConceptDef> previous(ConceptDef next) {
+        Optional<ConceptDef> found = concepts.find(next.code());
+        if (found.isPresent() || !migrator.tableCreated(next.code(), next.tableName())) return found;
+        java.util.Set<String> columns = new java.util.HashSet<>(jdbc.queryForList(
+            "select column_name from information_schema.columns where table_schema = current_schema() and table_name = ?", String.class,
+            next.tableName()));
+        List<FieldDef> present = next.fields().stream().filter(f -> f.ext() || columns.contains(f.columnName())).toList();
+        return Optional.of(new ConceptDef(next.code(), next.namespace(), next.displayName(), next.storage(), next.tableName(), next.editable(),
+            next.ownerPack(), next.description(), present, "PUBLISHED", 0, next.parentConcept()));
     }
 
     /** 提交改字段类型的变更集（REVIEWING），附带待评审迁移脚本；不修改现有定义与数据。 */

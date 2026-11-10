@@ -50,6 +50,16 @@ public class PackMigrator {
     /**
      * 执行全部已登记脚本（含之前失败的待执行脚本）。PostgreSQL 的 DDL 在事务中执行，失败整体回滚，脚本标记 FAILED。
      */
+    /** 该 Concept 的建表脚本已成功执行，且表仍存在。 */
+    public boolean tableCreated(String conceptCode, String table) {
+        Integer n = jdbc.queryForObject("""
+            select count(*) from meta_ddl_script s
+            where s.concept_code = ? and s.status = 'APPLIED' and s.description = ?
+              and exists (select 1 from information_schema.tables t where t.table_schema = current_schema() and t.table_name = ?)""",
+            Integer.class, conceptCode, "create " + table, table);
+        return n != null && n > 0;
+    }
+
     public synchronized MigrateResult migrate() {
         List<DbMigrationResources.Script> scripts = jdbc.query("select id, description, script from meta_ddl_script where status <> 'FAILED' order by id",
             (rs, i) -> new DbMigrationResources.Script(rs.getLong(1), rs.getString(2), rs.getString(3)));
