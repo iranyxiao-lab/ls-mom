@@ -1,0 +1,20 @@
+{
+  "name": "ls-mom-acceptance",
+  "private": true,
+  "type": "module",
+  "description": "功能流程与 UI 交互走查验收：用例库、追溯门禁、走查执行与报告（无头运行）",
+  "scripts": {
+    "validate": "node tools/validate.ts",
+    "trace": "node tools/trace.ts",
+    "collect": "node tools/collect.ts",
+    "manual": "node tools/manual.ts",
+    "report": "node tools/report.ts",
+    "pages": "node tools/pages.ts",
+    "test": "node --test tools/*.test.ts"
+  },
+  "dependencies": {
+    "ajv": "8.17.1",
+    "yaml": "2.8.1"
+  },
+  "engines": { "node": ">=22.18" }
+}

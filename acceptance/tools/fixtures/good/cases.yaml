@@ -1,0 +1,10 @@
+cases:
+  - id: AC-DEMO-010
+    title: 合法用例
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台, scenario: [班组长首页, 个人调整] }
+    roles: [班组长]
+    dataset: acceptance
+    steps: [登录]
+    expected: [看到首页]
+    mode: AUTO
+    script: plus-ui/tests/ui/app/home.spec.ts

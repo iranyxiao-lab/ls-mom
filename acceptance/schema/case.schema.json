@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ls-mom.local/acceptance/case.schema.json",
+  "title": "验收用例",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "ref", "roles", "dataset", "steps", "expected", "mode"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^AC-[A-Z][A-Z0-9]*(-[A-Z0-9]+)*-[0-9]{3}$", "description": "唯一编号，如 AC-FLOW-WC-012" },
+    "title": { "type": "string", "minLength": 2 },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["change", "spec", "requirement", "scenario"],
+      "properties": {
+        "change": { "type": "string", "minLength": 1 },
+        "spec": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$" },
+        "requirement": { "type": "string", "minLength": 1 },
+        "scenario": {
+          "description": "关联的 Scenario 名称；同一 Requirement 下覆盖多个场景时写成列表",
+          "oneOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+          ]
+        }
+      }
+    },
+    "codes": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9]+)+$" }, "uniqueItems": true, "description": "v2.1 §13 验收编号或 UI 预算项，如 FLOW-05、UI-CLICK-AUDIT" },
+    "slice": { "type": "string", "enum": ["A", "B", "C", "D", "E", "F", "PLATFORM", "UI"] },
+    "roles": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "dataset": { "type": "string", "minLength": 1, "description": "前置数据集，如 acceptance、golden-a、空库" },
+    "steps": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "expected": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "mode": { "type": "string", "enum": ["AUTO", "MANUAL"] },
+    "script": { "type": "string", "pattern": "^[^#\\s]+(#.+)?$", "description": "自动化脚本：仓库相对路径，可带 #测试标题片段" },
+    "priority": { "type": "string", "enum": ["P0", "P1", "P2"] },
+    "notes": { "type": "string" }
+  },
+  "if": { "properties": { "mode": { "const": "AUTO" } } },
+  "then": { "required": ["script"] }
+}

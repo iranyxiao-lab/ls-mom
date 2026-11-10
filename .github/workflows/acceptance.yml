@@ -1,0 +1,73 @@
+name: acceptance
+
+# 验收覆盖门禁（acceptance-walkthrough 1.4）：每次提交校验用例格式、比对 spec 场景覆盖，把摘要写进运行摘要并评论到 PR。
+# 迁移期只报告不阻断（ACCEPTANCE_BLOCKING=false）；用例补齐到 100% 后改为 true 切换为阻断（见 acceptance/README.md）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  ACCEPTANCE_BLOCKING: 'false'
+
+defaults:
+  run:
+    working-directory: acceptance
+
+jobs:
+  coverage:
+    name: 用例校验与覆盖门禁
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: acceptance/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: 工具自测
+        run: pnpm test
+      - name: 用例校验
+        run: pnpm validate
+      - name: 覆盖报告
+        id: trace
+        run: |
+          set +e
+          node tools/trace.ts --md coverage.md --json coverage.json > /dev/null
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          { sed -n '1,8p' coverage.md; echo; echo '<details><summary>完整报告</summary>'; echo; cat coverage.md; echo '</details>'; } > summary.md
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: 评论到 PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file summary.md --edit-last --create-if-none || gh pr comment ${{ github.event.pull_request.number }} --body-file summary.md
+      - name: 签收记录只增不改
+        run: node tools/signoff-guard.ts "${{ github.event.pull_request.base.sha || github.event.before }}"
+      - name: 门禁结论
+        if: steps.trace.outputs.status != '0'
+        run: |
+          if [ "$ACCEPTANCE_BLOCKING" = "true" ]; then echo "覆盖门禁未通过（见运行摘要）"; exit 1; fi
+          echo "::warning::覆盖门禁未通过（迁移期只报告不阻断）"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acceptance-coverage
+          path: |
+            acceptance/coverage.md
+            acceptance/coverage.json

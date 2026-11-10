@@ -1,0 +1,4 @@
+# 被验收的 change（归档后改为从 openspec/specs/ 主 spec 读取，见 tools/lib.ts specSource）
+changes:
+  - bootstrap-ls-mom-mvp
+  - modernize-ui-ux

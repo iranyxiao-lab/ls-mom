@@ -1,0 +1,56 @@
+# Requirement 优先级。列在 P0 下的 Requirement 必须至少有一条 AUTO 用例；未列出的默认 P1，P2 显式列出。
+# codes：v2.1 §13 验收编号与 UI 预算项。v2.1 原文未入库：有出处的编号按 spec 场景名、bootstrap tasks.md 与 docs/ 中的引用对齐；
+# 仓库中没有出处的编号（DOM-06、CRUD-05/06、FORM-01～06/09、FLOW-04）按 spec 语义推定，标 inferred: true，拿到 v2.1 原文后复核。
+P0:
+  # —— DOM ——
+  - { spec: domain/light-production, requirement: 无制造主数据的完整闭环, codes: [DOM-01] }
+  - { spec: core/work-collaboration, requirement: WorkItem 最小必填集, codes: [DOM-01] }
+  - { spec: core/work-collaboration, requirement: 约束 Profile 可选增强, codes: [DOM-02] }
+  - { spec: domain/light-production, requirement: 产出与物料记录, codes: [DOM-03] }
+  - { spec: domain/light-production, requirement: 交接班, codes: [DOM-03] }
+  - { spec: domain/quality-management, requirement: 质量记录独立与关联, codes: [DOM-04] }
+  - { spec: packs/training-exam, requirement: 核心无培训概念, codes: [DOM-05] }
+  - { spec: domain/asset-management, requirement: 缺陷经 Issue 闭环, codes: [DOM-06], inferred: true }
+  # —— CRUD ——
+  - { spec: crud/generic-ledger, requirement: 动态 Concept 生成受控物理表, codes: [CRUD-01] }
+  - { spec: crud/generic-ledger, requirement: 服务端权限与校验, codes: [CRUD-02] }
+  - { spec: crud/generic-ledger, requirement: 白名单查询, codes: [CRUD-03] }
+  - { spec: crud/generic-ledger, requirement: 导入导出, codes: [CRUD-04] }
+  - { spec: crud/generic-ledger, requirement: 并发、重复提交与审计, codes: [CRUD-05], inferred: true }
+  - { spec: crud/generic-ledger, requirement: 正式动作分流, codes: [CRUD-06], inferred: true }
+  # —— FORM ——
+  - { spec: form/form-schema, requirement: FormSchema 结构, codes: [FORM-01], inferred: true }
+  - { spec: form/form-schema, requirement: 服务端按 Schema 校验, codes: [FORM-02], inferred: true }
+  - { spec: form/form-schema, requirement: 动作只绑定已发布 Operation, codes: [FORM-03], inferred: true }
+  - { spec: form/form-schema, requirement: 多形态视图, codes: [FORM-04], inferred: true }
+  - { spec: form/form-schema, requirement: 节点字段策略合并, codes: [FORM-05], inferred: true }
+  - { spec: form/form-designer, requirement: 发布必须经校验, codes: [FORM-06], inferred: true }
+  - { spec: form/form-schema, requirement: 表单版本不可变, codes: [FORM-07] }
+  - { spec: form/form-schema, requirement: 升级兼容性校验, codes: [FORM-07] }
+  - { spec: form/form-designer, requirement: 自定义组件来自注册表, codes: [FORM-08] }
+  - { spec: form/form-designer, requirement: 大表单可用性, codes: [FORM-09], inferred: true }
+  # —— FLOW ——
+  - { spec: flow/workflow-collaboration, requirement: 普通台账闭环, codes: [FLOW-01] }
+  - { spec: flow/workflow-collaboration, requirement: 基础协同动作, codes: [FLOW-01, FLOW-03] }
+  - { spec: flow/workflow-collaboration, requirement: 多人办理模式, codes: [FLOW-02] }
+  - { spec: flow/workflow-collaboration, requirement: 超时与升级, codes: [FLOW-04], inferred: true }
+  - { spec: flow/workflow-collaboration, requirement: 节点字段权限服务端强制, codes: [FLOW-05] }
+  - { spec: flow/workflow-collaboration, requirement: 任务权限双重校验, codes: [FLOW-05] }
+  - { spec: flow/workflow-collaboration, requirement: 版本冻结, codes: [FLOW-06] }
+  - { spec: flow/workflow-collaboration, requirement: 幂等回调与同步重试, codes: [FLOW-07] }
+  - { spec: flow/flow-designer, requirement: 危险节点禁止, codes: [FLOW-08] }
+  # —— AI ——
+  - { spec: ai/ls-ir-conversion, requirement: 不直达生产, codes: [AI-01] }
+  - { spec: ai/ls-ir-conversion, requirement: 由 LS-IR 生成产物, codes: [AI-02] }
+  - { spec: ai/ls-ir-conversion, requirement: 来源追溯, codes: [AI-03] }
+  - { spec: ai/ls-ir-conversion, requirement: 危险资产阻断, codes: [AI-04] }
+  - { spec: ai/agent-gateway, requirement: 有效权限不放大, codes: [AI-05] }
+  - { spec: ai/agent-gateway, requirement: 默认草稿, codes: [AI-06] }
+  - { spec: ai/agent-gateway, requirement: 审批绑定输入, codes: [AI-07, AI-08] }
+  - { spec: ai/agent-gateway, requirement: 永不暴露的高风险行动, codes: [AI-09] }
+  - { spec: ai/agent-gateway, requirement: 带引用的知识问答, codes: [AI-10] }
+  # —— UI 预算项（modernize-ui-ux）——
+  - { spec: ui/ux-quality, requirement: 关键任务操作预算, codes: [UI-CLICK-REPORT, UI-CLICK-AUDIT, UI-CLICK-DEFECT] }
+  - { spec: ui/ux-quality, requirement: 性能预算, codes: [UI-PERF-LCP, UI-PERF-INP, UI-PERF-MOBILE, UI-PERF-BUNDLE] }
+  - { spec: ui/ux-quality, requirement: 自动化无障碍检查, codes: [UI-A11Y] }
+P2: []

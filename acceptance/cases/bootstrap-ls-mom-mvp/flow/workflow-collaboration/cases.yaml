@@ -1,0 +1,17 @@
+cases:
+  - id: AC-FLOW-WC-009
+    title: 超时未办理时提醒办理人并升级给上级负责人
+    ref: { change: bootstrap-ls-mom-mvp, spec: flow/workflow-collaboration, requirement: 超时与升级, scenario: 超时升级 }
+    codes: [FLOW-04]
+    slice: B
+    roles: [班组长, 车间主任, 上级负责人]
+    dataset: acceptance
+    steps:
+      - 发布带 24 小时超时（提醒并升级）的借还审批流程
+      - 班组长提交借还单，车间主任不办理
+      - 时钟推进超过 24 小时
+    expected:
+      - 车间主任收到超时提醒
+      - 上级负责人收到升级待办，原待办仍在
+    mode: AUTO
+    script: ls-mom-modules/ls-mom-flow/src/test/java/com/lsmom/flow/FlowGovernanceTest.java#超时未办理_办理人收到提醒且上级负责人收到升级待办

@@ -1,0 +1,26 @@
+cases:
+  - id: AC-DEMO-001
+    title: 缺少关联场景的示例
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台 }
+    roles: [班组长]
+    dataset: acceptance
+    steps: [登录]
+    expected: [看到首页]
+    mode: MANUAL
+  - id: AC-DEMO-002
+    title: AUTO 用例缺脚本
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台, scenario: 班组长首页 }
+    roles: [班组长]
+    dataset: acceptance
+    steps: [登录]
+    expected: [看到首页]
+    mode: AUTO
+  - id: AC-DEMO-003
+    title: AUTO 用例脚本不存在
+    ref: { change: modernize-ui-ux, spec: ui/app-shell-navigation, requirement: 角色化首页工作台, scenario: 班组长首页 }
+    roles: [班组长]
+    dataset: acceptance
+    steps: [登录]
+    expected: [看到首页]
+    mode: AUTO
+    script: plus-ui/tests/e2e/no-such-file.e2e.mjs

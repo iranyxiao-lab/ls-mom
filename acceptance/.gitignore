@@ -1,0 +1,5 @@
+node_modules/
+coverage.md
+coverage.json
+summary.md
+runs/*/videos/
