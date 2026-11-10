@@ -1,0 +1,21 @@
+{
+  "id": "chatcmpl-recorded-assist-defect",
+  "object": "chat.completion",
+  "model": "qwen2.5-72b-instruct",
+  "system_fingerprint": "fp_rec01",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "stop",
+      "message": {
+        "role": "assistant",
+        "content": "{\"summary\": \"严重度为高或严重时现象必填（规则草稿），并在现象字段加填写说明\", \"ops\": [{\"op\": \"addRule\", \"rule\": {\"code\": \"symptomRequiredWhenSevere\", \"level\": \"L1\", \"when\": \"$model.severity == 'HIGH' || $model.severity == 'CRITICAL'\", \"assert\": \"has($model.symptom) && $model.symptom != null && size($model.symptom) > 0\", \"field\": \"symptom\", \"message\": \"严重度为高或严重时，必须填写现象\"}}, {\"op\": \"updateField\", \"key\": \"symptom\", \"set\": {\"help\": \"严重度为高或严重时必填\"}}]}"
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 812,
+    "completion_tokens": 168,
+    "total_tokens": 980
+  }
+}

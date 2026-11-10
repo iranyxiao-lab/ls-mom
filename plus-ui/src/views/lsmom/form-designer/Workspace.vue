@@ -248,6 +248,58 @@
         </div>
       </el-tab-pane>
 
+      <el-tab-pane label="智能助手" name="assist">
+        <div class="ls-designer__assist" data-testid="assist">
+          <div class="ls-designer__issues-title">
+            用一句话描述要加的字段或规则，助手生成修改草稿；确认后才应用到当前草稿，保存、发布仍按原流程校验。
+          </div>
+          <el-input
+            v-model="assistText"
+            type="textarea"
+            :rows="3"
+            maxlength="500"
+            show-word-limit
+            placeholder="例如：用途为外协时，外协单位必填"
+            data-testid="assist-input"
+          />
+          <div class="ls-designer__assist-bar">
+            <el-button type="primary" :loading="assistBusy" :disabled="!assistText.trim()" data-testid="assist-run" @click="runAssist"
+              >生成修改</el-button
+            >
+            <span v-if="proposal" class="ls-designer__sub" data-testid="assist-model">模型 {{ proposal.modelVersion }}</span>
+          </div>
+          <template v-if="proposal">
+            <el-alert :title="proposal.summary || '助手给出的修改'" type="info" :closable="false" data-testid="assist-summary" />
+            <div
+              v-for="(o, i) in proposal.ops"
+              :key="i"
+              class="ls-designer__card ls-designer__assist-op"
+              :class="{ 'is-invalid': !o.valid }"
+              :data-testid="'assist-op-' + i"
+            >
+              <div class="ls-designer__assist-head">
+                <el-checkbox v-model="picked[i]" :disabled="!o.valid" :data-testid="'assist-pick-' + i" />
+                <el-tag size="small" :type="opDiffs[i].kind === 'add' ? 'success' : 'warning'">{{
+                  opDiffs[i].kind === 'add' ? '新增' : '修改'
+                }}</el-tag>
+                <strong>{{ opDiffs[i].target }}</strong>
+              </div>
+              <pre
+                class="ls-designer__diff"
+              ><span v-for="(l, n) in opDiffs[i].lines" :key="n" :class="l.op === '+' ? 'da' : 'dd'">{{ l.op }} {{ l.text }}
+</span></pre>
+              <div v-if="o.issue" class="ls-designer__err" :data-testid="'assist-issue-' + i">不能应用：{{ o.issue }}</div>
+            </div>
+            <div class="ls-designer__assist-bar">
+              <el-button type="primary" :disabled="!pickedCount" data-testid="assist-apply" @click="applyAssist"
+                >应用 {{ pickedCount }} 项到草稿</el-button
+              >
+              <el-button data-testid="assist-discard" @click="proposal = null">放弃</el-button>
+            </div>
+          </template>
+        </div>
+      </el-tab-pane>
+
       <el-tab-pane label="预览" name="preview">
         <el-radio-group v-model="device" size="small" class="ls-designer__alert" data-testid="preview-device">
           <el-radio-button value="desktop">桌面</el-radio-button><el-radio-button value="mobile">移动</el-radio-button>
@@ -297,6 +349,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { ElMessage } from 'element-plus';
 import { FcDesigner } from '@/vendor/form-create';
 import SchemaForm from '@/components/SchemaForm/index.vue';
+import { formAssistApi, type AssistProposal } from '@/api/lsmom/formAssist';
+import { applyAssistOps, describeOp } from './assistPatch';
 import SchemaMobile from '@/components/SchemaMobile/index.vue';
 import SchemaDetail from '@/components/SchemaDetail/index.vue';
 import SchemaPrint from '@/components/SchemaPrint/index.vue';
@@ -647,6 +701,37 @@ const diff = computed(() =>
 );
 const diffStat = computed(() => ({ add: diff.value.filter((l) => l.op === '+').length, del: diff.value.filter((l) => l.op === '-').length }));
 
+// ---------- 智能助手：自然语言 → 修改草稿（确认后才应用） ----------
+
+const assistText = ref('');
+const assistBusy = ref(false);
+const proposal = ref<AssistProposal | null>(null);
+const picked = ref<boolean[]>([]);
+const opDiffs = computed(() => (proposal.value?.ops ?? []).map((o) => describeOp(current.value, o)));
+const pickedCount = computed(() => picked.value.filter(Boolean).length);
+async function runAssist() {
+  assistBusy.value = true;
+  try {
+    const s = readDesigner() ?? current.value;
+    const cf = props.conceptFields.filter((f) => !f.table).map((f) => ({ code: f.code, label: f.label, type: f.type ?? 'STRING' }));
+    proposal.value = await formAssistApi.propose(s, cf, assistText.value);
+    picked.value = proposal.value.ops.map((o) => o.valid);
+  } finally {
+    assistBusy.value = false;
+  }
+}
+function applyAssist() {
+  if (!proposal.value) return;
+  const chosen = proposal.value.ops.filter((o, i) => o.valid && picked.value[i]);
+  const s = applyAssistOps(readDesigner() ?? current.value, chosen);
+  load(s);
+  history.push(s);
+  historyTick.value++;
+  emit('change', s);
+  proposal.value = null;
+  ElMessage.success(`已应用 ${chosen.length} 项到草稿（可撤销）；保存草稿、发布时照常校验`);
+}
+
 // ---------- 预览与权限模拟 ----------
 
 const labels = computed(() => Object.fromEntries(current.value.fields.map((f) => [f.key, f.label ?? f.key])));
@@ -865,5 +950,28 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   gap: var(--ls-space-3);
   align-items: center;
   margin-bottom: var(--ls-space-2);
+}
+.ls-designer__assist {
+  max-width: 860px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ls-designer__assist-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ls-designer__assist-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ls-designer__assist-op.is-invalid {
+  opacity: 0.7;
+}
+.ls-designer__sub {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 </style>
