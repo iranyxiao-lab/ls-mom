@@ -79,6 +79,29 @@
           >
           <el-button size="small" type="danger" plain data-testid="btn-asset-defect" @click="defectVisible = true">登记缺陷</el-button>
         </div>
+        <template v-if="points.length">
+          <h4>测点</h4>
+          <el-table :data="points" size="small" data-testid="asset-points">
+            <el-table-column label="测点" min-width="160">
+              <template #default="{ row }"
+                ><span :data-testid="`asset-point-${row.code}`">{{ row.name }}</span>
+                <div class="sub">{{ row.code }}</div></template
+              >
+            </el-table-column>
+            <el-table-column label="最近快照" min-width="140">
+              <template #default="{ row }">
+                <span v-if="row.last_bucket"
+                  >{{ fmtNum(row.last_avg) }} {{ row.unit }}<span class="sub"> · {{ fmt(row.last_bucket) }}</span></span
+                >
+                <span v-else class="sub">暂无</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="最大值" width="90">
+              <template #default="{ row }">{{ fmtNum(row.last_max) }}</template>
+            </el-table-column>
+            <el-table-column label="待处置报警" prop="open_alarms" width="96" />
+          </el-table>
+        </template>
         <h4>设备时间轴</h4>
         <el-empty v-if="!timeline.length" description="暂无记录" :image-size="60" />
         <el-timeline v-else data-testid="asset-timeline">
@@ -167,6 +190,8 @@ const draft = reactive<Record<string, any>>({
 const detailVisible = ref(false);
 const cur = ref<Record<string, any>>();
 const timeline = ref<TimelineItem[]>([]);
+const points = ref<Record<string, any>[]>([]);
+const fmtNum = (v?: number | null) => (v === null || v === undefined ? '—' : String(Math.round(v * 1000) / 1000));
 const availableOps = computed(() => ASSET_OPS.filter((o) => cur.value && o.from.includes(cur.value.status)));
 
 const reasonVisible = ref(false);
@@ -220,6 +245,7 @@ async function createNew() {
 async function openDetail(id: number) {
   cur.value = await props.api.get(ASSET, id);
   timeline.value = await props.api.timeline(id).catch(() => []);
+  points.value = (await props.api.points?.(id).catch(() => [])) ?? [];
   detailVisible.value = true;
 }
 

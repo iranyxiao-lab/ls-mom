@@ -1,0 +1,6 @@
+# DCS 写入类能力黑名单（spec dcs/dcs-integration「只读边界」）。系统只读 DCS / Historian，任何 Operation、Agent / MCP 工具、HTTP 接口
+# 都不得提供向 DCS / PLC 写值、下发参数或解除联锁的能力。格式：<类别> <正则>（不区分大小写）。
+# target：控制系统对象；verb：写入类动作。名称或编码同时命中 target 与 verb 即判为写入能力；namespace 命中即判定（DCS 概念上不允许任何 Operation）。
+target dcs|plc|opc|scada|historian|控制系统|现场控制|联锁|interlock|set ?point|设定值|位号|测点
+verb write|写|下发|set|put|command|force|强制|bypass|旁路|解除|复位|reset|调节|控制|override|ack(nowledge)?
+namespace ^ls\.dcs\.

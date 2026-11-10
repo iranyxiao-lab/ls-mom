@@ -112,6 +112,11 @@ services:
       # 表结构漂移：FAIL 拒绝启动；排障恢复时可临时设为 WARN（见 docs/crud.md「表结构指纹」）
       LSMOM_SCHEMA_DRIFT_MODE: ${LSMOM_SCHEMA_DRIFT_MODE:-FAIL}
       LSMOM_PACK_DIRECT_INSTALL: ${LSMOM_PACK_DIRECT_INSTALL:-false}
+      # DCS 只读集成（--profile dcs 时设 LSMOM_DCS_ENABLED=true）：以只读账号读取 Historian
+      LSMOM_DCS_ENABLED: ${LSMOM_DCS_ENABLED:-false}
+      LSMOM_DCS_HISTORIAN_URL: jdbc:postgresql://tsdb:5432/lsmom_ts
+      LSMOM_DCS_HISTORIAN_USER: lsmom_reader
+      LSMOM_DCS_HISTORIAN_PASSWORD: ${HISTORIAN_READER_PASSWORD:-lsmom-local-only}
       LSMOM_SEED_DEMO_S3_ENDPOINT: seaweedfs:8333
       LSMOM_SEED_DEMO_S3_ACCESSKEY: ${S3_ACCESS_KEY:-lsmom}
       LSMOM_SEED_DEMO_S3_SECRETKEY: ${S3_SECRET_KEY:-lsmom-local-only}
@@ -153,13 +158,34 @@ services:
       POSTGRES_DB: lsmom_ts
       POSTGRES_USER: ${DB_USER:-lsmom}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-lsmom-local-only}
+      HISTORIAN_READER_PASSWORD: ${HISTORIAN_READER_PASSWORD:-lsmom-local-only}
     volumes:
       - tsdata:/var/lib/postgresql/data
+      - ./tsdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d lsmom_ts"]
       interval: 5s
       timeout: 5s
       retries: 30
+
+  # 可选：DCS 模拟器（--profile dcs），模拟现场 Historian 的数据来源
+  dcs-simulator:
+    profiles: ["dcs"]
+    build:
+      context: ..
+      dockerfile: deploy/docker/dcs-simulator.Dockerfile
+      args:
+        MAVEN_MIRROR_URL: ${MAVEN_MIRROR_URL:-}
+    image: lsmom/dcs-simulator:local
+    restart: unless-stopped
+    depends_on:
+      tsdb:
+        condition: service_healthy
+    environment:
+      HISTORIAN_URL: jdbc:postgresql://tsdb:5432/lsmom_ts
+      HISTORIAN_USER: ${DB_USER:-lsmom}
+      HISTORIAN_PASSWORD: ${DB_PASSWORD:-lsmom-local-only}
+    command: ["--mode", "live", "--backfill-hours", "${DCS_BACKFILL_HOURS:-6}"]
 
 volumes:
   pgdata:

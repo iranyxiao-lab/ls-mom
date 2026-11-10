@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.lsmom</groupId>
+        <artifactId>ls-mom-modules</artifactId>
+        <version>${revision}</version>
+        <relativePath>../ls-mom-modules/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>ls-mom-dcs-simulator</artifactId>
+
+    <description>DCS / Historian 模拟器：按配置生成点位值与报警（断网补传、重复、乱序、坏质量位、时钟偏差），写入独立时序库</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>ls-mom-dcs-simulator</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>com.lsmom.dcs.simulator.SimulatorMain</mainClass>
+                    <!-- 可执行包另附 exec 分类器，原始 jar 供 ls-mom-dcs 测试复用 -->
+                    <classifier>exec</classifier>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -268,6 +268,14 @@ spring:
     # 某模块新增的低段脚本可能晚于其他模块的高段脚本发布，必须允许乱序执行
     out-of-order: true
 lsmom:
+  dcs:
+    # 只读读取独立时序库（Historian）；快照默认 60 秒一窗
+    enabled: ${LSMOM_DCS_ENABLED:false}
+    historian-url: ${LSMOM_DCS_HISTORIAN_URL:jdbc:postgresql://localhost:5433/lsmom_ts}
+    historian-user: ${LSMOM_DCS_HISTORIAN_USER:lsmom_reader}
+    historian-password: ${LSMOM_DCS_HISTORIAN_PASSWORD:}
+    historian-schema: ${LSMOM_DCS_HISTORIAN_SCHEMA:public}
+    snapshot-seconds: ${LSMOM_DCS_SNAPSHOT_SECONDS:60}
   pack:
     # 直接安装 Pack 只在沙箱 / 升级演练环境开启；正式环境经 ChangeSet 审批发布
     direct-install: ${LSMOM_PACK_DIRECT_INSTALL:false}

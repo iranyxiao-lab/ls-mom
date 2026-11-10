@@ -87,8 +87,20 @@ try {
     const roleId = list.rows.find((r) => r.roleKey === roleKey).roleId;
     const full = await ok(admin.api('GET', '/system/role/' + roleId), '读角色详情');
     const tree = await ok(admin.api('GET', '/system/menu/roleMenuTreeselect/' + roleId), '读角色菜单');
-    const menuIds = [...new Set([...tree.checkedKeys, dirId, ...ids])];
-    await ok(admin.api('PUT', '/system/role', { ...full, menuIds, menuCheckStrictly: false }), '授权角色 ' + roleKey);
+    // checkedKeys 在父子联动模式下不含半选的上级目录：按菜单树补齐全部上级，避免回写后丢失「设备」「质量」等目录
+    const want = new Set([...tree.checkedKeys, dirId, ...ids].map(String)); // 雪花 ID 超出 Number 精度，按字符串比较
+    const withParents = new Set(want);
+    const walk = (nodes, trail) => {
+      for (const n of nodes ?? []) {
+        if (want.has(String(n.id))) trail.forEach((t) => withParents.add(t));
+        walk(n.children, [...trail, String(n.id)]);
+      }
+    };
+    walk(tree.menus, []);
+    await ok(
+      admin.api('PUT', '/system/role', { ...full, menuIds: [...withParents], menuCheckStrictly: full.menuCheckStrictly }),
+      '授权角色 ' + roleKey
+    );
   };
   await grant('team_leader', [submitBtn, ...Object.values(crudBtn)]);
   await grant('workshop_leader', [flowBtn, crudBtn.list, crudBtn.query]);

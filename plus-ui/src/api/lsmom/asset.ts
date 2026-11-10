@@ -2,6 +2,9 @@ import request from '@/utils/request';
 import { crudApi } from './crud';
 import { formApi } from './form';
 import { workbenchApi } from './workbench';
+import { dcsApi } from './dcs';
+import type { DcsPoint } from './dcsModel';
+import { checkPermi } from '@/utils/permission';
 import type { Page, QuerySpec } from './types';
 import type { OpResult } from './productionModel';
 import type { MyInspection, OrgOption, TimelineItem } from './assetModel';
@@ -26,6 +29,8 @@ export const assetApi = {
   upload: (file: File) => formApi.upload(file),
   attach: (ossId: string | number, objectType: string, objectId: string | number, purpose = 'EVIDENCE') =>
     op('ls.core.DocumentLink.attach', undefined, undefined, { ossId: String(ossId), objectType, objectId: String(objectId), purpose }),
+  /** 映射到该设备的 DCS 测点及最近快照；无 DCS 查看权限时为空。 */
+  points: (assetId: number) => (checkPermi(['ls:dcs:view']) ? dcsApi.points({ assetId }) : Promise.resolve([] as DcsPoint[])),
   repairs: (defectId: number) => data<Record<string, any>[]>(request({ url: `/api/asset/defects/${defectId}/repairs`, method: 'get' }))
 };
 

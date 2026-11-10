@@ -52,6 +52,14 @@ public final class PgTestSupport {
         return PG.getJdbcUrl();
     }
 
+    public static String username() {
+        return PG.getUsername();
+    }
+
+    public static String password() {
+        return PG.getPassword();
+    }
+
     public static String uniq(String prefix) {
         return prefix + SEQ.incrementAndGet();
     }

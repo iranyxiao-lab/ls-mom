@@ -20,12 +20,16 @@ public class CoreGuards {
     public static final String RECTIFICATION_DONE = "ls.core.Issue.rectificationDone";
     public static final String VERIFIER_SEPARATION = "ls.core.Issue.verifierSeparation";
 
-    /** 高、严重级别的 Issue 提交时必须附证据（用途 EVIDENCE 的附件）。 */
+    /** 高、严重级别的 Issue 提交时必须附证据（用途 EVIDENCE 的附件；DCS 报警来源以报警事件引用为证据）。 */
     @Bean
     public Guard issueEvidenceRequired(IssueService issues, DocumentService docs) {
         return guard(EVIDENCE_REQUIRED, ctx -> {
             Issue i = issues.get(ctx.targetIdAsLong());
             if (!List.of("HIGH", "CRITICAL").contains(i.severity())) return GuardResult.pass();
+            // DCS 报警生成的问题：原始报警事件引用即为证据
+            if ("DCS".equals(i.sourceType()) && issues.links(i.id(), null).stream().anyMatch(r -> "DCS_ALARM".equals(r.objectType()))) {
+                return GuardResult.pass();
+            }
             boolean hasEvidence = docs.listByObject("ISSUE", String.valueOf(i.id())).stream().anyMatch(d -> "EVIDENCE".equals(d.purpose()));
             return hasEvidence ? GuardResult.pass()
                 : GuardResult.block("EVIDENCE_REQUIRED", "严重度为 " + i.severity() + " 的异常提交前必须上传现场证据");

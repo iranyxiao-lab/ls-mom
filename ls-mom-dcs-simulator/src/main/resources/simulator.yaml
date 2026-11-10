@@ -1,0 +1,14 @@
+# DCS 模拟器默认配置：演示工厂一车间 A 线 P-101 循环泵的 3 个测点。
+sourceSystem: DCS-A
+seed: 20261110
+intervalSeconds: 1
+points:
+  - { code: P101.VIB, name: P-101 振动, unit: mm/s, base: 3.2, amplitude: 1.6, periodMinutes: 30, noise: 0.2, alarmHigh: 4.5, alarmType: HI, severity: MEDIUM }
+  - { code: P101.TEMP, name: P-101 轴承温度, unit: ℃, base: 58, amplitude: 6, periodMinutes: 120, noise: 0.5, alarmHigh: 70, alarmType: HI, severity: HIGH }
+  - { code: P101.PRESS, name: P-101 出口压力, unit: MPa, base: 0.45, amplitude: 0.03, periodMinutes: 60, noise: 0.005 }
+scenario:
+  outage: { startMinutes: 60, durationMinutes: 10 }   # 启动 1 小时后断网 10 分钟，恢复后补传
+  duplicateEvery: 500                                   # 每 500 条重复送达一次
+  reorderSeconds: 90                                    # 报警最多延迟 90 秒送达，造成乱序
+  badQuality: { point: P101.TEMP, every: 900, spike: 999 }   # 每 15 分钟一个坏值（越限但不应报警）
+  clockSkew: { point: P101.PRESS, seconds: 600 }        # 压力点源时间超前 10 分钟
