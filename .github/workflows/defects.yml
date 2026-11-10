@@ -1,0 +1,87 @@
+name: defects
+
+# 缺陷管理（acceptance-walkthrough 3.1 / 3.3）
+# - Issue 新建或编辑：按表单补打 S*、type/*、spec/* 标签，用例编号不在用例库中时评论提示
+# - 修复 PR 合并：对正文中 Fixes #n 的缺陷，在重置后的验收环境中重跑关联用例与同一旅程，结果评论回 Issue；失败则重新打开
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      issues:
+        description: 要回归的缺陷编号（逗号分隔）
+        required: true
+
+permissions:
+  contents: read
+  issues: write
+
+defaults:
+  run:
+    working-directory: acceptance
+
+jobs:
+  label:
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'defect')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save ajv@8.17.1 yaml@2.8.1
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/defects.ts label ${{ github.event.issue.number }}
+
+  regress:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged && contains(github.event.pull_request.body, '#'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ACC_RUN: regress-${{ github.run_id }}
+      LSMOM_E2E_BASE: http://127.0.0.1:18101
+      ACC_BASE: http://127.0.0.1:18101
+      ACC_EVIDENCE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: 安装依赖
+        run: |
+          pnpm install --frozen-lockfile
+          (cd ../plus-ui && pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium)
+          pnpm exec playwright install chromium
+          (cd .. && mvn -q -B install -DskipTests)
+      - name: 重置验收环境
+        run: ../deploy/scripts/acceptance-reset.sh --build
+      - name: 回归
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.md"
+          if [ -n "${{ github.event.inputs.issues }}" ]; then
+            MVN_ARGS=-q node tools/defects.ts regress "$ACC_RUN" --issues "${{ github.event.inputs.issues }}"
+          else
+            MVN_ARGS=-q node tools/defects.ts regress "$ACC_RUN" --pr-body "$RUNNER_TEMP/pr-body.md"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: defect-regression
+          path: acceptance/runs/${{ env.ACC_RUN }}

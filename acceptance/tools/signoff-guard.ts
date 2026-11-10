@@ -5,8 +5,8 @@
 import { execFileSync } from 'node:child_process';
 import { ROOT } from './lib.ts';
 
-export function changedSignoffs(base: string, head = 'HEAD'): { status: string; file: string }[] {
-  const out = execFileSync('git', ['diff', '--name-status', '-M', base, head, '--', 'acceptance/signoff/'], { cwd: ROOT, encoding: 'utf8' });
+export function changedSignoffs(base: string, head = 'HEAD', cwd = ROOT): { status: string; file: string }[] {
+  const out = execFileSync('git', ['diff', '--name-status', '-M', base, head, '--', 'acceptance/signoff/'], { cwd, encoding: 'utf8' });
   return out
     .split('\n')
     .filter(Boolean)

@@ -34,6 +34,8 @@
     "mode": { "type": "string", "enum": ["AUTO", "MANUAL"] },
     "script": { "type": "string", "pattern": "^[^#\\s]+(#.+)?$", "description": "自动化脚本：仓库相对路径，可带 #测试标题片段" },
     "priority": { "type": "string", "enum": ["P0", "P1", "P2"] },
+    "journey": { "type": "string", "pattern": "^J-[A-Z0-9-]+$", "description": "所属角色旅程编号（缺陷回归时重跑同一旅程的用例），如 J-B-LOAN" },
+    "covers": { "type": "array", "items": { "type": "string", "pattern": "^AC-[A-Z][A-Z0-9]*(-[A-Z0-9]+)*-[0-9]{3}$" }, "uniqueItems": true, "description": "旅程用例串起的功能用例编号" },
     "notes": { "type": "string" }
   },
   "if": { "properties": { "mode": { "const": "AUTO" } } },

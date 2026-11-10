@@ -27,6 +27,17 @@ acceptance/
 | `pnpm validate` | 校验全部用例：Schema、编号唯一、AUTO 用例的脚本存在且包含 `#` 后的测试片段 |
 | `pnpm trace` | 覆盖门禁：列出未覆盖场景、悬空引用、P0 缺 AUTO；有问题时退出码 1（`--report-only` 只报告） |
 | `pnpm test` | 工具自测 |
+| `../deploy/scripts/acceptance-reset.sh [--build]` | 一键重置验收环境（`lsmom-acc`，端口 18101）并导入 `acceptance` 种子数据集，输出数据指纹并做口令泄露检查 |
+| `node tools/run-auto.ts <run> [--ids …] [--spec …]` | 按用例 `script` 执行 AUTO 用例（Java / 端到端脚本 / Playwright / Vitest / 走查脚本），结果写 `runs/<run>/auto.json` |
+| `ACC_RUN=<run> pnpm walk` | 运行走查脚本（`e2e/`，无头），证据写 `runs/<run>/artifacts`，结果写 `playwright.json` |
+| `pnpm manual generate\|import <run>` | 生成人工用例与 UI 走查检查表 `manual-checklist.md`；填写后导入为 `manual.json` |
+| `pnpm collect <run>` | 合并 `playwright.json`、`auto.json`、`manual.json` 为 `results.json` |
+| `node tools/defects.ts sync <run>` | 从 GitHub Issues 拉取缺陷写 `defects.json`（失败时标注"未同步"）；`labels` 创建标签，`label <n>` 按表单补打标签 |
+| `pnpm report <run>` | 生成 `report.md` 与单文件 `report.html`，按准出条件自动判定"通过／不通过"并列出原因 |
+
+一轮完整执行：`acceptance-reset.sh` → `run-auto` → `walk` → `manual generate`（人工填写）→ `manual import` → `collect` →
+`defects.ts sync` → `report`。`run` 目录名用 `<yyyymmdd-hhmm>-<提交号>`，报告据此取提交号。报告还读取同目录的 `budgets.json`
+（操作与性能预算实测）、`a11y.json`（无障碍扫描汇总）、`usability.json`（可用性测试记录）和仓库内的 `deferred.yaml`（延期项）。
 
 `trace` 优先调用 `openspec show <change> --json --type change` 提取场景；机器上没有 openspec CLI（如 CI）时直接解析
 `openspec/changes/<change>/specs/**/spec.md`，两者结果一致（由自测保证）。
@@ -85,7 +96,11 @@ cases:
 | **S3 一般** | 体验或一致性问题，有替代路径 | 能完成任务，但别扭、不一致、要多想 | 列表无数据时显示空白表格而非统一空态；删除确认没有说明后果；关闭抽屉后焦点没回到按钮 |
 | **S4 轻微** | 文案、样式细节 | 不影响理解和操作 | 错别字；按钮间距差 2px；提示语句号中英文混用 |
 
-拿不准时取更高一级；S1、S2 必须附证据（截图、trace、`trace_id`），由第二人复核。
+拿不准时取更高一级；S1、S2 必须附证据（截图、trace、`trace_id`），由第二人复核。复核后改级直接改标签（报告以标签为准）。
+S3 须打处理决定标签：`decision/fix`（修复）或 `decision/defer`（带说明延期，同时写入 `deferred.yaml`）。
+
+修复 PR 正文写 `Fixes #编号`；合并后 `defects` 工作流在重置后的验收环境中重跑该缺陷关联的用例与同一旅程（`journey` 相同的用例），
+把结果评论回 Issue；回归失败则重新打开 Issue 并打 `regression/failed` 标签。也可在 Actions 中手动触发回归（输入缺陷编号）。
 
 ## 准出与签收
 

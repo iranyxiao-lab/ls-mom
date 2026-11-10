@@ -27,6 +27,8 @@ export interface Case {
   mode: 'AUTO' | 'MANUAL';
   script?: string;
   priority?: 'P0' | 'P1' | 'P2';
+  journey?: string;
+  covers?: string[];
   notes?: string;
   /** 来源文件（相对 acceptance/） */
   file?: string;

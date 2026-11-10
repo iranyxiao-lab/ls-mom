@@ -1,0 +1,81 @@
+name: 验收缺陷
+description: 验收走查发现的问题（必须关联用例编号与 spec 场景，定级规则见 acceptance/README.md）
+title: '[缺陷] '
+labels: [defect]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        定级拿不准时取更高一级；**越权、数据错误写入或丢失、安全边界失效一律 S1**。S1、S2 必须附证据，由第二人复核。
+        提交后 CI 会按表单补打 `S*`、`type/*`、`spec/*` 标签；修复 PR 写 `Fixes #编号`，合并后自动重跑关联用例并把结果评论回本 Issue。
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重级别
+      options:
+        - S1 阻断（核心流程走不通、数据错误、越权、安全问题）
+        - S2 严重（结果不对，或关键任务超出操作预算）
+        - S3 一般（体验或一致性问题，有替代路径）
+        - S4 轻微（文案、样式细节）
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: 类型
+      options: [功能, UI 体验, 无障碍, 性能, 安全]
+    validations:
+      required: true
+  - type: input
+    id: case
+    attributes:
+      label: 关联用例编号
+      description: 一个或多个，逗号分隔
+      placeholder: AC-FLOW-WC-012
+    validations:
+      required: true
+  - type: input
+    id: ref
+    attributes:
+      label: 关联 spec 与 Scenario
+      description: change ▸ spec ▸ Requirement ▸ Scenario
+      placeholder: bootstrap-ls-mom-mvp ▸ flow/workflow-collaboration ▸ 任务办理权限 ▸ 非办理人办理
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 含角色账号（acc_*）、数据与操作顺序，不要写口令
+      placeholder: |
+        1. acc_operator 登录
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境与版本
+      description: 走查轮次与提交号（runs/<run>），视口、主题、浏览器
+      placeholder: runs/20261111-1000-93fc60d · 桌面 1440×900 · 浅色 · Chromium
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 证据
+      description: 截图、trace.zip、录像（拖入上传），以及响应头 X-Trace-Id
+    validations:
+      required: true
