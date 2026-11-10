@@ -106,6 +106,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: '看板', icon: 'chart' }
       },
       {
+        path: 'object/:type/:id',
+        component: () => import('@/views/lsmom/object/index.vue'),
+        name: 'LsObjectDetail',
+        meta: { title: '对象详情', icon: 'documentation' }
+      },
+      {
         path: 'workbench',
         component: () => import('@/views/lsmom/workbench/index.vue'),
         name: 'LsWorkbench',

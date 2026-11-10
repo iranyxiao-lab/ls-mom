@@ -11,3 +11,13 @@
 - **权限**：命名 Query `ls.ui.globalSearch` 注入调用者数据域（组织或本人创建）；台账类型还要求 `crud:<Concept>:list` 权限。
 - **接口**：`GET /api/ui/search?q=&limit=`（最多 50 条），返回 `object_type`、`object_id`、`code`、`title`、`subtitle`、`rank`、`score`。
 - **测试**：`GlobalSearchTest`（集成），`tests/e2e/global-search.e2e.mjs`（部署环境）。
+
+## 命令面板
+
+- **打开**：Ctrl/⌘+K 或顶栏搜索图标；↑↓ 选择、Enter 打开、Ctrl/⌘+D 收藏或取消收藏、Esc 关闭。
+- **内容**：菜单（用户有权访问的页面，本地按原文、全拼、首字母匹配，拼音字典首次打开时才加载）、动作（`layout/commands.ts` 的 `registerCommand`，可带权限或依赖页面）、单据与对象（上面的全局搜索）。
+- **排序**：输入与某张单据编号完全一致时单据排第一组，回车直接打开详情；否则菜单在前。
+- **直达**：工作、人员打开 `/lsmom/object/work|party/<id>`；台账记录打开 `/lsmom/ledger/<Concept>?id=<id>`（台账页打开该记录详情后去掉参数）。
+- **页面动作**：动作跳转时带 `?action=<名称>`，页面用 `useRouteAction(名称, 函数)` 响应（例如不符合项页的 `new` 打开登记对话框）。
+- **空输入**：显示收藏和最近访问（30 条，`store/modules/navHistory.ts`）。
+- **测试**：`tests/unit/command-palette.spec.ts`、`tests/ui/app/palette.spec.ts`（含无障碍扫描）。

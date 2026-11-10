@@ -26,9 +26,9 @@
           <template #prefix><svg-icon icon-class="company" class="el-input__icon input-icon" /></template>
         </el-select>
 
-        <search-menu ref="searchMenuRef" />
-        <el-tooltip content="搜索" effect="dark" placement="bottom">
-          <div class="right-menu-item hover-effect" @click="openSearchMenu">
+        <command-palette ref="searchMenuRef" />
+        <el-tooltip content="搜索（Ctrl/⌘+K）" effect="dark" placement="bottom">
+          <div class="right-menu-item hover-effect" role="button" aria-label="搜索" data-testid="open-palette" @click="openSearchMenu">
             <svg-icon class-name="search-icon" icon-class="search" />
           </div>
         </el-tooltip>
@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import SearchMenu from './TopBar/search.vue';
+import CommandPalette from './CommandPalette/index.vue';
 import { useAppStore } from '@/store/modules/app';
 import { useUserStore } from '@/store/modules/user';
 import { useSettingsStore } from '@/store/modules/settings';
@@ -119,10 +119,10 @@ const dynamic = ref(false);
 // 租户开关
 const tenantEnabled = ref(true);
 // 搜索菜单
-const searchMenuRef = ref<InstanceType<typeof SearchMenu>>();
+const searchMenuRef = ref<InstanceType<typeof CommandPalette>>();
 
 const openSearchMenu = () => {
-  searchMenuRef.value?.openSearch();
+  searchMenuRef.value?.open();
 };
 
 // 动态切换

@@ -184,6 +184,7 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
+import { useRouteAction } from '@/utils/routeAction';
 import { ElMessage } from 'element-plus';
 import type { QualityApi } from '@/api/lsmom/quality';
 import { NC, NC_STATUS, NC_STATUS_TYPE, SEVERITIES, ncMissing, type ObjectOption } from '@/api/lsmom/qualityModel';
@@ -353,6 +354,8 @@ async function verify(action: 'close' | 'verifyFail') {
 }
 
 onMounted(load);
+// 命令面板「登记不符合项」：/quality/nc?action=new
+useRouteAction('new', openNew);
 defineExpose({ load, openDetail, openNew });
 </script>
 
