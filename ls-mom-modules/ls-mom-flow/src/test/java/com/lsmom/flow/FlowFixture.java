@@ -16,6 +16,7 @@ import com.lsmom.flow.model.FlowDefinition;
 import com.lsmom.flow.runtime.ApprovalEvidence;
 import com.lsmom.flow.runtime.AssigneeResolver;
 import com.lsmom.flow.runtime.FlowCallbacks;
+import com.lsmom.flow.runtime.FlowCallbackGuard;
 import com.lsmom.flow.runtime.FlowGuards;
 import com.lsmom.flow.runtime.FlowInstances;
 import com.lsmom.flow.runtime.FlowNodePolicyResolver;
@@ -68,6 +69,11 @@ public class FlowFixture {
         StaticListableBeanFactory beans = new StaticListableBeanFactory(Map.of("flowNodePolicy", new FlowNodePolicyResolver()));
         action.gateway.addFieldPolicy(new FormFieldPolicyCheck(form.forms, beans.getBeanProvider(NodePolicyResolver.class)));
         if (action.guardRegistry.registered(FlowGuards.NOT_HANDLED).isEmpty()) action.guardRegistry.register(FlowGuards.notHandled(action.core.jdbc));
+        if (action.guardRegistry.registered(FlowCallbackGuard.CODE).isEmpty()) {
+            FlowCallbackGuard cb = new FlowCallbackGuard(action.core.jdbc);
+            action.guardRegistry.register(cb);
+            action.guardRegistry.attach(cb);
+        }
         if (action.guardRegistry.registered(ApprovalEvidence.GUARD).isEmpty()) action.guardRegistry.register(evidence.guard());
     }
 

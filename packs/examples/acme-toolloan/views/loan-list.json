@@ -7,7 +7,6 @@
   "filters": ["loanNo", "borrower", "purpose", "asset", "loanDate"],
   "defaultSort": [{ "field": "loanNo", "dir": "desc" }],
   "rowActions": [
-    { "key": "submit", "label": "提交审核", "operation": "acme.toolloan.LoanOrder.submit" },
-    { "key": "withdraw", "label": "撤回", "operation": "acme.toolloan.LoanOrder.withdraw" }
+    { "key": "submit", "label": "提交审核", "operation": "acme.toolloan.LoanOrder.submit" }
   ]
 }

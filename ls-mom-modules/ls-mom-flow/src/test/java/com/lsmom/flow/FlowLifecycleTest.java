@@ -106,6 +106,10 @@ class FlowLifecycleTest {
     void 审核前可撤回_审核后撤回被业务Operation拒绝() {
         String id = f.submitLoan(s, s.applicant(), "L-1003");
         long inst = f.instance(s, id).id();
+        // 审批进行中：从列表按钮直接调用撤回 Operation 被拒（否则流程实例和审批人待办会留下）
+        assertThatThrownBy(() -> f.action.on(s.order() + ".withdraw", f.actor(s.applicant()), id, f.version(s, id), "{}"))
+            .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getDetails()).containsEntry("reason", "FLOW_RUNNING"));
+        assertThat(f.status(s, id)).isEqualTo("IN_REVIEW");
         f.runtime.withdraw(inst, "填错了", f.actor(s.applicant()));
         assertThat(f.status(s, id)).isEqualTo("DRAFT");
         assertThat(f.instances.get(inst).status()).isEqualTo("WITHDRAWN");

@@ -69,7 +69,8 @@ public class FlowCallbacks {
         try {
             requiresNew.executeWithoutResult(st -> {
                 int version = stores.has(c.bizType()) ? stores.of(c.bizType()).load(c.bizId()).version() : 0;
-                gateway.execute(c.operation(), new OperationRequest(input(c), c.bizId(), version, c.key(), false), actor(c.onBehalfOf()));
+                FlowCallbackGuard.viaFlow(() -> gateway.execute(c.operation(), new OperationRequest(input(c), c.bizId(), version, c.key(), false),
+                    actor(c.onBehalfOf())));
                 jdbc.update("update biz_flow_callback_log set status = 'DONE', attempts = attempts + 1, done_at = now(), last_error = null where id = ?", c.id());
             });
             return true;

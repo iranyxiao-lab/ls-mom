@@ -43,8 +43,13 @@ public class GuardRegistry {
     public GuardRegistry(List<Guard> beans, List<GuardProvider> providers, List<GuardAttachment> attachments) {
         beans.forEach(this::register);
         this.providers = providers;
-        this.attachments = attachments;
+        this.attachments = new java.util.concurrent.CopyOnWriteArrayList<>(attachments);
         providers.forEach(p -> p.bind(this));
+    }
+
+    /** 追加附加守卫（装配后由其他模块注册，如流程回调守卫）。 */
+    public void attach(GuardAttachment a) {
+        if (!attachments.contains(a)) attachments.add(a);
     }
 
     /** 附加到该 Operation 的守卫编码。 */

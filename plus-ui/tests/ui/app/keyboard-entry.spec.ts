@@ -9,14 +9,20 @@ import { api, loggedIn } from '../support/auth';
 
 test.describe.configure({ timeout: 150_000 });
 
-const activeTestId = (page: Page) => page.evaluate(() => (document.activeElement as HTMLElement | null)?.dataset?.testid ?? document.activeElement?.closest('[data-testid]')?.getAttribute('data-testid'));
+const activeTestId = (page: Page) =>
+  page.evaluate(
+    () =>
+      (document.activeElement as HTMLElement | null)?.dataset?.testid ?? document.activeElement?.closest('[data-testid]')?.getAttribute('data-testid')
+  );
 const activeKey = (page: Page) => page.evaluate(() => (document.activeElement?.closest('[data-field-key]') as HTMLElement | null)?.dataset.fieldKey);
 
 test('纯键盘完成借还单录入并提交', async ({ browser }) => {
   const { context, page } = await loggedIn(browser, 'admin', { viewport: { width: 1440, height: 900 } });
   await page.goto('/index');
   const views = (await api(page)('GET', '/api/form/views?type=FORM')).data as any[];
-  const loan = views.filter((v) => /^acme\.tl[a-z0-9]+\.loanForm$/.test(v.code) && v.publishedVersion).sort((a, b) => String(b.code).localeCompare(String(a.code)))[0];
+  const loan = views
+    .filter((v) => /^acme\.tl[a-z0-9]+\.loanForm$/.test(v.code) && v.publishedVersion)
+    .sort((a, b) => String(b.code).localeCompare(String(a.code)))[0];
   expect(loan, '测试环境有已发布的工器具借还配置包').toBeTruthy();
   const concept = loan.code.replace(/\.loanForm$/, '.LoanOrder');
   const loanNo = `TL-${Date.now().toString(36)}-K`;
@@ -76,8 +82,14 @@ test('纯键盘完成借还单录入并提交', async ({ browser }) => {
   await kb.press('Control+Enter');
   await expect(page.locator('.el-message--success').first()).toContainText('提交审核');
   await expect(ed).toBeHidden();
-  const rec = (await api(page)('POST', `/api/crud/${concept}/query`, { filters: [{ field: 'loanNo', op: 'eq', value: loanNo }], page: 1, size: 1, expand: ['borrower'] }))
-    .data.rows[0];
+  const rec = (
+    await api(page)('POST', `/api/crud/${concept}/query`, {
+      filters: [{ field: 'loanNo', op: 'eq', value: loanNo }],
+      page: 1,
+      size: 1,
+      expand: ['borrower']
+    })
+  ).data.rows[0];
   expect(rec.status).toBe('IN_REVIEW');
   expect(rec.purpose).toBe('MAINTENANCE');
   expect(String(rec.loanDate)).toContain('2026-11-10');
@@ -88,5 +100,11 @@ test('纯键盘完成借还单录入并提交', async ({ browser }) => {
     ['万用表', null, 1]
   ]);
   expect(full.remark).toBe('键盘录入');
+  // 收尾：经流程撤回（同时结束审批人待办），不给其他用例留下无权办理的待办
+  const biz = (await api(page)('GET', `/api/flow/biz/${concept}/${rec.id}`)).data.instances as any[];
+  const running = biz.find((b) => b.instance.status === 'RUNNING');
+  expect(running, '提交后有进行中的流程').toBeTruthy();
+  const w = await api(page)('POST', `/api/flow/instances/${running.instance.id}/withdraw`, { reason: '用例收尾' });
+  expect(w.code, JSON.stringify(w)).toBe(200);
   await context.close();
 });

@@ -304,8 +304,8 @@ public class FlowRuntime implements FlowHooks, OperationListener {
             }
             case "OPERATION" -> {
                 int version = stores.of(inst.bizType()).load(inst.bizId()).version();
-                gateway.execute(n.operation(), new OperationRequest(JsonNodeFactory.instance.objectNode(), inst.bizId(), version,
-                    inst.procInstId() + ":" + node + ":" + execution.getId(), false), FlowCallbacks.actor());
+                FlowCallbackGuard.viaFlow(() -> gateway.execute(n.operation(), new OperationRequest(JsonNodeFactory.instance.objectNode(), inst.bizId(),
+                    version, inst.procInstId() + ":" + node + ":" + execution.getId(), false), FlowCallbacks.actor()));
             }
             case "CC" -> {
                 AssigneeResolver.Result r = assignees.resolve(n.assignee(), null, context(inst));
@@ -571,7 +571,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
             : new NodePolicyResolver.Binding(inst.formCode(), inst.formVersion(), policyKey, fieldPolicy);
         NodeContext.Current cur = new NodeContext.Current(inst.bizType(), inst.bizId(), task == null ? null : task.getId(), binding);
         String key = inst.procInstId() + ":" + (task == null ? "-" : task.getId()) + ":" + operation;
-        NodeContext.with(cur, () -> gateway.execute(operation, new OperationRequest(input, inst.bizId(), version, key, false), actor));
+        NodeContext.with(cur, () -> FlowCallbackGuard.viaFlow(() -> gateway.execute(operation, new OperationRequest(input, inst.bizId(), version, key, false), actor)));
     }
 
     private Task requireTask(String taskId) {

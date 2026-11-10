@@ -12,6 +12,7 @@ import com.lsmom.flow.engine.FlowEngineFactory;
 import com.lsmom.flow.runtime.ApprovalEvidence;
 import com.lsmom.flow.runtime.AssigneeResolver;
 import com.lsmom.flow.runtime.FlowCallbacks;
+import com.lsmom.flow.runtime.FlowCallbackGuard;
 import com.lsmom.flow.runtime.FlowGuards;
 import com.lsmom.flow.runtime.FlowInstances;
 import com.lsmom.flow.runtime.FlowNodePolicyResolver;
@@ -87,6 +88,12 @@ public class FlowConfiguration {
     @Bean
     public Guard flowNotHandledGuard(JdbcTemplate jdbc) {
         return FlowGuards.notHandled(jdbc);
+    }
+
+    /** 审批进行中的单据，流程回调 Operation 只能经流程调用 */
+    @Bean
+    public FlowCallbackGuard flowCallbackGuard(JdbcTemplate jdbc) {
+        return new FlowCallbackGuard(jdbc);
     }
 
     @Bean
