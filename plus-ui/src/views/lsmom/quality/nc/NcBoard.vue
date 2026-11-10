@@ -190,6 +190,7 @@ import { NC, NC_STATUS, NC_STATUS_TYPE, SEVERITIES, ncMissing, type ObjectOption
 import { refLabel } from '@/api/lsmom/assetModel';
 import { WORK_STATUS } from '@/api/lsmom/productionModel';
 import { useTaskTracking } from '@/utils/track';
+import { useUnsavedGuard } from '@/utils/pageState';
 
 /** 不符合项：登记（高严重度设备与立即措施必填）→ 车间审核（只可填审核意见与立即措施）→ 整改工作（附证据）→ 提交验证 → 真人终判关闭。 */
 const props = defineProps<{ api: QualityApi }>();
@@ -224,6 +225,8 @@ const conclusion = ref('');
 
 /** 登记不符合项是关键任务：记录各步骤停留与放弃点（只记字段名，不记填写内容）。 */
 const tracker = useTaskTracking('nc.register', newVisible);
+// 登记对话框里已填写内容时，关闭页签会提示
+useUnsavedGuard(() => newVisible.value && Boolean(draft.title.trim() || draft.description.trim() || draft.immediateAction.trim()));
 
 const MESSAGES: Record<string, string> = { asset: '严重程度为高时必须填写相关设备', immediateAction: '严重程度为高时必须填写立即措施' };
 

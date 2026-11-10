@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { nextTick, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SchemaTable from '@/components/SchemaTable/index.vue';
 import SchemaForm from '@/components/SchemaForm/index.vue';
@@ -98,6 +98,7 @@ import type { FormApi } from '@/api/lsmom/form';
 import type { ExportJob, ImportReport } from '@/api/lsmom/types';
 import type { FormAction, FormSchema, ViewVersion } from '@/types/lsView';
 import { EXPORT_STATUS, idempotencyKey, saveBlob } from './ledgerModel';
+import { useUnsavedGuard } from '@/utils/pageState';
 
 /**
  * 通用台账工作区：列表（筛选、导出、行动作）＋ 默认表单录入编辑 ＋ 冻结版本只读详情 ＋ 导入预检。
@@ -120,6 +121,19 @@ const editor = reactive({
 const detail = reactive({ visible: false, record: null as Record<string, any> | null, view: null as ViewVersion<FormSchema> | null, latest: 0 });
 const imp = reactive({ visible: false, report: null as ImportReport | null, inputKey: 0 });
 const exportJob = ref<ExportJob>();
+
+// 打开编辑后表单内容与打开时不同即视为未保存（关闭页签时提示）
+let snapshot = '';
+watch(
+  () => editor.loading,
+  async (loading) => {
+    if (loading || !editor.visible) return;
+    await nextTick();
+    await nextTick();
+    snapshot = JSON.stringify(editor.model);
+  }
+);
+useUnsavedGuard(() => editor.visible && !editor.loading && JSON.stringify(editor.model) !== snapshot);
 
 async function openCreate() {
   Object.assign(editor, { visible: true, loading: true, id: undefined, version: 0, schema: null, model: {}, hint: '' });
@@ -184,6 +198,7 @@ async function save(action?: FormAction) {
     } else {
       ElMessage.success('已保存草稿');
     }
+    snapshot = JSON.stringify(editor.model);
     editor.visible = false;
     await table.value?.load();
   } finally {

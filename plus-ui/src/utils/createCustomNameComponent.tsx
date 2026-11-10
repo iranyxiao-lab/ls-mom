@@ -3,7 +3,8 @@
  * 感谢 @fourteendp
  * 详见 https://github.com/vbenjs/vue-vben-admin/issues/3927
  */
-import { Component, defineComponent, h } from 'vue';
+import { Component, defineComponent, getCurrentInstance, h } from 'vue';
+import { useKeepScroll } from '@/utils/pageState';
 
 interface Options {
   name?: string;
@@ -30,8 +31,11 @@ export function createCustomNameComponent(loader: () => Promise<any>, options: O
     return Promise.resolve(
       defineComponent({
         name,
-        render() {
-          return h(component as Component);
+        setup() {
+          // 页签切换时恢复滚动位置（页面被 keep-alive 缓存时生效）
+          const self = getCurrentInstance();
+          useKeepScroll(() => (self?.proxy?.$el as Element | undefined) ?? null);
+          return () => h(component as Component);
         }
       })
     );

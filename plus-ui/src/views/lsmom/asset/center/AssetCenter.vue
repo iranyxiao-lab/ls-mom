@@ -207,11 +207,23 @@ const fmt = (s: string) => (s ? String(s).replace('T', ' ').slice(0, 16) : '');
 async function load() {
   loading.value = true;
   try {
-    const filters: any[] = [];
-    if (keyword.value) filters.push({ field: 'name', op: 'like', value: keyword.value });
-    if (status.value) filters.push({ field: 'status', op: 'eq', value: status.value });
-    const page = await props.api.query(ASSET, { filters, sort: [{ field: 'assetCode', dir: 'asc' }], page: 1, size: 200, expand: ['owner'] });
-    rows.value = page.rows as Record<string, any>[];
+    const base: any[] = status.value ? [{ field: 'status', op: 'eq', value: status.value }] : [];
+    const q = (filters: any[]) =>
+      props.api.query(ASSET, { filters, sort: [{ field: 'assetCode', dir: 'asc' }], page: 1, size: 200, expand: ['owner'] });
+    const kw = keyword.value.trim();
+    if (!kw) {
+      rows.value = (await q(base)).rows as Record<string, any>[];
+      return;
+    }
+    // 输入框按「设备编码或名称」搜索：两个条件分别查询后合并（查询接口的条件之间是“且”）
+    const [byCode, byName] = await Promise.all([
+      q([...base, { field: 'assetCode', op: 'like', value: kw }]),
+      q([...base, { field: 'name', op: 'like', value: kw }])
+    ]);
+    const seen = new Set<unknown>();
+    rows.value = ([...byCode.rows, ...byName.rows] as Record<string, any>[])
+      .filter((r) => !seen.has(r.id) && seen.add(r.id))
+      .sort((a, b) => String(a.assetCode).localeCompare(String(b.assetCode)));
   } finally {
     loading.value = false;
   }

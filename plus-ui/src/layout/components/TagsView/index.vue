@@ -12,7 +12,7 @@
         @click.middle="!isAffix(tag) ? closeSelectedTag(tag) : ''"
         @contextmenu.prevent="openMenu(tag, $event)"
       >
-        <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon"/>
+        <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon" />
         <span class="tags-view-item-title">{{ tag.title }}</span>
         <span v-if="!isAffix(tag)" @click.prevent.stop="closeSelectedTag(tag)">
           <close class="el-icon-close" style="width: 1em; height: 1em; vertical-align: middle" />
@@ -37,6 +37,7 @@ import { useSettingsStore } from '@/store/modules/settings';
 import { usePermissionStore } from '@/store/modules/permission';
 import { useTagsViewStore } from '@/store/modules/tagsView';
 import { RouteRecordRaw, RouteLocationNormalized } from 'vue-router';
+import { confirmClose } from '@/utils/pageState';
 
 const visible = ref(false);
 const top = ref(0);
@@ -52,7 +53,7 @@ const router = useRouter();
 const visitedViews = computed(() => useTagsViewStore().getVisitedViews());
 const routes = computed(() => usePermissionStore().getRoutes());
 const theme = computed(() => useSettingsStore().theme);
-const tagsIcon = computed(() => useSettingsStore().tagsIcon)
+const tagsIcon = computed(() => useSettingsStore().tagsIcon);
 
 watch(route, () => {
   addTags();
@@ -158,34 +159,45 @@ const refreshSelectedTag = (view: RouteLocationNormalized) => {
     useTagsViewStore().delIframeView(route);
   }
 };
-const closeSelectedTag = (view: RouteLocationNormalized) => {
+const closeSelectedTag = async (view: RouteLocationNormalized) => {
+  if (!(await confirmClose([view as any]))) return;
   proxy?.$tab.closePage(view).then(({ visitedViews }: any) => {
     if (isActive(view)) {
       toLastView(visitedViews, view);
     }
   });
 };
-const closeRightTags = () => {
+/** 批量关闭前，对将被关闭且有未保存内容的页签统一确认一次。 */
+const closing = (pick: (views: RouteLocationNormalized[], i: number) => RouteLocationNormalized[]) => {
+  const views = visitedViews.value as RouteLocationNormalized[];
+  const i = views.findIndex((v) => v.path === selectedTag.value.path);
+  return confirmClose(pick(views, i).filter((v) => !isAffix(v)) as any);
+};
+const closeRightTags = async () => {
+  if (!(await closing((v, i) => v.slice(i + 1)))) return;
   proxy?.$tab.closeRightPage(selectedTag.value).then((visitedViews: RouteLocationNormalized[]) => {
     if (!visitedViews.find((i: RouteLocationNormalized) => i.fullPath === route.fullPath)) {
       toLastView(visitedViews);
     }
   });
 };
-const closeLeftTags = () => {
+const closeLeftTags = async () => {
+  if (!(await closing((v, i) => v.slice(0, i)))) return;
   proxy?.$tab.closeLeftPage(selectedTag.value).then((visitedViews: RouteLocationNormalized[]) => {
     if (!visitedViews.find((i: RouteLocationNormalized) => i.fullPath === route.fullPath)) {
       toLastView(visitedViews);
     }
   });
 };
-const closeOthersTags = () => {
+const closeOthersTags = async () => {
+  if (!(await closing((v) => v.filter((x) => x.path !== selectedTag.value.path)))) return;
   router.push(selectedTag.value).catch(() => {});
   proxy?.$tab.closeOtherPage(selectedTag.value).then(() => {
     moveToCurrentTag();
   });
 };
-const closeAllTags = (view: RouteLocationNormalized) => {
+const closeAllTags = async (view: RouteLocationNormalized) => {
+  if (!(await closing((v) => v))) return;
   proxy?.$tab.closeAllPage().then(({ visitedViews }) => {
     if (affixTags.value.some((tag) => tag.path === route.path)) {
       return;
@@ -261,7 +273,11 @@ onMounted(() => {
       margin-left: 5px;
       margin-top: 4px;
       border-radius: var(--app-radius-md);
-      transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
       &:hover {
         color: var(--el-color-primary);
         border-color: var(--el-color-primary-light-5);

@@ -207,3 +207,30 @@ describe('缺陷与维修', () => {
     expect(api.op).toHaveBeenLastCalledWith('ls.asset.Defect.verifyPass', 41, 3, { conclusion: '温度恢复 55℃' });
   });
 });
+
+describe('设备台账搜索', () => {
+  it('输入框同时按设备编码与名称搜索，结果合并去重并按编码排序', async () => {
+    const rows = [
+      { id: 1, assetCode: 'P-101', name: '循环泵', status: 'RUNNING' },
+      { id: 2, assetCode: 'TL-9', name: 'P-101 备用泵', status: 'RUNNING' }
+    ];
+    const api = makeApi({
+      query: vi.fn(async (_c: string, req: any) => {
+        const kw = req.filters.find((f: any) => f.op === 'like');
+        if (!kw) return { rows, total: 2, page: 1, size: 200 };
+        const hit = rows.filter((r: any) => String(r[kw.field]).includes(kw.value));
+        return { rows: hit, total: hit.length, page: 1, size: 200 };
+      })
+    });
+    await mount(AssetCenter, api);
+    await type('asset-keyword', 'P-101');
+    (document.querySelector('[data-testid="asset-keyword"] input, input[data-testid="asset-keyword"]') as HTMLInputElement).dispatchEvent(
+      new Event('change')
+    );
+    await flush(120);
+    const fields = api.query.mock.calls.slice(-2).map((c: any[]) => c[1].filters.find((f: any) => f.op === 'like')?.field);
+    expect(fields.sort()).toEqual(['assetCode', 'name']);
+    const codes = [...document.querySelectorAll('[data-testid^="asset-row-"]')].map((e) => e.textContent?.trim());
+    expect(codes).toEqual(['P-101', 'TL-9']);
+  });
+});
