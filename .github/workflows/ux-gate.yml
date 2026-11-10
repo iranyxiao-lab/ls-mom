@@ -1,0 +1,74 @@
+name: ux-gate
+
+# 体验质量门禁（modernize-ui-ux 第 2 组）：在 Docker Compose 全新环境上对核心页面跑无障碍扫描、点击预算等检查。
+# 浏览器一律无头。只在合并到 main 与手动触发时运行（构建镜像较慢）。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ux-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  app-pages:
+    name: 核心页面体验门禁
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      CAPTCHA_ENABLED: 'false'
+      LSMOM_HTTP_PORT: '18081'
+      LSMOM_E2E_BASE: http://127.0.0.1:18081
+    steps:
+      - uses: actions/checkout@v4
+      - name: 启动全新环境（演示种子）
+        working-directory: deploy
+        run: |
+          docker compose -p lsmom-ci up -d --build
+          for i in $(seq 1 120); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose -p lsmom-ci ps -q app)")" = healthy ] && break
+            sleep 5
+          done
+          curl -fsS http://127.0.0.1:18081/login >/dev/null
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: plus-ui/pnpm-lock.yaml
+      - name: 安装依赖与无头 Chromium
+        working-directory: plus-ui
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps --only-shell chromium
+      - name: 无障碍扫描、点击预算（无头）
+        working-directory: plus-ui
+        run: LS_UI_NO_STORYBOOK=1 pnpm exec playwright test --project=app
+      - name: 性能预算（Lighthouse CI：桌面 LCP/TBT，移动 4G 首屏 LCP，无头）
+        working-directory: plus-ui
+        run: |
+          pnpm exec lhci collect --config=lighthouserc.cjs && pnpm exec lhci assert --config=lighthouserc.cjs
+          LHCI_FORM=mobile pnpm exec lhci collect --config=lighthouserc.cjs && LHCI_FORM=mobile pnpm exec lhci assert --config=lighthouserc.cjs
+      - name: 视觉回归（组件与核心页面，固定 Playwright 容器）
+        working-directory: plus-ui
+        run: |
+          pnpm storybook:build
+          tests/ui/visual-docker.sh
+      - name: 失败时保留报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ux-gate-report
+          path: |
+            plus-ui/playwright-report
+            plus-ui/.lighthouseci
+      - name: 清理
+        if: always()
+        working-directory: deploy
+        run: docker compose -p lsmom-ci down -v

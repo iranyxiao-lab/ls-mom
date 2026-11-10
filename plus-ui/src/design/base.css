@@ -25,3 +25,16 @@
   outline: 2px solid var(--ls-color-focus-ring);
   outline-offset: 2px;
 }
+
+/* 深色主题中主色作文字（文字链接）时使用 primary-text，保证深底对比度 ≥4.5:1 */
+html.dark .el-link.el-link--primary {
+  --el-link-text-color: var(--ls-color-primary-text);
+  --el-link-hover-text-color: color-mix(in srgb, var(--ls-color-primary-text) 80%, #ffffff);
+}
+html.dark .el-tag.el-tag--primary {
+  --el-tag-text-color: var(--ls-color-primary-text);
+}
+html.dark .el-button.is-link.el-button--primary,
+html.dark .el-button.is-text.el-button--primary {
+  --el-button-text-color: var(--ls-color-primary-text);
+}

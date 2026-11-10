@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dropdown trigger="click" @command="handleSetSize">
-      <div class="size-icon--style">
+      <div class="size-icon--style" aria-label="切换布局大小">
         <svg-icon class-name="size-icon" icon-class="size" />
       </div>
       <template #dropdown>

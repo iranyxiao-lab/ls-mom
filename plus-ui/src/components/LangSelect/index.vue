@@ -1,6 +1,6 @@
 <template>
   <el-dropdown trigger="click" @command="handleLanguageChange">
-    <div class="lang-select--style">
+    <div class="lang-select--style" role="button" aria-label="切换语言">
       <svg-icon icon-class="language" />
     </div>
     <template #dropdown>

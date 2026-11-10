@@ -28,22 +28,22 @@
     </el-table>
 
     <el-dialog v-model="newVisible" title="登记不符合项" width="560px" append-to-body>
-      <el-form label-width="90px">
-        <el-form-item label="问题" required><el-input v-model="draft.title" data-testid="nc-title" /></el-form-item>
-        <el-form-item label="问题描述" required
+      <el-form label-width="90px" @focusin="tracker.onFocusin" @pointerdown="tracker.onFocusin">
+        <el-form-item label="问题" required data-track-step="title"><el-input v-model="draft.title" data-testid="nc-title" /></el-form-item>
+        <el-form-item label="问题描述" required data-track-step="description"
           ><el-input v-model="draft.description" type="textarea" :rows="2" data-testid="nc-description"
         /></el-form-item>
-        <el-form-item label="责任车间" required>
+        <el-form-item label="责任车间" required data-track-step="org">
           <el-select v-model="draft.orgId" data-testid="nc-org">
             <el-option v-for="o in orgs" :key="o.id" :label="o.parent_name ? `${o.parent_name} / ${o.name}` : o.name" :value="o.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="严重程度" required>
+        <el-form-item label="严重程度" required data-track-step="severity">
           <el-radio-group v-model="draft.severity">
             <el-radio-button v-for="(v, k) in SEVERITIES" :key="k" :value="k" :data-testid="`nc-sev-${k}`">{{ v }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="相关设备" :required="draft.severity === 'HIGH'" :error="errors.asset">
+        <el-form-item label="相关设备" :required="draft.severity === 'HIGH'" :error="errors.asset" data-track-step="asset">
           <el-select
             v-model="draft.asset"
             filterable
@@ -56,7 +56,7 @@
             <el-option v-for="o in assets" :key="o.id" :label="o.label" :value="o.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="立即措施" :required="draft.severity === 'HIGH'" :error="errors.immediateAction">
+        <el-form-item label="立即措施" :required="draft.severity === 'HIGH'" :error="errors.immediateAction" data-track-step="immediate-action">
           <el-input v-model="draft.immediateAction" type="textarea" :rows="2" data-testid="nc-action" />
         </el-form-item>
       </el-form>
@@ -189,6 +189,7 @@ import type { QualityApi } from '@/api/lsmom/quality';
 import { NC, NC_STATUS, NC_STATUS_TYPE, SEVERITIES, ncMissing, type ObjectOption } from '@/api/lsmom/qualityModel';
 import { refLabel } from '@/api/lsmom/assetModel';
 import { WORK_STATUS } from '@/api/lsmom/productionModel';
+import { useTaskTracking } from '@/utils/track';
 
 /** 不符合项：登记（高严重度设备与立即措施必填）→ 车间审核（只可填审核意见与立即措施）→ 整改工作（附证据）→ 提交验证 → 真人终判关闭。 */
 const props = defineProps<{ api: QualityApi }>();
@@ -220,6 +221,9 @@ const audit = reactive<{ auditOpinion: string; immediateAction: string; owner?: 
   title: ''
 });
 const conclusion = ref('');
+
+/** 登记不符合项是关键任务：记录各步骤停留与放弃点（只记字段名，不记填写内容）。 */
+const tracker = useTaskTracking('nc.register', newVisible);
 
 const MESSAGES: Record<string, string> = { asset: '严重程度为高时必须填写相关设备', immediateAction: '严重程度为高时必须填写立即措施' };
 
@@ -258,10 +262,14 @@ async function openNew() {
 
 async function saveNew() {
   Object.keys(errors).forEach((k) => delete errors[k]);
-  if (!draft.title.trim() || !draft.description.trim()) return ElMessage.warning('请填写问题与问题描述');
+  if (!draft.title.trim() || !draft.description.trim()) {
+    tracker.error(!draft.title.trim() ? 'title' : 'description');
+    return ElMessage.warning('请填写问题与问题描述');
+  }
   const missing = ncMissing(draft);
   if (missing.length) {
     missing.forEach((k) => (errors[k] = MESSAGES[k]));
+    tracker.error(missing[0] === 'immediateAction' ? 'immediate-action' : missing[0]);
     return ElMessage.warning(MESSAGES[missing[0]]);
   }
   const body: Record<string, unknown> = {
@@ -272,8 +280,15 @@ async function saveNew() {
   };
   if (draft.asset) body.asset = draft.asset;
   if (draft.immediateAction.trim()) body.immediateAction = draft.immediateAction.trim();
-  const r = await props.api.create(NC, body);
-  await props.api.op(`${NC}.submit`, r.id, r.version);
+  let r;
+  try {
+    r = await props.api.create(NC, body);
+    await props.api.op(`${NC}.submit`, r.id, r.version);
+  } catch (e) {
+    tracker.error('save');
+    throw e;
+  }
+  tracker.complete();
   ElMessage.success('不符合项已提交，等待车间审核');
   newVisible.value = false;
   await load();

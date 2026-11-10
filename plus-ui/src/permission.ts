@@ -10,7 +10,12 @@ import { useSettingsStore } from '@/store/modules/settings';
 import { usePermissionStore } from '@/store/modules/permission';
 import { ElMessage } from 'element-plus/es';
 
-NProgress.configure({ showSpinner: false });
+// 默认模板使用无效的 ARIA 角色（role="bar"），改为合法的进度条角色
+NProgress.configure({
+  showSpinner: false,
+  barSelector: '.bar',
+  template: '<div class="bar" role="progressbar" aria-label="页面加载中"><div class="peg"></div></div>'
+});
 const whiteList = ['/login', '/register', '/social-callback', '/register*', '/register/*'];
 
 const isWhiteList = (path: string) => {

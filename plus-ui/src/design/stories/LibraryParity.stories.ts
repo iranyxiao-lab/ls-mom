@@ -14,13 +14,13 @@ export const SideBySide: StoryObj = {
           <h3>Element Plus</h3>
           <el-button type="primary" data-testid="el-primary">开工</el-button>
           <el-tag type="success">已完成</el-tag>
-          <el-input model-value="一车间甲班" style="width:240px" />
+          <el-input model-value="一车间甲班" aria-label="班组" style="width:240px" />
         </section>
         <section data-testid="parity-van" style="display:grid;gap:var(--ls-space-3);justify-items:start">
           <h3>Vant</h3>
           <van-button type="primary" data-testid="van-primary">开工</van-button>
           <van-tag type="success">已完成</van-tag>
-          <van-field model-value="一车间甲班" style="width:240px" />
+          <van-field model-value="一车间甲班" label="班组" style="width:240px" />
         </section>
       </div>`
   })

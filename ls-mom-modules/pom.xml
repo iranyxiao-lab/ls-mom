@@ -74,6 +74,7 @@
         <module>ls-mom-ai</module>
         <module>ls-mom-mcp</module>
         <module>ls-mom-dcs</module>
+        <module>ls-mom-ui</module>
         <module>../ls-mom-dcs-simulator</module>
         <module>ls-mom-biz</module>
         <module>../ls-mom-cli</module>

@@ -1,6 +1,6 @@
 import type { Preview } from '@storybook/vue3-vite';
 import { setup } from '@storybook/vue3-vite';
-import ElementPlus from 'element-plus';
+import ElementPlus from 'element-plus/es/defaults.mjs';
 import 'element-plus/dist/index.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import 'vant/lib/index.css';

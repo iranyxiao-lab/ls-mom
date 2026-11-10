@@ -1,14 +1,19 @@
 <template>
-  <div v-if="!item.hidden">
+  <!-- role="none"：包装层不参与读屏结构，保持 menubar／menu → menuitem 的父子关系 -->
+  <div v-if="!item.hidden" role="none">
     <template v-if="hasOneShowingChild(item, item.children) && (!onlyOneChild.children || onlyOneChild.noShowingChildren) && !item.alwaysShow">
-      <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path, onlyOneChild.query)">
-        <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{ 'submenu-title-noDropdown': !isNest }">
-          <svg-icon :icon-class="onlyOneChild.meta.icon || (item.meta && item.meta.icon)" />
-          <template #title>
-            <span class="menu-title" :title="hasTitle(onlyOneChild.meta.title)">{{ onlyOneChild.meta.title }}</span>
-          </template>
-        </el-menu-item>
-      </app-link>
+      <!-- 菜单项直接导航（不再包在链接里，否则菜单项脱离菜单结构）；外链在新窗口打开 -->
+      <el-menu-item
+        v-if="onlyOneChild.meta"
+        :index="resolvePath(onlyOneChild.path)"
+        :class="{ 'submenu-title-noDropdown': !isNest }"
+        @click="navigate(resolvePath(onlyOneChild.path, onlyOneChild.query))"
+      >
+        <svg-icon :icon-class="onlyOneChild.meta.icon || (item.meta && item.meta.icon)" />
+        <template #title>
+          <span class="menu-title" :title="hasTitle(onlyOneChild.meta.title)">{{ onlyOneChild.meta.title }}</span>
+        </template>
+      </el-menu-item>
     </template>
 
     <el-sub-menu v-else ref="subMenu" :index="resolvePath(item.path)" teleported>
@@ -31,7 +36,6 @@
 
 <script setup lang="ts">
 import { isExternal } from '@/utils/validate';
-import AppLink from './Link.vue';
 import { getNormalPath } from '@/utils/ruoyi';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -90,6 +94,15 @@ const resolvePath = (routePath: string, routeQuery?: string): any => {
     return { path: getNormalPath(props.basePath + '/' + routePath), query: query };
   }
   return getNormalPath(props.basePath + '/' + routePath);
+};
+
+const router = useRouter();
+const navigate = (to: any) => {
+  if (typeof to === 'string' && isExternal(to)) {
+    window.open(to, '_blank', 'noopener');
+    return;
+  }
+  router.push(to);
 };
 
 const hasTitle = (title: string | undefined): string => {

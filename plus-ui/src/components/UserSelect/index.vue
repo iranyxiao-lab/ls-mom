@@ -101,7 +101,8 @@
 import api from '@/api/system/user';
 import { UserQuery, UserVO } from '@/api/system/user/types';
 import { DeptTreeVO, DeptVO } from '@/api/system/dept/types';
-import { VxeTableInstance } from 'vxe-table';
+import type { VxeTableInstance } from 'vxe-table';
+import { VxeTable, VxeColumn } from '@/plugins/vxe';
 import useDialog from '@/hooks/useDialog';
 
 interface PropType {

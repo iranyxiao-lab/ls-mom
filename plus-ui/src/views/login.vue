@@ -355,7 +355,8 @@ onMounted(() => {
   padding-left: 0;
 }
 
-:global(html.dark) {
+// 作用域样式中 :global(html.dark) { … } 会丢掉内部选择器，改为普通嵌套（html.dark .login-form[data-v-*]）
+html.dark {
   .login-form {
     background: rgba(17, 24, 39, 0.9);
     border-color: rgba(148, 163, 184, 0.2);

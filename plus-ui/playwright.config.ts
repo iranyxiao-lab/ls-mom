@@ -23,6 +23,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${SB_PORT}` }
     },
     {
+      // 视觉回归：只在固定容器中运行（tests/ui/visual-docker.sh），保证字体与渲染一致
+      name: 'visual',
+      testMatch: /visual\/.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: `http://127.0.0.1:${SB_PORT}`, deviceScaleFactor: 1 }
+    },
+    {
       name: 'app',
       testMatch: /app\/.*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: process.env.LSMOM_E2E_BASE ?? 'http://127.0.0.1:18081' }

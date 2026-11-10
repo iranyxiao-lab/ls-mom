@@ -33,8 +33,16 @@ class ModuleDependencyTest {
         .should().dependOnClassesThat().resideInAnyPackage(
             "com.lsmom.meta..", "com.lsmom.action..", "com.lsmom.crud..", "com.lsmom.form..",
             "com.lsmom.flow..", "com.lsmom.pack..", "com.lsmom.ai..", "com.lsmom.mcp..",
-            "com.lsmom.dcs..", "com.lsmom.biz..")
+            "com.lsmom.dcs..", "com.lsmom.biz..", "com.lsmom.ui..")
         .because("core 不得依赖上层模块或任何 Pack");
+
+    /** 前端体验后端（埋点、偏好等）是横切能力：只依赖 core/action，不碰业务与运行时模块。 */
+    private static final ArchRule uiOnlyUsesCoreAndAction = noClasses()
+        .that().resideInAPackage("com.lsmom.ui..")
+        .should().dependOnClassesThat().resideInAnyPackage(
+            "com.lsmom.crud..", "com.lsmom.form..", "com.lsmom.flow..", "com.lsmom.pack..",
+            "com.lsmom.ai..", "com.lsmom.mcp..", "com.lsmom.dcs..", "com.lsmom.biz..")
+        .because("ui 只依赖 core/action");
 
     /** 通用运行时（crud/form/flow）不依赖任何具体业务 Pack。 */
     private static final ArchRule runtimeDoesNotDependOnBiz = noClasses()
@@ -75,6 +83,11 @@ class ModuleDependencyTest {
     @Test
     void coreDependsOnNothingAbove() {
         coreDependsOnNothingAbove.check(classes);
+    }
+
+    @Test
+    void uiOnlyUsesCoreAndAction() {
+        uiOnlyUsesCoreAndAction.check(classes);
     }
 
     @Test

@@ -9,7 +9,7 @@
           :background-color="bgColor"
           :text-color="textColor"
           :unique-opened="true"
-          :active-text-color="theme"
+          :active-text-color="'var(--ls-color-primary)'"
           :collapse-transition="false"
           :popper-offset="12"
           mode="vertical"

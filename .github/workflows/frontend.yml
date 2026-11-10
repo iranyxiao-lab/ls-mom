@@ -38,6 +38,9 @@ jobs:
         run: pnpm exec vitest run --browser.headless
       - name: 生产构建
         run: pnpm build:prod
+      - name: 首屏包体积预算（超标时列出增长来源）
+        run: |
+          pnpm size || { pnpm size:why; exit 1; }
       - name: 样式门禁（业务页面只用设计令牌）
         run: |
           node tests/lint/style-gate.mjs
@@ -46,3 +49,11 @@ jobs:
         run: |
           pnpm storybook:build
           pnpm exec playwright test --project=storybook
+      - name: 视觉回归（组件，固定 Playwright 容器）
+        run: LS_VISUAL_PAGES=0 CI=1 tests/ui/visual-docker.sh
+      - name: 失败时保留报告
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-ui-report
+          path: plus-ui/playwright-report

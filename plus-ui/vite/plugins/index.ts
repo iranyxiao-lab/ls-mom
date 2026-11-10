@@ -9,6 +9,8 @@ import createSvgIconsPlugin from './svg-icon';
 import createCompression from './compression';
 import createSetupExtend from './setup-extend';
 import createLsTokens from './ls-tokens';
+import createEpIconNames from './ep-icon-names';
+import createElementPlusLite from './element-plus-lite';
 import path from 'path';
 
 export default (viteEnv: any, isBuild = false): [] => {
@@ -16,6 +18,8 @@ export default (viteEnv: any, isBuild = false): [] => {
   vitePlugins.push(vue());
   vitePlugins.push(vueDevTools());
   vitePlugins.push(createLsTokens());
+  vitePlugins.push(createEpIconNames());
+  vitePlugins.push(createElementPlusLite());
   vitePlugins.push(createUnoCss());
   vitePlugins.push(createAutoImport(path));
   vitePlugins.push(createComponents(path));

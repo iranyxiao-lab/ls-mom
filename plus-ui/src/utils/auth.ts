@@ -1,3 +1,5 @@
+import { useStorage } from '@vueuse/core';
+
 const TokenKey = 'Admin-Token';
 
 const tokenStorage = useStorage<null | string>(TokenKey, null);

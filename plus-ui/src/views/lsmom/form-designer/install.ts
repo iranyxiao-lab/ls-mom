@@ -1,5 +1,7 @@
 import type { App } from 'vue';
-import ElementPlus from 'element-plus';
+// 直接引入安装器模块（element-plus/es/defaults.mjs）：若从 'element-plus' 主入口引默认导出，
+// 打包时全部组件会随主入口进入首屏包
+import ElementPlus from 'element-plus/es/defaults.mjs';
 import { FcDesigner, formCreate } from '@/vendor/form-create';
 
 const installed = new WeakSet<App>();

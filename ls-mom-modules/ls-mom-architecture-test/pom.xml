@@ -66,6 +66,11 @@
         </dependency>
         <dependency>
             <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-ui</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
             <artifactId>pack-production</artifactId>
             <version>${revision}</version>
         </dependency>

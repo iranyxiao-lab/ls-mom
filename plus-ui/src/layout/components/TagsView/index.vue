@@ -255,7 +255,7 @@ onMounted(() => {
       line-height: 25px;
       background-color: var(--el-bg-color);
       border: 1px solid var(--el-border-color-light);
-      color: #495060;
+      color: var(--ls-color-text-regular);
       padding: 0 8px;
       font-size: 12px;
       margin-left: 5px;

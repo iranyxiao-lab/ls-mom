@@ -4,6 +4,7 @@
       <el-date-picker
         v-model="day"
         type="date"
+        aria-label="班次日期"
         value-format="YYYY-MM-DD"
         :clearable="false"
         style="width: 150px"

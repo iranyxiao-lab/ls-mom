@@ -113,6 +113,11 @@
 </template>
 
 <script setup name="Gen" lang="ts">
+// 代码高亮只在本页使用，按需加载（不进入首屏包）
+import 'highlight.js/styles/atom-one-dark.css';
+import 'highlight.js/lib/common';
+import hljsVuePlugin from '@highlightjs/vue-plugin';
+const highlightjs = hljsVuePlugin.component;
 import { delTable, getDataNames, listTable, previewTable, synchDb } from '@/api/tool/gen';
 import { TableQuery, TableVO } from '@/api/tool/gen/types';
 import router from '@/router';

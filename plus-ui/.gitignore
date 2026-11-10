@@ -31,6 +31,11 @@ components.d.ts
 # vitest 失败截图
 .vitest-attachments/
 __screenshots__/
+# 视觉回归基线需要入库
+!tests/ui/__screenshots__/
+!tests/ui/__screenshots__/**
 storybook-static/
 test-results/
 playwright-report/
+dist-analyze/
+.lighthouseci/
