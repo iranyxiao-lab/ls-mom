@@ -12,12 +12,24 @@
       <el-button size="small" type="primary" :loading="busy === 'publish'" data-testid="btn-publish" @click="publish">发布</el-button>
     </div>
 
-    <el-alert v-if="checked && !issues.length" type="success" :closable="false" title="校验通过" data-testid="issues-ok" class="mb-2" />
+    <el-alert
+      v-if="checked && !errorCount"
+      type="success"
+      :closable="false"
+      :title="warnCount ? `校验通过（${warnCount} 个警告，可以发布）` : '校验通过'"
+      data-testid="issues-ok"
+      class="mb-2"
+    />
     <div v-if="issues.length" class="issues" data-testid="issues">
-      <div v-for="(i, n) in issues" :key="n" class="issue" @click="locate(i.path)">
-        <el-tag size="small" type="danger">{{ i.code }}</el-tag>
+      <div class="issues-head" data-testid="issues-summary">
+        <el-tag v-if="errorCount" size="small" type="danger" effect="dark">{{ errorCount }} 个错误</el-tag>
+        <el-tag v-if="warnCount" size="small" type="warning" effect="dark">{{ warnCount }} 个警告</el-tag>
+        <span class="path">{{ errorCount ? '有错误时不能发布；' : '' }}点击问题定位到对应的节点或设置</span>
+      </div>
+      <div v-for="(i, n) in sortedIssues" :key="n" class="issue" :data-testid="'issue-' + n" :data-level="i.level ?? 'ERROR'" @click="locate(i.path)">
+        <el-tag size="small" :type="i.level === 'WARNING' ? 'warning' : 'danger'">{{ i.level === 'WARNING' ? '警告' : '错误' }}</el-tag>
         <span>{{ i.message }}</span>
-        <span class="path">{{ i.path }}</span>
+        <span class="path">{{ where(i.path) }}</span>
       </div>
     </div>
 
@@ -82,6 +94,8 @@
               :form-fields="formFields"
               :party-cache="partyCache"
               :search-parties-api="api.parties"
+              :focus="focusSection"
+              :focus-tick="focusTick"
               @rekey="(_o, n) => (selected = n)"
               @add-branch="addBranch"
             />
@@ -136,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import NodeList from './NodeList.vue';
 import NodePanel from './NodePanel.vue';
@@ -189,7 +203,7 @@ const version = ref(props.version);
 const tab = ref('config');
 const selected = ref<string | null>(null);
 const current = computed(() => (selected.value ? findNode(def, selected.value) : undefined));
-const issues = ref<{ path: string; code: string; message: string }[]>([]);
+const issues = ref<{ path: string; code: string; message: string; level?: 'ERROR' | 'WARNING' }[]>([]);
 const checked = ref(false);
 const busy = ref('');
 const partyCache = reactive(new Map<number, { id: number; name: string; orgName?: string }>());
@@ -263,12 +277,54 @@ function nodeAtPath(path: string): FlowNode | undefined {
   }
   return node;
 }
+const errorCount = computed(() => issues.value.filter((i) => i.level !== 'WARNING').length);
+const warnCount = computed(() => issues.value.length - errorCount.value);
+const sortedIssues = computed(() => [...issues.value].sort((a, b) => Number(a.level === 'WARNING') - Number(b.level === 'WARNING')));
+const focusSection = ref('');
+const focusTick = ref(0);
+/** 节点内路径 → 节点属性面板区块 */
+const SECTION: Record<string, string> = {
+  fieldPolicy: 'policy',
+  policy: 'policy',
+  assignee: 'assignee',
+  mode: 'assignee',
+  operation: 'operation',
+  timeout: 'timeout',
+  branches: 'branches'
+};
+/** 流程级路径 → 设置项 */
+const SETTING: Record<string, string> = { code: 'flow-code', name: 'flow-name', startOn: 'flow-start-on', form: 'flow-form', orgUnitId: 'flow-org' };
+function where(path: string) {
+  const n = nodeAtPath(path);
+  if (n) return `节点「${n.name || n.key}」`;
+  const m = /^\/callbacks\/(\w+)/.exec(path);
+  if (m) return `回调 ${m[1]}`;
+  return path === '/' ? '整体' : path;
+}
 function locate(path: string) {
+  tab.value = 'config';
   const n = nodeAtPath(path);
   if (n) {
-    tab.value = 'config';
     selected.value = n.key;
+    const rest =
+      path
+        .replace(/^.*\/nodes\/\d+/, '')
+        .split('/')
+        .filter(Boolean)[0] ?? '';
+    focusSection.value = SECTION[rest] ?? '';
+    focusTick.value++;
+    return;
   }
+  const cb = /^\/callbacks\/(\w+)/.exec(path);
+  const testid = cb ? `cb-${cb[1]}` : SETTING[path.split('/').filter(Boolean)[0] ?? ''];
+  if (!testid) return;
+  nextTick(() => {
+    const el = document.querySelector<HTMLElement>(`[data-testid="${testid}"]`)?.closest<HTMLElement>('.el-form-item');
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.add('is-located');
+    window.setTimeout(() => el.classList.remove('is-located'), 2500);
+  });
 }
 
 const payload = () => clean(JSON.parse(JSON.stringify(def))) as FlowDef;
@@ -278,7 +334,8 @@ async function validate() {
   try {
     issues.value = await props.api.validate(payload());
     checked.value = true;
-    return issues.value.length === 0;
+    // 只有错误阻止发布；警告只提示
+    return issues.value.every((i) => i.level === 'WARNING');
   } finally {
     busy.value = '';
   }
@@ -297,7 +354,7 @@ async function save() {
 }
 async function publish() {
   if (!(await validate())) {
-    ElMessage.error('校验未通过，不能发布');
+    ElMessage.error(`有 ${errorCount.value} 个错误，不能发布；点击问题定位修改`);
     return;
   }
   busy.value = 'publish';
@@ -487,5 +544,16 @@ defineExpose({ def, issues, selected, validate, publish, runDiff, walk });
   background: var(--el-fill-color-lighter);
   padding: var(--ls-space-2);
   font-size: 12px;
+}
+.issues-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+:deep(.el-form-item.is-located) {
+  border-radius: 6px;
+  background: var(--el-color-warning-light-9);
+  box-shadow: 0 0 0 2px var(--el-color-warning-light-5);
 }
 </style>

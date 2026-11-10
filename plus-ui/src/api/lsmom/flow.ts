@@ -8,6 +8,8 @@ export interface FlowIssue {
   path: string;
   code: string;
   message: string;
+  /** ERROR 阻止发布；WARNING 只提示 */
+  level?: 'ERROR' | 'WARNING';
 }
 
 export interface FlowVersion {

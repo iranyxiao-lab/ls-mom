@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ALL = ['form-designer', 'form-designer-perf', 'flow-api', 'flow-designer', 'metrics-dashboard', 'workbench', 'pack-lifecycle',
   'production-ops', 'asset-ops', 'quality-ops', 'toolloan-config', 'training-exam', 'qualification', 'consultation', 'frappe-conversion',
-  'agent-gateway', 'agent-tool-sync', 'agent-summary', 'knowledge-qa', 'access-matrix', 'ui-usage', 'menu-groups', 'global-search', 'task-center', 'mobile', 'template-library', 'excel-ledger', 'form-assist', 'designer-perspective'];
+  'agent-gateway', 'agent-tool-sync', 'agent-summary', 'knowledge-qa', 'access-matrix', 'ui-usage', 'menu-groups', 'global-search', 'task-center', 'mobile', 'template-library', 'excel-ledger', 'form-assist', 'designer-perspective', 'flow-issues'];
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',') : null;
 const list = (only ?? ALL).concat(process.argv.includes('--with-dcs') ? ['dcs-alarm'] : []);
 const pause = Number(process.env.E2E_PAUSE_SECONDS ?? 20);

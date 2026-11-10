@@ -28,7 +28,7 @@ try {
     nodes: [{ key: 'audit', type: 'AUDIT', name: '质量审核', assignee: { strategy: 'USER', value: [party] } }]
   };
   const v = await api('POST', '/api/flow/definitions/validate', def);
-  check(v.code === 200 && v.data.length === 0, '流程校验无问题 ' + JSON.stringify(v.data ?? v.msg));
+  check(v.code === 200 && v.data.filter((x) => x.level !== 'WARNING').length === 0, '流程校验无错误 ' + JSON.stringify(v.data ?? v.msg));
   const bad = await api('POST', '/api/flow/definitions/validate', { ...def, callbacks: { approved: i + 'startRectification' } });
   check(
     bad.data.some((x) => x.code === 'CALLBACK_REQUIRED'),

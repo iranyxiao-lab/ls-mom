@@ -1,5 +1,5 @@
 <template>
-  <el-form label-width="96px" size="small" data-testid="node-panel" @submit.prevent>
+  <el-form ref="root" label-width="96px" size="small" data-testid="node-panel" @submit.prevent>
     <el-form-item label="节点键" :error="keyErr">
       <el-input :model-value="cur.key" data-testid="node-key" @update:model-value="setKey" />
     </el-form-item>
@@ -11,7 +11,13 @@
     </el-form-item>
 
     <!-- 办理人 -->
-    <template v-if="human || cur.type === 'CC'">
+    <div
+      v-if="human || cur.type === 'CC'"
+      class="np-sec"
+      :class="{ 'is-focus': flash === 'assignee' }"
+      data-section="assignee"
+      data-testid="section-assignee"
+    >
       <el-divider content-position="left">{{ cur.type === 'CC' ? '抄送对象' : '办理人' }}</el-divider>
       <el-form-item label="策略">
         <el-select v-model="assignee.strategy" data-testid="assignee-strategy" @change="onStrategy">
@@ -66,20 +72,26 @@
       <el-form-item v-if="human" label="节点权限">
         <el-input v-model="cur.permission" placeholder="可选，如 lsmom:loan:audit" clearable />
       </el-form-item>
-    </template>
+    </div>
 
     <!-- Operation -->
-    <template v-if="human || cur.type === 'SERVICE'">
+    <div
+      v-if="human || cur.type === 'SERVICE'"
+      class="np-sec"
+      :class="{ 'is-focus': flash === 'operation' }"
+      data-section="operation"
+      data-testid="section-operation"
+    >
       <el-divider content-position="left">{{ cur.type === 'SERVICE' ? '执行' : '提交时执行' }}</el-divider>
       <el-form-item :label="cur.type === 'SERVICE' ? 'Operation' : '节点 Operation'">
         <el-select v-model="cur.operation" clearable filterable placeholder="只能选择已发布的 Operation" data-testid="node-operation">
           <el-option v-for="o in operations" :key="o.operation" :label="`${o.name}（${o.operation}）`" :value="o.operation" />
         </el-select>
       </el-form-item>
-    </template>
+    </div>
 
     <!-- 超时 -->
-    <template v-if="human">
+    <div v-if="human" class="np-sec" :class="{ 'is-focus': flash === 'timeout' }" data-section="timeout" data-testid="section-timeout">
       <el-divider content-position="left">超时</el-divider>
       <el-form-item label="时限（小时）">
         <el-input-number v-model="timeout.hours" :min="0" :max="720" controls-position="right" data-testid="timeout-hours" />
@@ -89,10 +101,10 @@
           <el-option v-for="a in TIMEOUT_ACTIONS" :key="a.value" :label="a.label" :value="a.value" />
         </el-select>
       </el-form-item>
-    </template>
+    </div>
 
     <!-- 字段策略 -->
-    <template v-if="human">
+    <div v-if="human" class="np-sec" :class="{ 'is-focus': flash === 'policy' }" data-section="policy" data-testid="section-policy">
       <el-divider content-position="left">表单字段策略</el-divider>
       <div v-if="!formFields.length" class="hint">流程未选择表单，或表单没有字段</div>
       <template v-else>
@@ -119,10 +131,10 @@
           </el-table-column>
         </el-table>
       </template>
-    </template>
+    </div>
 
     <!-- 分支 -->
-    <template v-if="cur.branches">
+    <div v-if="cur.branches" class="np-sec" :class="{ 'is-focus': flash === 'branches' }" data-section="branches" data-testid="section-branches">
       <el-divider content-position="left">分支</el-divider>
       <div v-for="(b, i) in cur.branches" :key="i" class="branch-row" :data-testid="`branch-edit-${i}`">
         <el-input v-model="b.name" placeholder="分支名称" style="width: 110px" />
@@ -135,12 +147,12 @@
         <el-button link type="danger" :icon="Delete" :disabled="cur.branches.length <= 2" @click="cur.branches.splice(i, 1)" />
       </div>
       <el-button size="small" @click="addBranch">＋ 分支</el-button>
-    </template>
+    </div>
   </el-form>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { Delete } from '@element-plus/icons-vue';
 import { keyError, MODES, STRATEGIES, TIMEOUT_ACTIONS, typeInfo, isHuman, type FlowDef, type FlowNode } from './model';
 import type { FormField, OperationOption } from './types';
@@ -152,10 +164,31 @@ const props = defineProps<{
   roles: { roleKey: string; roleName: string }[];
   orgs: { id: number; name: string }[];
   conceptFields: { code: string; label: string }[];
+  /** 问题定位：要打开并高亮的区块（assignee / operation / timeout / policy / branches），tick 变化时重新定位 */
+  focus?: string;
+  focusTick?: number;
   formFields: FormField[];
   partyCache: Map<number, { id: number; name: string; orgName?: string }>;
   searchPartiesApi: (k?: string) => Promise<{ id: number; name: string; orgName?: string }[]>;
 }>();
+
+const root = ref<{ $el: HTMLElement } | null>(null);
+const flash = ref('');
+let flashTimer: number | undefined;
+watch(
+  () => [props.focus, props.focusTick],
+  async () => {
+    if (!props.focus) return;
+    await nextTick();
+    const el = root.value?.$el?.querySelector<HTMLElement>(`[data-section="${props.focus}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    flash.value = props.focus;
+    window.clearTimeout(flashTimer);
+    flashTimer = window.setTimeout(() => (flash.value = ''), 2500);
+  },
+  { immediate: true }
+);
 const emit = defineEmits<{ (e: 'rekey', oldKey: string, newKey: string): void; (e: 'addBranch', n: FlowNode): void }>();
 
 /** 当前编辑的节点：面板直接修改父组件持有的流程配置树中的这个节点对象。 */
@@ -262,5 +295,15 @@ function addBranch() {
   display: flex;
   gap: var(--ls-space-2);
   margin-bottom: var(--ls-space-2);
+}
+.np-sec {
+  border-radius: 6px;
+  transition:
+    box-shadow 0.3s,
+    background-color 0.3s;
+}
+.np-sec.is-focus {
+  background: var(--el-color-warning-light-9);
+  box-shadow: 0 0 0 2px var(--el-color-warning-light-5);
 }
 </style>

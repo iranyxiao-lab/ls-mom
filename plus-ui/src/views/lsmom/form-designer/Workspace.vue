@@ -21,7 +21,7 @@
 
     <el-alert v-if="adapterError" type="error" :title="adapterError" :closable="false" class="ls-designer__alert" data-testid="adapter-error" />
     <div v-if="issues.length" class="ls-designer__issues" data-testid="issues">
-      <div class="ls-designer__issues-title">校验问题（{{ issues.length }}）</div>
+      <div class="ls-designer__issues-title">校验问题（{{ issues.length }} 个错误，修正后才能发布；点击定位）</div>
       <div v-for="(i, n) in issues" :key="n" class="ls-designer__issue" :data-testid="'issue-' + n" @click="locate(i.path)">
         <code>{{ i.path }}</code> {{ i.message }} <span class="ls-designer__muted">{{ i.code }}</span>
       </div>
@@ -852,7 +852,26 @@ const simulated = computed<FormSchema>(() => {
 const locateHint = ref('');
 
 /** 点击问题定位：切到设计画布并选中该字段；控件本身无效（设计器无法选中）时提示到 Schema 区修正。 */
+/** 规则、动作、节点策略的问题：切到对应面板并高亮那一项 */
+function locatePanel(path: string): boolean {
+  const m = /^\/(rules|actions|nodePolicies)\/([^/]+)/.exec(path);
+  if (!m) return false;
+  tab.value = 'design';
+  panel.value = m[1] === 'nodePolicies' ? 'policies' : m[1];
+  const testid = m[1] === 'rules' ? `rule-${m[2]}` : m[1] === 'actions' ? `action-${m[2]}` : `policy-${m[2]}`;
+  nextTick(() => {
+    const el = document.querySelector<HTMLElement>(`[data-testid="${testid}"]`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el.classList.add('is-located');
+    window.setTimeout(() => el.classList.remove('is-located'), 2500);
+  });
+  locateHint.value = `已定位到${m[1] === 'rules' ? '规则' : m[1] === 'actions' ? '动作' : '节点策略'} ${m[2]}`;
+  return true;
+}
+
 function locate(path: string) {
+  if (locatePanel(path)) return;
   const m = /^\/(fields|subTables)\/(\d+)/.exec(path);
   const key = m?.[1] === 'fields' ? current.value.fields[Number(m[2])]?.key : m ? current.value.subTables?.[Number(m[2])]?.key : undefined;
   tab.value = 'design';
@@ -1070,5 +1089,9 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   background: var(--el-fill-color-light);
   color: var(--el-text-color-regular);
   line-height: 32px;
+}
+.ls-designer__card.is-located {
+  background: var(--el-color-warning-light-9);
+  box-shadow: 0 0 0 2px var(--el-color-warning-light-5);
 }
 </style>

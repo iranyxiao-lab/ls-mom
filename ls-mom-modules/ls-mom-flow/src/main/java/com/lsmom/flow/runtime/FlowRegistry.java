@@ -40,7 +40,27 @@ public class FlowRegistry {
                           String procDefId, String bpmnXml, LocalDateTime publishedAt) {
     }
 
-    public record Issue(String path, String code, String message) {
+    /** 校验问题：ERROR 阻止发布；WARNING 只提示（如未设超时、未配字段策略） */
+    public record Issue(String path, String code, String message, String level) {
+        public static final String ERROR = "ERROR";
+        public static final String WARNING = "WARNING";
+
+        public Issue(String path, String code, String message) {
+            this(path, code, message, ERROR);
+        }
+
+        public static Issue warn(String path, String code, String message) {
+            return new Issue(path, code, message, WARNING);
+        }
+
+        public boolean error() {
+            return !WARNING.equals(level);
+        }
+    }
+
+    /** 只取阻止发布的错误 */
+    public static List<Issue> errors(List<Issue> issues) {
+        return issues.stream().filter(Issue::error).toList();
     }
 
     private static final Pattern CODE = Pattern.compile("^[a-z][a-z0-9]*(\\.[A-Za-z][A-Za-z0-9]*)+$");
@@ -129,7 +149,10 @@ public class FlowRegistry {
             nodes(d, d.nodes(), "/nodes", form, keys, human, issues);
             if (!human[0]) issues.add(new Issue("/nodes", "NO_HUMAN_NODE", "流程至少需要一个人工节点"));
         }
-        if (issues.isEmpty()) {
+        if (d.callbacks() != null && d.callbacks().withdrawn() == null) {
+            issues.add(Issue.warn("/callbacks/withdrawn", "CALLBACK_WITHDRAWN_MISSING", "未配置撤回回调：发起人提交后不能撤回"));
+        }
+        if (errors(issues).isEmpty()) {
             List<String> unsafe = scanner.scan(generator.generate(d.withVersion(d.version() == null ? 1 : d.version())));
             unsafe.forEach(m -> issues.add(new Issue("/", "FLOW_UNSAFE", m)));
         }
@@ -159,6 +182,14 @@ public class FlowRegistry {
                 assignee(d, n, p, label, issues);
                 if (n.operation() != null) op(d, n.operation(), p + "/operation", false, issues);
                 policy(n, p, label, form, issues);
+                if (form != null && n.fieldPolicy() == null && n.policy() == null && !form.path("nodePolicies").has(n.policyKey())) {
+                    issues.add(Issue.warn(p + "/fieldPolicy", "POLICY_MISSING", label + "未配置字段策略：办理人可修改表单上所有可编辑字段"));
+                }
+                if (n.timeout() == null) issues.add(Issue.warn(p + "/timeout", "TIMEOUT_MISSING", label + "未设置超时：待办可能长期无人办理"));
+                if (n.assignee() != null && "ROLE".equalsIgnoreCase(n.assignee().strategy()) && !"BIZ_ORG".equalsIgnoreCase(n.assignee().of())) {
+                    issues.add(Issue.warn(p + "/assignee", "ASSIGNEE_SCOPE_WIDE",
+                        label + "按角色分派未限定业务组织：其他组织的同角色人员也会收到待办；建议改为\"角色且数据范围覆盖单据组织\"或限定业务组织"));
+                }
                 if (n.timeout() != null) {
                     if (n.timeout().hours() == null || n.timeout().hours() < 1 || n.timeout().hours() > 720) {
                         issues.add(new Issue(p + "/timeout/hours", "TIMEOUT_INVALID", label + "超时时长须在 1～720 小时"));
@@ -278,7 +309,7 @@ public class FlowRegistry {
     }
 
     public void require(FlowDefinition d) {
-        List<Issue> issues = validate(d);
+        List<Issue> issues = errors(validate(d));
         if (!issues.isEmpty()) {
             throw new LsBizException("FLOW_INVALID", "流程配置校验失败：" + issues.get(0).message(), Map.of("issues", issues));
         }

@@ -25,7 +25,7 @@ export interface FormField {
 
 /** 配置器依赖的数据与接口（页面注入，单元测试可替换）。 */
 export interface FlowDesignerApi {
-  validate: (def: any) => Promise<{ path: string; code: string; message: string }[]>;
+  validate: (def: any) => Promise<{ path: string; code: string; message: string; level?: 'ERROR' | 'WARNING' }[]>;
   preview: (def: any) => Promise<{ issues: any[]; bpmnXml: string }>;
   saveDraft: (def: any) => Promise<{ version: number; status: string }>;
   publish: (def: any) => Promise<{ version: number; status: string }>;

@@ -190,7 +190,14 @@ class FlowGovernanceTest {
              {"key":"deptAudit","type":"AUDIT","name":"部门审核","assignee":{"strategy":"DEPT_LEADER","of":"INITIATOR"},"operation":"%s.audit"}]"""
             .formatted(s.order(), s.order()));
         assertThat(f.registry.validate(draftOp)).anySatisfy(i -> assertThat(i.code()).isEqualTo("OPERATION_NOT_PUBLISHED"));
-        assertThat(f.registry.validate(ok)).isEmpty();
+        assertThat(FlowRegistry.errors(f.registry.validate(ok))).isEmpty();
+        // 警告不阻止发布：未设超时；节点没有字段策略；按角色分派未限定业务组织
+        FlowDefinition loose = f.loanFlow(s, """
+            [{"key":"freeAudit","type":"AUDIT","name":"自由审核","assignee":{"strategy":"ROLE","value":"workshop_leader"}}]""");
+        assertThat(f.registry.validate(loose)).filteredOn(i -> !i.error()).extracting(FlowRegistry.Issue::code, FlowRegistry.Issue::path)
+            .contains(org.assertj.core.groups.Tuple.tuple("TIMEOUT_MISSING", "/nodes/0/timeout"),
+                org.assertj.core.groups.Tuple.tuple("POLICY_MISSING", "/nodes/0/fieldPolicy"),
+                org.assertj.core.groups.Tuple.tuple("ASSIGNEE_SCOPE_WIDE", "/nodes/0/assignee"));
         FlowRegistry.Version v = f.runtime.publish(ok, 1L);
         // 策略来自表单 nodePolicies，不是节点差异，不登记 FLOW_NODE 使用方
         assertThat(f.form.usages.activeUsagesOf(s.order(), "auditNote")).noneMatch(u -> u.userType().equals("FLOW_NODE"));
