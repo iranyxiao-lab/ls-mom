@@ -74,6 +74,10 @@ class SchemaDriftPostgresTest {
     @Test
     @Order(3)
     void manualDdlIsDetected() {
+        // 可单独运行（验收用例按方法执行）：库未迁移时先迁移并记录指纹
+        if (jdbc.queryForObject("select count(*) from information_schema.tables where table_name = 'sys_user'", Integer.class) == 0) {
+            strategy(SchemaDriftProperties.DriftMode.FAIL).migrate(flyway());
+        }
         jdbc.execute("alter table sys_user add column hacked varchar(10)");
         assertThatCode(() -> strategy(SchemaDriftProperties.DriftMode.WARN).migrate(flyway())).doesNotThrowAnyException();
         assertThatThrownBy(() -> strategy(SchemaDriftProperties.DriftMode.FAIL).migrate(flyway()))

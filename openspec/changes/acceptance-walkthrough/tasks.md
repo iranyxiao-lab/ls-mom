@@ -30,7 +30,7 @@
 
 - [x] 4.1 为 `platform/project-baseline`、`core/*`、`meta/*`、`action/*` 的全部场景编写用例；验证 trace 显示这些 spec 覆盖率 100%
 - [x] 4.2 为 `crud/generic-ledger`、`form/*` 的全部场景编写用例，CRUD-01～06、FORM-01～09 标为 P0 且有 AUTO 用例；验证 trace 无 P0 缺 AUTO
-- [ ] 4.3 运行上述自动用例并修复脚本问题，失败项按模板登记缺陷；验证本组结果写入 results.json
+- [x] 4.3 运行上述自动用例并修复脚本问题，失败项按模板登记缺陷；验证本组结果写入 results.json
 
 ## 5. 功能用例：流程、领域与智能（随 bootstrap P3～P5 推进）
 
