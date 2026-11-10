@@ -1,0 +1,10 @@
+code: ls.consultation.Topic.lifecycle
+concept: ls.consultation.Topic
+displayName: 议题状态
+states: [DRAFT, OPEN, CLOSED]
+initial: DRAFT
+transitions:
+  # 发布：截止时间须晚于当前时间
+  - { operation: ls.consultation.Topic.open, name: 发布征求, from: [DRAFT], to: OPEN, permission: "ls:consultation:manage", risk: C1, inputSchema: { type: object } }
+  # 截止：负责人提前截止，或到时由系统截止
+  - { operation: ls.consultation.Topic.close, name: 截止征求, from: [OPEN], to: CLOSED, permission: "ls:consultation:manage", risk: C1, inputSchema: { type: object } }

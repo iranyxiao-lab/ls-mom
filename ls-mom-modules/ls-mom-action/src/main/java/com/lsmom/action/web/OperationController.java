@@ -110,6 +110,6 @@ public class OperationController {
                 throw new LsBizException("ACCESS_DENIED", "目标对象不在你的数据范围内");
             }
         }
-        return R.ok(timeline.of(concept, id));
+        return R.ok(timeline.of(concept, id, actor));
     }
 }

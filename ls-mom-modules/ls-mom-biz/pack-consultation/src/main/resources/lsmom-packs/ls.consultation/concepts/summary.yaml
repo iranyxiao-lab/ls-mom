@@ -1,0 +1,16 @@
+code: ls.consultation.Summary
+displayName: 咨询总结
+description: 议题截止后的总结。LLM 只能草拟（来源 LLM），负责人确认后发布；每个观点引用一条或多条来源意见
+fields:
+  - { code: topic, displayName: 议题, dataType: REF, refConcept: ls.consultation.Topic, required: true, props: { queryable: true } }
+  - { code: content, displayName: 总结, dataType: TEXT, required: true }
+  - { code: origin, displayName: 来源, dataType: ENUM, options: [MANUAL, LLM], props: { optionLabels: { MANUAL: 人工, LLM: LLM 草拟 }, queryable: true } }
+  - { code: confirmedBy, displayName: 确认人, dataType: REF, refConcept: ls.core.Party }
+  - { code: publishedAt, displayName: 发布时间, dataType: DATETIME }
+children:
+  - code: ls.consultation.SummaryPoint
+    displayName: 观点
+    fields:
+      - { code: seq, displayName: 序号, dataType: INTEGER, required: true }
+      - { code: viewpoint, displayName: 观点, dataType: TEXT, required: true }
+      - { code: opinionIds, displayName: 来源意见, dataType: STRING, required: true, props: { maxLength: 1000 } }

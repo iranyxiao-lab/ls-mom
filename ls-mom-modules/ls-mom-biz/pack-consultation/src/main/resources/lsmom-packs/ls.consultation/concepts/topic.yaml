@@ -1,0 +1,12 @@
+code: ls.consultation.Topic
+displayName: 咨询议题
+description: 征求意见的议题。范围内（所选组织及下级）的员工在截止前提交意见；匿名议题中答复人看不到提交人，审计保留提交主体
+fields:
+  - { code: title, displayName: 议题, dataType: STRING, required: true, props: { maxLength: 200, queryable: true } }
+  - { code: description, displayName: 说明, dataType: TEXT }
+  - { code: scopeOrg, displayName: 征求范围, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
+  - { code: deadline, displayName: 截止时间, dataType: DATETIME, required: true, props: { sortable: true } }
+  - { code: anonymous, displayName: 匿名征求, dataType: BOOLEAN }
+  - { code: owner, displayName: 负责人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: openedAt, displayName: 发布时间, dataType: DATETIME }
+  - { code: closedAt, displayName: 截止于, dataType: DATETIME }

@@ -1,0 +1,31 @@
+# 意见咨询 Pack：议题（范围、截止时间、是否匿名）、意见、答复与归类、转 Issue 进入整改闭环、咨询总结（LLM 只能草拟，负责人确认后发布，观点引用来源意见）。
+# 不依赖培训考试 Pack；核心中不引入任何咨询概念。
+code: ls.consultation
+version: 1.0.0
+name: 意见咨询
+description: 议题征集意见（可匿名）、答复归类、意见转整改、咨询总结引用来源意见
+standard: true
+owner: { name: LS 标准产品组 }
+requester: { name: 员工参与与安全意见征集 }
+reviewDue: 2027-12-31
+contents:
+  concepts:
+    - ls.consultation.Topic
+    - ls.consultation.Opinion
+    - ls.consultation.Summary
+  operations:
+    - ls.consultation.Topic.open
+    - ls.consultation.Topic.close
+    - ls.consultation.Opinion.reply
+    - ls.consultation.Opinion.toIssue
+    - ls.consultation.Summary.publish
+    - ls.consultation.Summary.discard
+  rules:
+    - ls.consultation.summaryHumanPublish
+    - ls.consultation.toIssueHuman
+  views:
+    - ls.consultation.topicForm
+entries:
+  - { name: 参与征求, path: /consultation/topics }
+  - { name: 意见处理, path: /consultation/handle }
+  - { name: 议题管理, path: /consultation/admin }

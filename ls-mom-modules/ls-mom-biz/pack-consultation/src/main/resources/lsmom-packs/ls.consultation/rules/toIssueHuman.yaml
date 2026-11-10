@@ -1,0 +1,9 @@
+code: ls.consultation.toIssueHuman
+concept: ls.consultation.Opinion
+level: L2
+kind: CEL
+name: 意见转整改须由真人执行
+message: 意见转整改须由真人执行
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.consultation.Opinion.toIssue]

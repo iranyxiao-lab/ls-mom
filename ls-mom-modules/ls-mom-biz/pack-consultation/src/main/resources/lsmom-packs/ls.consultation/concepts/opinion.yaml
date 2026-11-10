@@ -1,0 +1,13 @@
+code: ls.consultation.Opinion
+displayName: 意见
+description: 员工对议题提交的意见，只能经 ls.consultation.Opinion.submit 提交。匿名议题不记署名，提交主体只对具备审计权限的人可见
+fields:
+  - { code: topic, displayName: 议题, dataType: REF, refConcept: ls.consultation.Topic, required: true, props: { queryable: true } }
+  - { code: content, displayName: 意见内容, dataType: TEXT, required: true }
+  - { code: category, displayName: 归类, dataType: ENUM, options: [SAFETY, QUALITY, PROCESS, EQUIPMENT, WELFARE, OTHER], props: { optionLabels: { SAFETY: 安全, QUALITY: 质量, PROCESS: 工艺, EQUIPMENT: 设备, WELFARE: 后勤福利, OTHER: 其他 }, queryable: true } }
+  - { code: author, displayName: 署名, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
+  - { code: submitter, displayName: 提交主体, dataType: REF, refConcept: ls.core.Party, props: { readPermission: "ls:consultation:audit", writePermission: "ls:consultation:audit" } }
+  - { code: submittedAt, displayName: 提交时间, dataType: DATETIME, props: { sortable: true } }
+  - { code: reply, displayName: 答复, dataType: TEXT }
+  - { code: repliedAt, displayName: 答复时间, dataType: DATETIME }
+  - { code: issue, displayName: 整改问题, dataType: REF, refConcept: ls.core.Issue }

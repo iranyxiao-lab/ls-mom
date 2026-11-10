@@ -1,0 +1,76 @@
+{
+  "viewType": "FORM",
+  "formCode": "ls.consultation.topicForm",
+  "version": 1,
+  "conceptCode": "ls.consultation.Topic",
+  "title": "咨询议题",
+  "layout": [
+    {
+      "type": "field",
+      "key": "title"
+    },
+    {
+      "type": "field",
+      "key": "description"
+    },
+    {
+      "type": "field",
+      "key": "scopeOrg"
+    },
+    {
+      "type": "field",
+      "key": "deadline"
+    },
+    {
+      "type": "field",
+      "key": "anonymous"
+    },
+    {
+      "type": "field",
+      "key": "owner"
+    }
+  ],
+  "fields": [
+    {
+      "key": "title",
+      "widget": "input",
+      "label": "议题",
+      "required": true
+    },
+    {
+      "key": "description",
+      "widget": "textarea",
+      "label": "说明"
+    },
+    {
+      "key": "scopeOrg",
+      "widget": "deptRef",
+      "label": "征求范围",
+      "required": true
+    },
+    {
+      "key": "deadline",
+      "widget": "datetime",
+      "label": "截止时间",
+      "required": true
+    },
+    {
+      "key": "anonymous",
+      "widget": "switch",
+      "label": "匿名征求"
+    },
+    {
+      "key": "owner",
+      "widget": "userRef",
+      "label": "负责人",
+      "required": true
+    }
+  ],
+  "actions": [
+    {
+      "key": "open",
+      "label": "保存并发布",
+      "operation": "ls.consultation.Topic.open"
+    }
+  ]
+}

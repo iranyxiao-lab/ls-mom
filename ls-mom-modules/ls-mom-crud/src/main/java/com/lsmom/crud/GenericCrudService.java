@@ -187,7 +187,8 @@ public class GenericCrudService {
         Predicate<String> readable = readable(m, actor);
         Map<String, Object> row = LedgerRows.toRow(m, raw, readable);
         List<Map<String, Object>> one = new ArrayList<>(List.of(row));
-        decorate(m, one, actor, m.fields().values().stream().filter(f -> f.dataType() == DataType.REF).map(FieldDef::code).toList());
+        // 自动展开引用只针对调用者可读的字段（受读权限保护的引用不展开、不报错）
+        decorate(m, one, actor, m.fields().values().stream().filter(f -> f.dataType() == DataType.REF && readable.test(f.code())).map(FieldDef::code).toList());
         for (LedgerModel c : children(concept)) {
             Predicate<String> cr = readable(c, actor);
             List<Map<String, Object>> lines = new ArrayList<>();

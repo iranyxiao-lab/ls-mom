@@ -1,0 +1,9 @@
+code: ls.consultation.summaryHumanPublish
+concept: ls.consultation.Summary
+level: L2
+kind: CEL
+name: 总结须由负责人确认发布
+message: 咨询总结须由真人确认后发布
+definition:
+  assert: "$context.actor.type == 'HUMAN'"
+  appliesTo: [ls.consultation.Summary.publish]

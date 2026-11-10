@@ -2,6 +2,8 @@ package com.lsmom.action.timeline;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lsmom.action.api.ActorContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +23,31 @@ public class TimelineService {
                         String fromStatus, String toStatus, Map<String, Object> payload, String traceId) {
     }
 
+    /** 操作人已隐藏的条目显示的名称。 */
+    public static final String HIDDEN_ACTOR = "（匿名）";
+
     private final JdbcTemplate jdbc;
+    private List<TimelineRedactor> redactors = List.of();
 
     public TimelineService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+    }
+
+    @Autowired(required = false)
+    public void setRedactors(List<TimelineRedactor> redactors) {
+        this.redactors = List.copyOf(redactors);
+    }
+
+    /** 查看人可见的时间轴（经各 Pack 的脱敏规则处理）。 */
+    public List<Entry> of(String concept, String id, ActorContext viewer) {
+        List<Entry> out = of(concept, id);
+        for (TimelineRedactor r : redactors) out = r.redact(concept, id, out, viewer);
+        return out;
+    }
+
+    /** 去掉操作人（含代办主体）。 */
+    public static Entry withoutActor(Entry e) {
+        return new Entry(e.at(), e.type(), e.action(), null, HIDDEN_ACTOR, null, e.fromStatus(), e.toStatus(), e.payload(), e.traceId());
     }
 
     public List<Entry> of(String concept, String id) {

@@ -1,0 +1,9 @@
+code: ls.consultation.Summary.lifecycle
+concept: ls.consultation.Summary
+displayName: 总结状态
+states: [DRAFT, PUBLISHED, DISCARDED]
+initial: DRAFT
+transitions:
+  # 草稿由 ls.consultation.Summary.draft（代码 Operation，人工或 LLM）生成；发布须真人确认（规则 summaryHumanPublish），议题须已截止
+  - { operation: ls.consultation.Summary.publish, name: 确认发布, from: [DRAFT], to: PUBLISHED, permission: "ls:consultation:manage", risk: C1, inputSchema: { type: object } }
+  - { operation: ls.consultation.Summary.discard, name: 作废草稿, from: [DRAFT], to: DISCARDED, permission: "ls:consultation:manage", risk: C1, inputSchema: { type: object } }

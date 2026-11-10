@@ -1,0 +1,22 @@
+code: ls.consultation.Opinion.lifecycle
+concept: ls.consultation.Opinion
+displayName: 意见状态
+states: [SUBMITTED, REPLIED, CONVERTED]
+initial: SUBMITTED
+transitions:
+  # 提交由 ls.consultation.Opinion.submit（代码 Operation）完成；答复可修改，可同时归类
+  - operation: ls.consultation.Opinion.reply
+    name: 答复
+    from: [SUBMITTED, REPLIED]
+    to: REPLIED
+    permission: "ls:consultation:reply"
+    risk: C1
+    inputSchema: { type: object, required: [reply], properties: { reply: { type: string, minLength: 1, maxLength: 4000 }, category: { type: string } } }
+  # 转整改：生成关联本意见的 Issue（草稿，进入整改闭环），意见显示已转整改
+  - operation: ls.consultation.Opinion.toIssue
+    name: 转整改
+    from: [SUBMITTED, REPLIED]
+    to: CONVERTED
+    permission: "ls:consultation:manage"
+    risk: C2
+    inputSchema: { type: object, properties: { title: { type: string, maxLength: 200 }, severity: { enum: [LOW, MEDIUM, HIGH] }, owner: { type: integer }, reply: { type: string, maxLength: 4000 } } }
