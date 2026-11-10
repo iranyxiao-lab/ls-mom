@@ -548,8 +548,8 @@ defineExpose({ def, issues, selected, validate, publish, runDiff, walk });
 .issues-head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-1);
 }
 :deep(.el-form-item.is-located) {
   border-radius: 6px;

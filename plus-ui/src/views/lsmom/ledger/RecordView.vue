@@ -276,9 +276,9 @@ defineExpose({ load, record });
 <style scoped>
 .record__meta {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--ls-space-3);
 }
 .record__sub {
   color: var(--el-text-color-secondary);
@@ -287,12 +287,12 @@ defineExpose({ load, record });
 .record__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-3);
 }
 .record__input {
   flex-basis: 100%;
-  padding: 12px;
+  padding: var(--ls-space-3);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 6px;
 }

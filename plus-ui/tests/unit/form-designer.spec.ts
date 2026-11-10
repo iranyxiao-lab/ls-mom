@@ -6,6 +6,10 @@ import { createApp, h, nextTick, ref, type App } from 'vue';
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import Workspace from '@/views/lsmom/form-designer/Workspace.vue';
+
+// 设计助手与试运行页签的接口：本组件测试不涉及（另有 form-assist、trial-run 端到端用例）；真实请求模块依赖整套应用状态
+vi.mock('@/api/lsmom/formAssist', () => ({ formAssistApi: { propose: vi.fn() } }));
+vi.mock('@/api/lsmom/trialRun', () => ({ trialApi: { setup: vi.fn(), run: vi.fn(), list: vi.fn(async () => []), clear: vi.fn() } }));
 import { installDesigner } from '@/views/lsmom/form-designer/install';
 import type { FormSchema } from '@/types/lsView';
 import { normalizeForm } from '@/utils/lsform/fcAdapter';

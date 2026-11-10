@@ -12,7 +12,7 @@ public class FlowInstances {
 
     public record Instance(long id, String flowCode, int flowVersion, String formCode, Integer formVersion, String bizType, String bizId,
                            String procInstId, String procDefId, Long initiatorParty, Long orgUnitId, String status, String syncStatus,
-                           int attempts, String lastError, LocalDateTime startedAt, LocalDateTime endedAt) {
+                           int attempts, String lastError, LocalDateTime startedAt, LocalDateTime endedAt, String traceId) {
     }
 
     private final JdbcTemplate jdbc;
@@ -84,6 +84,6 @@ public class FlowInstances {
             (Integer) rs.getObject("form_version"), rs.getString("biz_type"), rs.getString("biz_id"), rs.getString("proc_inst_id"),
             rs.getString("proc_def_id"), (Long) rs.getObject("initiator_party"), (Long) rs.getObject("org_unit_id"), rs.getString("status"),
             rs.getString("sync_status"), rs.getInt("attempts"), rs.getString("last_error"), rs.getObject("started_at", LocalDateTime.class),
-            rs.getObject("ended_at", LocalDateTime.class));
+            rs.getObject("ended_at", LocalDateTime.class), rs.getString("trace_id"));
     }
 }

@@ -136,6 +136,14 @@ export function vantVars(): Record<string, string> {
   };
 }
 
+/** vxe-table 的行高与单元格内边距随密度令牌变化（紧凑 32px、舒适 48px）。 */
+export function vxeVars(): Record<string, string> {
+  return {
+    '--vxe-ui-table-row-height-default': 'var(--ls-table-row-height)',
+    '--vxe-ui-table-cell-padding-default': 'var(--ls-table-cell-padding-x)'
+  };
+}
+
 /** 上游外壳（RuoYi 侧栏、顶栏）读取的变量，统一由令牌驱动。 */
 export function shellVars(): Record<string, string> {
   return {
@@ -162,7 +170,7 @@ export function cssVariables(): string {
     '/* 由 src/design/tokens.ts 生成，请勿手改 */\n',
     block('html:root', { ...baseVars(), ...colorVars('light'), ...componentVars('comfortable') }),
     // 组件库映射层：Element Plus 暗色变量写在 html.dark 上（优先级 0,1,1），这里用 0,2,1 确保不受样式加载顺序影响
-    block('html:root:root', { ...elementPlusVars(), ...vantVars(), ...shellVars() }),
+    block('html:root:root', { ...elementPlusVars(), ...vantVars(), ...vxeVars(), ...shellVars() }),
     block('html.dark:root', colorVars('dark')),
     block('html:root[data-density="compact"], [data-density="compact"]', componentVars('compact')),
     // 局部区域可单独指定密度（例如紧凑列表页里的舒适表单）

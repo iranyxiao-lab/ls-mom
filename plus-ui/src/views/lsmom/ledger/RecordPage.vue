@@ -46,7 +46,7 @@ function onLoaded(r: Record<string, any>) {
 <style scoped>
 .record-page__head {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
   align-items: center;
 }
 </style>

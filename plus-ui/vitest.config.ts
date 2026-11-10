@@ -8,7 +8,9 @@ import createLsTokens from './vite/plugins/ls-tokens';
 export default defineConfig({
   plugins: [vue(), createLsTokens()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') }
+    alias: { '@': path.resolve(__dirname, './src') },
+    // 与 vite.config.ts 一致：业务代码中有省略 .vue 扩展名的导入
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
   },
   // 一致性用例位于仓库根目录 packs/_shared，测试服务需允许读取
   server: { fs: { allow: [path.resolve(__dirname, '..')] } },

@@ -361,18 +361,18 @@ onMounted(async () => {
 
 <style scoped>
 .tw-steps {
-  margin-bottom: 16px;
+  margin-bottom: var(--ls-space-4);
 }
 .tw-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
+  gap: var(--ls-space-3);
 }
 .tw-card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px;
+  gap: var(--ls-space-1);
+  padding: var(--ls-space-3);
   text-align: left;
   border: 1px solid var(--el-border-color);
   border-radius: 8px;
@@ -410,8 +410,8 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
   font-size: 13px;
 }
 .tw-help {
@@ -421,7 +421,7 @@ onMounted(async () => {
 }
 .tw-preview {
   display: flex;
-  gap: 12px;
+  gap: var(--ls-space-3);
 }
 .tw-files {
   width: 230px;
@@ -433,7 +433,7 @@ onMounted(async () => {
 }
 .tw-files button {
   width: 100%;
-  padding: 6px 8px;
+  padding: var(--ls-space-1) var(--ls-space-2);
   border: 0;
   background: none;
   text-align: left;
@@ -448,7 +448,7 @@ onMounted(async () => {
   color: var(--el-color-primary);
 }
 .tw-dot {
-  margin-left: 4px;
+  margin-left: var(--ls-space-1);
   color: var(--el-color-warning);
 }
 .tw-editor {
@@ -460,12 +460,12 @@ onMounted(async () => {
   font-size: 12px;
 }
 .tw-grants {
-  margin-top: 10px;
+  margin-top: var(--ls-space-2);
   font-size: 13px;
 }
 .tw-grants ul {
-  margin: 6px 0 0;
-  padding-left: 18px;
+  margin: var(--ls-space-1) 0 0;
+  padding-left: var(--ls-space-4);
   color: var(--el-text-color-regular);
 }
 .tw-grants code {

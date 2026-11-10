@@ -1051,17 +1051,17 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   max-width: 860px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--ls-space-2);
 }
 .ls-designer__assist-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--ls-space-2);
 }
 .ls-designer__assist-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 .ls-designer__assist-op.is-invalid {
   opacity: 0.7;
@@ -1074,22 +1074,22 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
   width: 400px;
   flex: none;
   border-left: 1px solid var(--el-border-color-lighter);
-  padding-left: 12px;
+  padding-left: var(--ls-space-3);
   overflow: auto;
 }
 .ls-designer__live-bar {
-  margin-bottom: 8px;
+  margin-bottom: var(--ls-space-2);
 }
 .ls-designer__persp {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 /* 节点视角：只读字段显示为文字底色，与可编辑字段区分（与运行时一致的渲染，外加设计期提示） */
 .ls-designer__preview :deep(.is-readonly .ls-field__text) {
   min-height: 32px;
-  padding: 0 11px;
+  padding: 0 var(--ls-space-3);
   border-radius: 4px;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-regular);

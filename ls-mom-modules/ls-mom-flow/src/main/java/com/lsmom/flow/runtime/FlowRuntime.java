@@ -212,7 +212,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
                 }
             }
             long id = instances.create(v.code(), v.version(), formCode, formVersion, concept, ctx.targetId(), v.procDefId(),
-                ctx.actor().effectiveParty(), ctx.targetOrgUnitId(), null);
+                ctx.actor().effectiveParty(), ctx.targetOrgUnitId(), com.lsmom.core.trace.TraceContext.current());
             afterCommit(() -> start(id));
         });
     }
@@ -356,6 +356,11 @@ public class FlowRuntime implements FlowHooks, OperationListener {
     public Map<String, Object> complete(String taskId, Action action, String comment, JsonNode input, ActorContext actor) {
         Task task = requireTask(taskId);
         FlowInstances.Instance inst = instanceOf(task);
+        // 审批是真人专属动作：服务身份、Agent（即使代理真人）与系统身份都不能办理待办
+        if (actor.type() != ActorContext.ActorType.HUMAN) {
+            denied(actor, inst, "ls.flow.task." + action.name().toLowerCase(), "HUMAN_ONLY", "审批只能由真人办理");
+            throw new LsBizException("HUMAN_ONLY", "审批只能由真人办理，" + actor.type() + " 身份不能办理待办");
+        }
         requireHandler(task, inst, actor, "ls.flow.task." + action.name().toLowerCase());
         FlowDefinition def = definition(inst);
         boolean initiatorTask = BpmnTemplateGenerator.INITIATOR.equals(task.getTaskDefinitionKey());

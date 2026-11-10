@@ -186,9 +186,9 @@
       border="inner"
       stripe
       show-overflow="title"
-      :max-height="maxHeight"
+      :max-height="tableMaxHeight"
       :row-config="{ keyField: 'id', isHover: true, isCurrent: true, useKey: true }"
-      :column-config="{ resizable: true, drag: true, useKey: true }"
+      :column-config="{ resizable: true, drag: !foldedColumns.length, useKey: true }"
       :column-drag-config="{ trigger: 'cell', showIcon: false, disabledMethod: notDraggable }"
       :virtual-y-config="{ enabled: true, gt: 60, preSize: 4 }"
       :sort-config="{ remote: true, trigger: 'cell' }"
@@ -204,8 +204,19 @@
       @column-dragend="onDragEnd"
     >
       <VxeColumn v-if="batchOperations.length" type="checkbox" width="44" fixed="left" :resizable="false" />
+      <!-- 平板及更窄的屏幕：次要列收到行展开区，避免整页横向滚动 -->
+      <VxeColumn v-if="foldedColumns.length" type="expand" width="40" fixed="left" :resizable="false">
+        <template #content="{ row }">
+          <dl class="schema-table__folded" :data-testid="`row-folded-${row.id}`">
+            <template v-for="c in foldedColumns" :key="c.field.code">
+              <dt>{{ c.field.label }}</dt>
+              <dd>{{ cellText(c.field, row) }}</dd>
+            </template>
+          </dl>
+        </template>
+      </VxeColumn>
       <VxeColumn
-        v-for="(c, ci) in shownColumns"
+        v-for="(c, ci) in mainColumns"
         :key="c.field.code"
         :row-group-node="!!groupBy && ci === 0"
         :field="c.field.code"
@@ -394,6 +405,8 @@ import { notifyDone } from '@/utils/opResult';
 import { confirmOperation } from '@/utils/opConfirm';
 import { useUndoable } from '@/utils/undoable';
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, reactive, ref, watch } from 'vue';
+import { useWindowSize } from '@vueuse/core';
+import { breakpoints } from '@/design/tokens';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { VxeColumn, VxeTable } from '@/plugins/vxe';
 import { LsSkeleton } from '@/components/LsState';
@@ -435,7 +448,7 @@ const props = withDefaults(
     /** 检查他人新增、修改的间隔（毫秒），0 表示不检查 */
     pollInterval?: number;
   }>(),
-  { api: () => lazyCrudApi, pageSize: 20, columns: null, maxHeight: 640, viewApi: null, pollInterval: 30000 }
+  { api: () => lazyCrudApi, pageSize: 20, columns: null, maxHeight: 'auto', viewApi: null, pollInterval: 30000 }
 );
 const undoable = useUndoable();
 const emit = defineEmits<{
@@ -631,6 +644,26 @@ const allColumns = computed(() => (schema.value ? columnsOf(schema.value) : []))
 const fieldOf = (code: string) => allColumns.value.find((f) => f.code === code);
 const labelOf = (code: string) => fieldOf(code)?.label ?? code;
 const shownColumns = computed(() => colState.value.filter((c) => c.visible && fieldOf(c.code)).map((c) => ({ pref: c, field: fieldOf(c.code)! })));
+// 平板及更窄（窗口宽度 < 桌面断点）：只保留固定列与前 PRIMARY_COLUMNS 列，其余次要列收到行展开区
+const PRIMARY_COLUMNS = 3;
+const { width: windowWidth, height: windowHeight } = useWindowSize();
+// 表格最大高度：默认铺满到窗口底部（留出分页条），紧凑密度下 1080p 首屏可见 20 行以上
+const gridTop = ref(0);
+function measureGridTop() {
+  const el = (grid.value as any)?.$el as HTMLElement | undefined;
+  if (el) gridTop.value = el.getBoundingClientRect().top + window.scrollY;
+}
+const tableMaxHeight = computed(() =>
+  props.maxHeight !== 'auto' ? props.maxHeight : Math.max(360, Math.round(windowHeight.value - gridTop.value - 80))
+);
+watch([windowWidth, windowHeight], () => nextTick(measureGridTop));
+const narrow = computed(() => windowWidth.value < breakpoints.desktop);
+const mainColumns = computed(() => {
+  if (!narrow.value) return shownColumns.value;
+  let n = 0;
+  return shownColumns.value.filter((c) => c.pref.fixed || n++ < PRIMARY_COLUMNS);
+});
+const foldedColumns = computed(() => (narrow.value ? shownColumns.value.filter((c) => !mainColumns.value.includes(c)) : []));
 
 /** 套用调用方给的列设置（如保存视图）；弃用字段忽略并告知调用方。 */
 function applyColumns(saved: ColumnPref[] | null | undefined) {
@@ -662,7 +695,7 @@ function syncSelection() {
 }
 let clickTimer: ReturnType<typeof setTimeout> | null = null;
 function onCellClick({ row, column }: any) {
-  if (!column || column.type === 'checkbox' || column.title === '操作') return;
+  if (!column || column.type === 'checkbox' || column.type === 'expand' || column.title === '操作') return;
   if (isEditing(row, { code: column.field } as SchemaField)) return;
   const f = allColumns.value.find((x) => x.code === column.field);
   // 可行内编辑的单元格：等一下看是不是双击，双击就编辑而不打开详情
@@ -799,6 +832,7 @@ async function load() {
     loading.value = false;
     loadedOnce.value = true;
   }
+  void nextTick(measureGridTop);
   void markBaseline();
 }
 
@@ -1172,6 +1206,20 @@ defineExpose({
 </script>
 
 <style scoped>
+.schema-table__folded {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 8px 16px 8px 56px;
+}
+.schema-table__folded dt {
+  color: var(--ls-color-text-secondary);
+}
+.schema-table__folded dd {
+  margin: 0;
+  word-break: break-all;
+}
 .schema-table__search {
   display: flex;
   flex-wrap: wrap;

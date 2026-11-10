@@ -1,7 +1,8 @@
 /**
  * 7.7：SchemaTable 组件（ListSchema 驱动的列、筛选、排序、行/批量动作绑定 Operation、导出）。
  */
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { page } from 'vitest/browser';
 import { createApp, nextTick, type App } from 'vue';
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
@@ -130,6 +131,11 @@ async function flush(ms = 30) {
   await new Promise((r) => setTimeout(r, ms));
 }
 
+// 默认按桌面宽度渲染（浏览器模式默认视口是手机宽度）；窄屏收列另有用例
+beforeEach(async () => {
+  await page.viewport(1440, 900);
+});
+
 afterEach(() => {
   app?.unmount();
   host?.remove();
@@ -178,6 +184,29 @@ describe('SchemaTable 辅助函数', () => {
 });
 
 describe('SchemaTable 组件', () => {
+  it('平板竖屏：只保留前三列，次要列收到行展开区，展开后显示字段名与值', async () => {
+    await page.viewport(820, 1180);
+    const api = fakeApi();
+    const { el } = await mount(api);
+    const headers = headerTexts(el);
+    expect(headers).toEqual(expect.arrayContaining(['借用单号', '借用人', '借出日期', '状态', '操作']));
+    expect(headers).not.toContain('用途');
+    expect(headers).not.toContain('主要工器具');
+    const toggle = el.querySelector('.vxe-table--expand-btn, .vxe-table--expanded') as HTMLElement;
+    expect(toggle, '每行有展开按钮').toBeTruthy();
+    toggle.click();
+    await flush(200);
+    const folded = el.querySelector('[data-testid^="row-folded-"]') as HTMLElement;
+    expect(folded.textContent).toContain('用途');
+    expect(folded.textContent).toContain('检修');
+    expect(folded.textContent).toContain('主要工器具');
+    // 回到桌面宽度：次要列回到表头，展开列消失
+    await page.viewport(1440, 900);
+    await flush(200);
+    expect(headerTexts(el)).toEqual(expect.arrayContaining(['用途', '主要工器具']));
+    expect(el.querySelector('[data-testid^="row-folded-"]')).toBeNull();
+  });
+
   it('按 ListSchema 渲染列与数据，筛选生成 QuerySpec', async () => {
     const api = fakeApi();
     const { el } = await mount(api);
@@ -344,7 +373,9 @@ describe('SchemaTable 列设置与大数据量（modernize-ui-ux 5.1）', () => 
     (document.querySelector('[data-testid="col-fix-purpose"]') as HTMLElement).click();
     await flush();
     expect(events.at(-1)?.payload.find((c: any) => c.code === 'purpose').fixed).toBe('left');
-    expect(el.querySelector('.vxe-table--fixed-left-wrapper')?.textContent).toContain('用途');
+    // 固定列：表头单元格带 vxe 的固定列标记（宽屏不溢出时 vxe 不单独渲染固定区）
+    const fixedHeads = [...el.querySelectorAll('.vxe-header--column.fixed--left, .vxe-header--column.col--fixed')].map((x) => x.textContent?.trim());
+    expect(fixedHeads.join(' ')).toContain('用途');
 
     (document.querySelector('[data-testid="col-loanDate"] button[aria-label="上移借出日期"]') as HTMLElement).click();
     await flush();

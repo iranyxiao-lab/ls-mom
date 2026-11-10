@@ -1,5 +1,6 @@
 package com.lsmom.flow;
 
+import com.lsmom.action.api.ActorContext;
 import com.lsmom.core.error.LsBizException;
 import com.lsmom.flow.runtime.FlowCallbacks;
 import com.lsmom.flow.runtime.FlowInstances;
@@ -101,7 +102,7 @@ class FlowCollaborationTest {
     }
 
     @Test
-    void 节点只读字段被拒并审计_非办理人办理被拒() {
+    void 节点只读字段被拒并审计_非办理人办理被拒_机器身份不能审批() {
         f.runtime.publish(f.standardFlow(s), 1L);
         String id = f.submitLoan(s, s.applicant(), "L-2005");
         Task audit = f.task(f.instance(s, id).procInstId(), "deptAudit");
@@ -118,6 +119,14 @@ class FlowCollaborationTest {
         // 非候选人办理
         assertThatThrownBy(() -> f.runtime.complete(audit.getId(), FlowRuntime.Action.APPROVE, "x", j("{\"auditNote\":\"x\"}"), f.actor(s.auditor1())))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getCode()).isEqualTo("TASK_NOT_ASSIGNED"));
+        // 真人专属：服务身份与代理办理人的 Agent 都不能审批，并留下失败审计
+        ActorContext leader = f.actor(s.leader());
+        for (ActorContext.ActorType t : List.of(ActorContext.ActorType.SERVICE, ActorContext.ActorType.AGENT)) {
+            ActorContext machine = new ActorContext(t, null, 900L, leader.actorParty(), false, leader.permissions(), leader.dataScope(), "机器身份");
+            assertThatThrownBy(() -> f.runtime.complete(audit.getId(), FlowRuntime.Action.APPROVE, "x", j("{\"auditNote\":\"x\"}"), machine))
+                .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getCode()).isEqualTo("HUMAN_ONLY"));
+        }
+        assertThat(f.action.count("select count(*) from op_audit where target_id = ? and error_code = 'HUMAN_ONLY'", id)).isEqualTo(2);
         assertThat(f.action.count("select count(*) from op_audit where op_code = 'ls.flow.task.approve' and target_id = ? and error_code = 'TASK_NOT_ASSIGNED'",
             id)).isEqualTo(1);
         assertThat(f.status(s, id)).isEqualTo("IN_REVIEW");

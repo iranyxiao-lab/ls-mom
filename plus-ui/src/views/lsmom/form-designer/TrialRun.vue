@@ -149,7 +149,7 @@ async function clear() {
 .ls-trial {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--ls-space-3);
   max-width: 960px;
 }
 .ls-trial__flow,
@@ -159,12 +159,12 @@ async function clear() {
 }
 .ls-trial__section {
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: var(--ls-space-1);
 }
 .ls-trial__node {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--ls-space-1);
 }
 .ls-trial__field {
   display: grid;
@@ -178,11 +178,11 @@ async function clear() {
 }
 .ls-trial__bar {
   display: flex;
-  gap: 8px;
+  gap: var(--ls-space-2);
 }
 .ls-trial__actor,
 .ls-trial__status {
-  margin: 0 8px;
+  margin: 0 var(--ls-space-2);
   color: var(--el-text-color-secondary);
 }
 .ls-trial__err {
