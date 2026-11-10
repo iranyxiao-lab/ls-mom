@@ -190,7 +190,23 @@ public class TemplateController {
         return fragment;
     }
 
-    private static Map<String, byte[]> generate(DraftBody b) {
-        return LedgerGenerator.generate(fragment(b), b.ns(), b.title(), new LedgerGenerator.Meta(b.owner(), b.requester(), b.reviewDue()));
+    private Map<String, byte[]> generate(DraftBody b) {
+        return LedgerGenerator.generate(fragment(b), b.ns(), b.title(), new LedgerGenerator.Meta(b.owner(), b.requester(), b.reviewDue(), nextVersion(b.ns())));
+    }
+
+    /** 同一编码已安装时生成下一个次版本（1.0.0 → 1.1.0），作为升级提交；未安装为 null（1.0.0） */
+    String nextVersion(String ns) {
+        if (ns == null || ns.isBlank()) return null;
+        List<String> v = jdbc.queryForList("select version from meta_pack where code = ? and status <> 'UNINSTALLED'", String.class, ns.trim());
+        return v.isEmpty() ? null : bumpMinor(v.get(0));
+    }
+
+    static String bumpMinor(String version) {
+        String[] p = version.split("[.-]");
+        try {
+            return Integer.parseInt(p[0]) + "." + (Integer.parseInt(p.length > 1 ? p[1] : "0") + 1) + ".0";
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

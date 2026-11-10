@@ -59,6 +59,22 @@ class TemplateGeneratorTest {
     }
 
     @Test
+    void 同一编码再次生成_版本号自动提高并作为升级提交() {
+        ObjectNode frag = TemplateLibrary.get("approval").deepCopy();
+        String ns = PackFixture.code("tplver");
+        TemplateController ctl = new TemplateController(f.pipeline, null, f.core.jdbc);
+        assertThat(ctl.nextVersion(ns)).as("未安装").isNull();
+        f.installer.install(PackSource.of(LedgerGenerator.generate(frag, ns, "审批", meta)), 1L);
+        assertThat(ctl.nextVersion(ns)).isEqualTo("1.1.0");
+        Map<String, byte[]> v2 = LedgerGenerator.generate(frag, ns, "审批 v2", new LedgerGenerator.Meta("设备科王工", "一车间周主任", null, ctl.nextVersion(ns)));
+        assertThat(new String(v2.get("pack.yaml"), StandardCharsets.UTF_8)).contains("version: 1.1.0");
+        ChangeSetPipeline.ChangeSet cs = f.pipeline.submit(PackSource.of(v2), 1L, "TEMPLATE", null);
+        assertThat(cs.status()).as(String.valueOf(cs.stages().get(0).detail())).isEqualTo("DRAFT");
+        assertThat(TemplateController.bumpMinor("2.3.4")).isEqualTo("2.4.0");
+        assertThat(TemplateController.bumpMinor("x")).isNull();
+    }
+
+    @Test
     void 借还模板依赖设备Pack_缺少依赖时校验驳回() {
         String ns = PackFixture.code("tplloan");
         Map<String, byte[]> files = LedgerGenerator.generate(TemplateLibrary.get("loan"), ns, "借还登记", meta);

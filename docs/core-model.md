@@ -372,3 +372,26 @@ DRAFT → READY → ASSIGNED → IN_PROGRESS → PENDING_CONFIRM → DONE
 | `consumer` | varchar(64) | 消费方 |
 | `idempotency_key` | varchar(255) | 已处理的幂等键（与消费方联合主键） |
 | `processed_at` | timestamp | 处理时间 |
+
+## 任务中心
+
+### `core_background_task`
+
+导入、导出、批量操作、Pack 安装等耗时任务的进度与结果；完成后通知发起人。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `kind` | varchar(32) | 任务类型（导入、导出、批量操作、Pack 安装等） |
+| `title` | varchar(200) | 任务标题 |
+| `status` | varchar(16) | RUNNING / DONE / FAILED |
+| `total` | int | 总条数 |
+| `done` | int | 已完成条数 |
+| `failed` | int | 失败条数 |
+| `result` | jsonb | 结果（下载地址、逐条结果等） |
+| `error` | varchar(1000) | 失败原因 |
+| `created_by` | bigint | 发起人 |
+| `created_at` | timestamp | 创建时间 |
+| `updated_at` | timestamp | 最近更新时间 |
+| `finished_at` | timestamp | 完成时间 |
+| `notified_at` | timestamp | 发起人已收到完成通知的时间（前端确认后写入） |

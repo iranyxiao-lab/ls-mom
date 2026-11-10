@@ -43,8 +43,11 @@ public final class LedgerGenerator {
     private LedgerGenerator() {
     }
 
-    /** 业务负责人、需求提出人（Pack 清单必填）与复审日期 */
-    public record Meta(String owner, String requester, java.time.LocalDate reviewDue) {
+    /** 业务负责人、需求提出人（Pack 清单必填）、复审日期与 Pack 版本（空为 1.0.0；同一编码已安装时由调用方给出下一版本） */
+    public record Meta(String owner, String requester, java.time.LocalDate reviewDue, String version) {
+        public Meta(String owner, String requester, java.time.LocalDate reviewDue) {
+            this(owner, requester, reviewDue, null);
+        }
     }
 
     /** 生成 Pack 文件（路径 → 内容）。ns 为 Pack 编码（如 acme.loan），title 为应用名称。 */
@@ -269,7 +272,7 @@ public final class LedgerGenerator {
         // —— 清单 ——
         ObjectNode m = PackJson.JSON.createObjectNode();
         m.put("code", ns);
-        m.put("version", "1.0.0");
+        m.put("version", meta.version() == null || meta.version().isBlank() ? "1.0.0" : meta.version());
         m.put("name", title);
         m.put("description", fragment.path("description").asText(entityName + "登记、审批与查询"));
         m.putObject("owner").put("name", meta.owner().trim());
