@@ -1,0 +1,20 @@
+code: approval
+name: 简单审批
+category: 审批
+description: 一个申请事项、一个审批人，适合费用、用车、加班等简单申请
+entity: Application
+entityName: 申请单
+fields:
+  - { code: subject, displayName: 申请事项, dataType: STRING, required: true, props: { queryable: true, maxLength: 100 } }
+  - { code: applicant, displayName: 申请人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: applyDate, displayName: 申请日期, dataType: DATE, required: true, props: { sortable: true, queryable: true } }
+  - { code: amount, displayName: 金额, dataType: DECIMAL, props: { minimum: 0 } }
+  - { code: reason, displayName: 申请理由, dataType: TEXT, required: true }
+  - { code: attachments, displayName: 附件, dataType: FILE }
+  - { code: approveNote, displayName: 审批意见, dataType: STRING, readonly: true, props: { maxLength: 200 } }
+flow:
+  name: 申请审批
+  nodes:
+    - { key: approve, name: 审批, type: AUDIT, role: workshop_leader, editable: [approveNote] }
+  initiatorEditable: [reason, attachments]
+samples: { subject: 夜班加班, reason: 订单赶工 }

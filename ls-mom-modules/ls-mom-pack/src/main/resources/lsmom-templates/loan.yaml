@@ -1,0 +1,44 @@
+code: loan
+name: 借还登记
+category: 台账
+description: 借出物品登记明细，部门审核、管理员确认；外协用途须填外协单位
+entity: LoanOrder
+entityName: 借还单
+fields:
+  - { code: loanNo, displayName: 借用单号, dataType: STRING, required: true, props: { queryable: true, sortable: true, unique: true, maxLength: 32 } }
+  - { code: borrower, displayName: 借用人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: loanDate, displayName: 借出日期, dataType: DATE, required: true, props: { sortable: true, queryable: true } }
+  - { code: returnDue, displayName: 预计归还, dataType: DATE }
+  - code: purpose
+    displayName: 用途
+    dataType: ENUM
+    required: true
+    props: { queryable: true }
+    options: [{ value: MAINTENANCE, label: 检修 }, { value: INSPECTION, label: 点检 }, { value: OUTSOURCE, label: 外协 }, { value: OTHER, label: 其他 }]
+  - { code: outsourceUnit, displayName: 外协单位, dataType: STRING, help: 用途为外协时必填, props: { maxLength: 100 } }
+  - { code: asset, displayName: 用于设备, dataType: REF, refConcept: ls.asset.Asset, props: { queryable: true } }
+  - { code: attachments, displayName: 附件, dataType: FILE }
+  - { code: remark, displayName: 备注, dataType: TEXT }
+  - { code: auditNote, displayName: 审核意见, dataType: STRING, readonly: true, props: { maxLength: 200 } }
+children:
+  - entity: LoanLine
+    displayName: 借出明细
+    minRows: 1
+    fields:
+      - { code: item, displayName: 物品, dataType: STRING, required: true, props: { maxLength: 100 } }
+      - { code: spec, displayName: 规格, dataType: STRING, props: { maxLength: 100 } }
+      - { code: qty, displayName: 数量, dataType: INTEGER, required: true, props: { minimum: 1 } }
+flow:
+  name: 借还审批
+  nodes:
+    - { key: deptAudit, name: 部门审核, type: AUDIT, role: workshop_leader, editable: [auditNote], required: [auditNote] }
+    - { key: confirm, name: 确认归档, type: CONFIRM, role: asset_keeper }
+  initiatorEditable: [returnDue, outsourceUnit, remark]
+rules:
+  - code: outsourceUnitRequired
+    name: 外协借用须填外协单位
+    when: "$model.purpose == 'OUTSOURCE'"
+    assert: "has($model.outsourceUnit) && $model.outsourceUnit != null && size($model.outsourceUnit) > 0"
+    field: outsourceUnit
+    message: 用途为外协时必须填写外协单位
+samples: { loanNo: T-0001, loanDate: "2026-11-10", purpose: MAINTENANCE }

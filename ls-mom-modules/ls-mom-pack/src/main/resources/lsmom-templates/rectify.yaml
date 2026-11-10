@@ -1,0 +1,34 @@
+code: rectify
+name: 整改单
+category: 改进
+description: 登记问题与整改要求，责任人整改后提交，验收人确认关闭
+entity: RectifyOrder
+entityName: 整改单
+fields:
+  - { code: orderNo, displayName: 整改单号, dataType: STRING, required: true, props: { queryable: true, unique: true, maxLength: 32 } }
+  - { code: problem, displayName: 问题描述, dataType: TEXT, required: true }
+  - code: level
+    displayName: 严重程度
+    dataType: ENUM
+    required: true
+    props: { queryable: true }
+    options: [{ value: LOW, label: 一般 }, { value: MEDIUM, label: 较重 }, { value: HIGH, label: 严重 }]
+  - { code: owner, displayName: 责任人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: deadline, displayName: 整改期限, dataType: DATE, required: true, props: { sortable: true } }
+  - { code: asset, displayName: 相关设备, dataType: REF, refConcept: ls.asset.Asset }
+  - { code: measures, displayName: 整改措施, dataType: TEXT }
+  - { code: evidence, displayName: 整改照片, dataType: FILE }
+  - { code: acceptNote, displayName: 验收意见, dataType: STRING, readonly: true, props: { maxLength: 200 } }
+flow:
+  name: 整改验收
+  nodes:
+    - { key: accept, name: 验收, type: AUDIT, role: workshop_leader, editable: [acceptNote], required: [acceptNote] }
+  initiatorEditable: [measures, evidence]
+rules:
+  - code: highNeedsMeasures
+    name: 严重问题须写整改措施
+    when: "$model.level == 'HIGH'"
+    assert: "has($model.measures) && $model.measures != null && size($model.measures) > 0"
+    field: measures
+    message: 严重问题提交前必须填写整改措施
+samples: { orderNo: R-0001, problem: 防护罩松动, level: LOW, deadline: "2026-11-20" }

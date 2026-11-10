@@ -98,6 +98,7 @@
         <el-upload :show-file-list="false" accept=".zip" :auto-upload="false" :on-change="onFile" data-testid="upload-pack">
           <el-button type="primary">上传 Pack（zip）</el-button>
         </el-upload>
+        <el-button data-testid="btn-from-template" @click="wizard = true">从模板新建</el-button>
         <span class="sub">提交后自动执行校验与依赖分析；沙箱、回归、越权与升级测试由升级演练脚本在临时环境完成并回写。</span>
       </div>
       <el-table v-loading="loading" :data="changes" size="small" data-testid="table-changes" row-key="id">
@@ -161,6 +162,7 @@
       </el-table>
     </template>
 
+    <TemplateWizard v-if="wizard" v-model="wizard" @created="onDraftCreated" />
     <el-drawer v-model="drawer" size="62%" :title="cur ? `${cur.name} ${cur.version}` : ''" data-testid="pack-drawer" destroy-on-close>
       <template v-if="cur">
         <el-alert v-if="cur.error" type="error" :closable="false" :title="cur.error" class="mb" />
@@ -329,11 +331,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { UploadFile } from 'element-plus';
 import type { ChangeSet, DriftReport, PackApi, PackSummary, Provenance, Stage, StageResult, TestReport } from '@/api/lsmom/pack';
 import { followTask } from '@/utils/taskCenter';
+
+const TemplateWizard = defineAsyncComponent(() => import('./TemplateWizard.vue'));
 
 /** 协同应用中心：已安装 Pack 的版本、依赖、负责人、复审、使用量、失败任务、漂移与下线状态，以及 ChangeSet 发布。 */
 const props = defineProps<{ api: PackApi }>();
@@ -530,6 +534,12 @@ async function onFile(f: UploadFile) {
   const cs = await props.api.submit(await toBase64(f.raw));
   if (cs.status === 'REJECTED') ElMessage.error(`校验未通过：${cs.stages[0]?.detail?.message ?? ''}`);
   else ElMessage.success(`已提交 ChangeSet #${cs.id}：${cs.title}`);
+  tab.value = 'changes';
+  await load();
+}
+
+const wizard = ref(false);
+async function onDraftCreated() {
   tab.value = 'changes';
   await load();
 }

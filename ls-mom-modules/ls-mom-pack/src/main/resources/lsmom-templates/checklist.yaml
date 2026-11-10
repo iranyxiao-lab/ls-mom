@@ -1,0 +1,39 @@
+code: checklist
+name: 点检表
+category: 检查
+description: 按区域逐项检查并记录结果，发现异常须填写说明，班长复核
+entity: CheckSheet
+entityName: 点检表
+fields:
+  - { code: sheetNo, displayName: 点检单号, dataType: STRING, required: true, props: { queryable: true, unique: true, maxLength: 32 } }
+  - { code: area, displayName: 区域, dataType: STRING, required: true, props: { queryable: true, maxLength: 60 } }
+  - { code: checkDate, displayName: 点检日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
+  - { code: checker, displayName: 点检人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: hasAbnormal, displayName: 发现异常, dataType: BOOLEAN }
+  - { code: abnormalNote, displayName: 异常说明, dataType: TEXT, help: 发现异常时必填 }
+  - { code: photos, displayName: 现场照片, dataType: FILE }
+  - { code: reviewNote, displayName: 复核意见, dataType: STRING, readonly: true, props: { maxLength: 200 } }
+children:
+  - entity: CheckItem
+    displayName: 检查项
+    minRows: 1
+    fields:
+      - { code: item, displayName: 检查项, dataType: STRING, required: true, props: { maxLength: 100 } }
+      - code: result
+        displayName: 结果
+        dataType: ENUM
+        required: true
+        options: [{ value: OK, label: 正常 }, { value: ABNORMAL, label: 异常 }]
+      - { code: note, displayName: 说明, dataType: STRING, props: { maxLength: 200 } }
+flow:
+  name: 点检复核
+  nodes:
+    - { key: review, name: 班长复核, type: AUDIT, role: team_leader, editable: [reviewNote] }
+rules:
+  - code: abnormalNoteRequired
+    name: 有异常须写说明
+    when: "has($model.hasAbnormal) && $model.hasAbnormal == true"
+    assert: "has($model.abnormalNote) && $model.abnormalNote != null && size($model.abnormalNote) > 0"
+    field: abnormalNote
+    message: 发现异常时必须填写异常说明
+samples: { sheetNo: C-0001, area: 一号线 }
