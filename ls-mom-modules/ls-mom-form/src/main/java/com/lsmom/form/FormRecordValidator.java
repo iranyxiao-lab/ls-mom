@@ -85,7 +85,8 @@ public class FormRecordValidator implements RecordValidator {
             Object rows = model.get(sk);
             List<?> list = rows instanceof List<?> l ? l : List.of();
             String name = st.path("label").asText(sk);
-            if (st.has("minRows") && list.size() < st.get("minRows").asInt()) errors.put(sk, name + "至少 " + st.get("minRows").asInt() + " 行");
+            boolean imported = body != null && body.path(RecordValidator.IMPORT_FLAG).asBoolean(false);
+            if (!imported && st.has("minRows") && list.size() < st.get("minRows").asInt()) errors.put(sk, name + "至少 " + st.get("minRows").asInt() + " 行");
             if (st.has("maxRows") && list.size() > st.get("maxRows").asInt()) errors.put(sk, name + "最多 " + st.get("maxRows").asInt() + " 行");
             ConceptDef child = concepts.find(st.path("conceptCode").asText()).orElse(null);
             for (int i = 0; i < list.size(); i++) {

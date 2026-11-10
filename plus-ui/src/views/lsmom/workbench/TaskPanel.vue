@@ -191,7 +191,7 @@ async function run(kind: string, fn: () => Promise<any>, ok: string) {
 const complete = (action: 'APPROVE' | 'REJECT' | 'RESUBMIT') =>
   run(
     action.toLowerCase(),
-    () => props.actions.complete(ctx.value!.task.taskId, { action, comment: comment.value, input: action === 'APPROVE' ? editableInput() : null }),
+    () => props.actions.complete(ctx.value!.task.taskId, { action, comment: comment.value, input: action === 'REJECT' ? null : editableInput() }),
     { APPROVE: '已通过', REJECT: '已驳回', RESUBMIT: '已再提交' }[action]
   );
 const doReturn = () => run('return', () => props.actions.returnTask(ctx.value!.task.taskId, returnTarget.value, comment.value), '已退回');

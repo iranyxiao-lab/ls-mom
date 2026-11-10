@@ -154,7 +154,8 @@ const dynamicClearEvent = async () => {
 
 /** 租户列表 */
 const initTenantList = async () => {
-  const { data } = await getTenantList(true);
+  // 租户列表接口按 IP 限流（同一出口多人同时打开页面时可能被拒），失败时保留默认，不影响页面
+  const { data } = await getTenantList(true).catch(() => ({ data: { tenantEnabled: false, voList: [] } as any }));
   tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
   if (tenantEnabled.value) {
     tenantList.value = data.voList;

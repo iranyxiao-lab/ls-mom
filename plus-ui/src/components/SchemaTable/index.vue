@@ -62,6 +62,7 @@
       >
         批量{{ op.name }}
       </el-button>
+      <el-button v-if="schema.permissions.import" data-testid="import" @click="emit('import')">导入</el-button>
       <el-button v-if="schema.permissions.export" :disabled="busy" data-testid="export" @click="doExport">导出</el-button>
     </div>
 
@@ -124,7 +125,7 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { CrudApi } from '@/api/lsmom/crud';
 import { lazyCrudApi } from '@/api/lsmom/lazyCrud';
-import type { ListSchema, SchemaOperation } from '@/api/lsmom/types';
+import type { ExportJob, ListSchema, SchemaOperation } from '@/api/lsmom/types';
 import { buildQuerySpec, cellText, columnsOf, filterOf, rowOperations } from './querySpec';
 
 /**
@@ -137,6 +138,8 @@ const emit = defineEmits<{
   (e: 'edit', row: Record<string, any>): void;
   (e: 'row-click', row: Record<string, any>): void;
   (e: 'action-done', payload: { operation: string; ok: number; failed: { id: unknown; message: string }[] }): void;
+  (e: 'import'): void;
+  (e: 'exported', job: ExportJob): void;
 }>();
 
 const schema = ref<ListSchema | null>(null);
@@ -234,7 +237,8 @@ async function doExport() {
   busy.value = true;
   try {
     const job = await props.api.exportJob(props.concept, { ...spec(), page: 1 });
-    ElMessage.success(`已提交导出任务 #${job.id}，完成后可在导出记录中下载`);
+    ElMessage.success(`已提交导出任务 #${job.id}`);
+    emit('exported', job);
   } finally {
     busy.value = false;
   }

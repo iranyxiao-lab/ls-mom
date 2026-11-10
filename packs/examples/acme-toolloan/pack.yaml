@@ -1,0 +1,26 @@
+# 工器具借还：只用配置交付的客户台账 Pack（无 Java）。主子表、设备/人员引用、附件、条件必填、列表筛选导入导出、
+# 提交 → 部门审核 → 退回 → 修改后再提交 → 设备员确认归档。
+code: acme.toolloan
+version: 1.0.0
+name: 工器具借还
+description: 车间借用工器具登记借出明细，部门审核、设备员确认归档；外协用途须填外协单位
+owner: { name: 设备科王工 }
+requester: { name: 一车间周主任 }
+reviewDue: 2027-06-30
+dependsOn:
+  - { code: ls.asset, version: ">=1.0.0" }
+contents:
+  concepts: [acme.toolloan.LoanOrder]
+  operations:
+    - acme.toolloan.LoanOrder.submit
+    - acme.toolloan.LoanOrder.audit
+    - acme.toolloan.LoanOrder.return
+    - acme.toolloan.LoanOrder.resubmit
+    - acme.toolloan.LoanOrder.withdraw
+    - acme.toolloan.LoanOrder.archive
+    - acme.toolloan.LoanOrder.reject
+  rules: [acme.toolloan.outsourceUnitRequired]
+  views: [acme.toolloan.loanForm, acme.toolloan.loanList]
+  flows: [acme.toolloan.loanApproval]
+entries:
+  - { name: 工器具借还, path: /lsmom/ledger/acme.toolloan.LoanOrder }

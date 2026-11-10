@@ -1,0 +1,14 @@
+code: acme.toolloan.LoanOrder.lifecycle
+concept: acme.toolloan.LoanOrder
+displayName: 借还单状态
+states: [DRAFT, IN_REVIEW, RETURNED, ARCHIVED, REJECTED]
+initial: DRAFT
+transitions:
+  - { operation: acme.toolloan.LoanOrder.submit, name: 提交, from: [DRAFT], to: IN_REVIEW, permission: "acme:toolloan:submit", risk: C1, inputSchema: { type: object } }
+  # 以下由审批流在待办办理中调用；节点字段按表单 nodePolicies 校验后写入
+  - { operation: acme.toolloan.LoanOrder.audit, name: 部门审核, from: [IN_REVIEW], to: IN_REVIEW, permission: "acme:toolloan:flow", risk: C1, inputSchema: { type: object } }
+  - { operation: acme.toolloan.LoanOrder.return, name: 退回, from: [IN_REVIEW], to: RETURNED, permission: "acme:toolloan:flow", risk: C1, inputSchema: { type: object } }
+  - { operation: acme.toolloan.LoanOrder.resubmit, name: 再提交, from: [RETURNED], to: IN_REVIEW, permission: "acme:toolloan:submit", risk: C1, inputSchema: { type: object } }
+  - { operation: acme.toolloan.LoanOrder.withdraw, name: 撤回, from: [IN_REVIEW], to: DRAFT, permission: "acme:toolloan:submit", risk: C1, inputSchema: { type: object } }
+  - { operation: acme.toolloan.LoanOrder.archive, name: 确认归档, from: [IN_REVIEW], to: ARCHIVED, permission: "acme:toolloan:flow", risk: C1, inputSchema: { type: object } }
+  - { operation: acme.toolloan.LoanOrder.reject, name: 驳回, from: [IN_REVIEW], to: REJECTED, permission: "acme:toolloan:flow", risk: C1, inputSchema: { type: object } }

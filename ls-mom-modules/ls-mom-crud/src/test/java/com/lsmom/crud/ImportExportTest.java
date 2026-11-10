@@ -157,4 +157,13 @@ class ImportExportTest {
             GenericCrudService.permission(order, "list"));
         assertThatThrownBy(() -> limited.submit(order, QuerySpec.all(), listOnly)).extracting("code").isEqualTo("ACCESS_DENIED");
     }
+
+    @org.junit.jupiter.api.Test
+    void 导出单元格把附件列表与引用写成文本() {
+        org.assertj.core.api.Assertions.assertThat(com.lsmom.crud.io.LedgerExportService.cell(
+            java.util.List.of(java.util.Map.of("ossId", "1", "name", "委托书.pdf"), java.util.Map.of("ossId", "2", "name", "照片.png"))))
+            .isEqualTo("委托书.pdf、照片.png");
+        org.assertj.core.api.Assertions.assertThat(com.lsmom.crud.io.LedgerExportService.cell(java.util.Map.of("id", 3, "label", "焊机"))).isEqualTo("焊机");
+        org.assertj.core.api.Assertions.assertThat(com.lsmom.crud.io.LedgerExportService.cell(7L)).isEqualTo(7L);
+    }
 }

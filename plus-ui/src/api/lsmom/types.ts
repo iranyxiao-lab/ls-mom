@@ -63,6 +63,14 @@ export interface OperationCall {
   version?: number;
 }
 
+export interface ImportReport {
+  batchId: number;
+  total: number;
+  valid: number;
+  invalid: number;
+  errors: { row: number; field: string; message: string }[];
+}
+
 export interface ExportJob {
   id: number;
   concept: string;

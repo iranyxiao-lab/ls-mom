@@ -129,7 +129,8 @@ public class FlowFixture {
              "fields":[{"key":"loanNo","label":"单号","widget":"input","required":true},{"key":"borrower","label":"借用人","widget":"input","required":true},
                        {"key":"loanDate","label":"日期","widget":"date","required":true},{"key":"remark","label":"备注","widget":"textarea"},
                        {"key":"auditNote","label":"审核意见","widget":"textarea"}],
-             "nodePolicies":{"deptAudit":{"readonly":["*"],"editable":["auditNote"],"required":["auditNote"]}}}"""
+             "nodePolicies":{"deptAudit":{"readonly":["*"],"editable":["auditNote"],"required":["auditNote"]},
+                            "initiator":{"readonly":["*"],"editable":["remark"]}}}"""
             .formatted(formCode, o));
         form.forms.saveDraft(f, 1L, "flow test");
         form.forms.publish(formCode, 1, 1L);

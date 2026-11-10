@@ -1,0 +1,4 @@
+name: 借还单外协须填外协单位，补齐后可提交
+steps:
+  - create: { concept: acme.toolloan.LoanOrder, as: l, values: { loanNo: T-0001, borrower: 1, loanDate: "2026-11-10", purpose: MAINTENANCE, loanLine: [{ tool: 扭力扳手, qty: 2 }] } }
+  - expect: { concept: acme.toolloan.LoanOrder, target: l, status: DRAFT, values: { loanNo: T-0001 } }

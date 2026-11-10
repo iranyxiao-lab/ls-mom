@@ -146,6 +146,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
         taskSync.bind(this);
         gateway.addListener(this);
         registry.allPublished().forEach(v -> registerEffects(v.definition()));
+        registry.onPublished(this::registerEffects);
     }
 
     public FlowInstances instances() {
@@ -174,15 +175,16 @@ public class FlowRuntime implements FlowHooks, OperationListener {
 
     /** 发布流程，并为节点上的状态迁移类 Operation 注册字段写入效果。 */
     public FlowRegistry.Version publish(FlowDefinition def, Long by) {
-        FlowRegistry.Version v = registry.publish(def, by);
-        registerEffects(v.definition());
-        return v;
+        return registry.publish(def, by);
     }
 
     private void registerEffects(FlowDefinition def) {
         def.walk(n -> {
             if (n.human() && n.operation() != null) gateway.registerEffectIfAbsent(new FieldWriteEffect(n.operation(), def.concept(), concepts));
         });
+        if (def.callbacks() != null && def.callbacks().resubmitted() != null) {
+            gateway.registerEffectIfAbsent(new FieldWriteEffect(def.callbacks().resubmitted(), def.concept(), concepts));
+        }
     }
 
     // ======================= 发起 =======================
@@ -365,7 +367,14 @@ public class FlowRuntime implements FlowHooks, OperationListener {
         boolean hasInput = input != null && input.isObject() && !input.isEmpty();
         return tx.execute(st -> {
             if (initiatorTask) {
-                if (def.callbacks().resubmitted() != null) runBizOp(def.callbacks().resubmitted(), inst, task, null, actor, comment);
+                if (hasInput && (def.callbacks().resubmitted() == null || inst.formCode() == null)) {
+                    throw new LsBizException("FLOW_INPUT_UNSUPPORTED", "流程未配置再提交 Operation 或表单，不能在再提交时修改字段");
+                }
+                // 发起人修改后再提交：字段按表单 nodePolicies.initiator 校验后随再提交 Operation 写入
+                if (def.callbacks().resubmitted() != null) {
+                    if (hasInput) runBizOp(def.callbacks().resubmitted(), inst, task, BpmnTemplateGenerator.INITIATOR, null, actor, input);
+                    else runBizOp(def.callbacks().resubmitted(), inst, task, null, actor, comment);
+                }
             } else if (action == Action.APPROVE && (hasInput || node.operation() != null)) {
                 if (node.operation() == null) throw new LsBizException("FLOW_INPUT_UNSUPPORTED", "节点「" + node.name() + "」未配置填报 Operation，不能提交字段");
                 runBizOp(node.operation(), inst, task, node, actor, hasInput ? input : null);
@@ -551,10 +560,15 @@ public class FlowRuntime implements FlowHooks, OperationListener {
     // ======================= 内部 =======================
 
     private void runBizOp(String operation, FlowInstances.Instance inst, Task task, FlowDefinition.Node node, ActorContext actor, Object inputOrComment) {
+        runBizOp(operation, inst, task, node == null ? null : node.policyKey(), node == null ? null : node.fieldPolicy(), actor, inputOrComment);
+    }
+
+    private void runBizOp(String operation, FlowInstances.Instance inst, Task task, String policyKey, JsonNode fieldPolicy, ActorContext actor,
+                          Object inputOrComment) {
         JsonNode input = inputOrComment instanceof JsonNode j ? j : JsonNodeFactory.instance.objectNode();
         int version = stores.of(inst.bizType()).load(inst.bizId()).version();
-        NodePolicyResolver.Binding binding = node == null || inst.formCode() == null ? null
-            : new NodePolicyResolver.Binding(inst.formCode(), inst.formVersion(), node.policyKey(), node.fieldPolicy());
+        NodePolicyResolver.Binding binding = policyKey == null || inst.formCode() == null ? null
+            : new NodePolicyResolver.Binding(inst.formCode(), inst.formVersion(), policyKey, fieldPolicy);
         NodeContext.Current cur = new NodeContext.Current(inst.bizType(), inst.bizId(), task == null ? null : task.getId(), binding);
         String key = inst.procInstId() + ":" + (task == null ? "-" : task.getId()) + ":" + operation;
         NodeContext.with(cur, () -> gateway.execute(operation, new OperationRequest(input, inst.bizId(), version, key, false), actor));

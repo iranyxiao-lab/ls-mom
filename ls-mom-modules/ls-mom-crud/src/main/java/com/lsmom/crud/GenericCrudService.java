@@ -331,7 +331,9 @@ public class GenericCrudService {
                 Long org = values.containsKey("orgId") ? ((Number) values.get("orgId")).longValue() : resolveOrg(null, actor);
                 Map<String, Object> v = new LinkedHashMap<>(values);
                 v.remove("orgId");
+                Object formVersion = v.remove(FORM_VERSION_KEY);
                 long id = insertMaster(m, v, org, actor);
+                if (formVersion instanceof Number n) freezeForm(m, id, n.intValue());
                 publish("crud.created", m, id, org, actor, null, Map.of("summary", source));
                 ids.add(id);
             }
@@ -342,8 +344,12 @@ public class GenericCrudService {
     /** 导入预检：与通用新增相同的校验 + 组织数据域 + 写入门禁 + 唯一字段查重。返回转换后的值。 */
     public Map<String, Object> precheck(LedgerModel m, JsonNode node, ActorContext actor) {
         Map<String, Object> values = new LinkedHashMap<>(validate(m, node, actor, true, ""));
-        resolveOrg(node, actor);
+        Long org = resolveOrg(node, actor);
         policy.check(m.concept().code(), values.keySet());
+        // 与通用新增同一套表单校验（必填、条件规则等）；导入只含主表字段，不校验子表行数
+        com.fasterxml.jackson.databind.node.ObjectNode body = node.deepCopy();
+        body.put(RecordValidator.IMPORT_FLAG, true);
+        Integer formVersion = recordCheck(m, body, null, org, actor, values);
         Map<String, String> dup = new LinkedHashMap<>();
         for (FieldDef f : m.fields().values()) {
             Object v = values.get(f.code());
@@ -353,8 +359,12 @@ public class GenericCrudService {
             if (n != null && n > 0) dup.put(f.code(), f.displayName() + "已存在");
         }
         if (!dup.isEmpty()) throw validationFailed(dup);
+        if (formVersion != null) values.put(FORM_VERSION_KEY, formVersion);
         return values;
     }
+
+    /** 预检结果中携带的冻结表单版本（导入入库时写入 schema_version）。 */
+    public static final String FORM_VERSION_KEY = "_formVersion";
 
     /** Agent 拒绝与功能权限（供导入导出等入口复用）。 */
     public void checkAccess(ActorContext actor, String concept, String action) {
@@ -758,7 +768,7 @@ public class GenericCrudService {
             cols.add(f.columnName());
             args.add(v);
         });
-        return jdbc.queryForObject("insert into \"" + m.table() + "\" (" + quoteAll(cols) + ") values (" + marks(cols) + ") returning id",
+        return jdbc.queryForObject("insert into \"" + m.table() + "\" (" + quoteAll(cols) + ") values (" + marks(m, cols) + ") returning id",
             Long.class, args.toArray());
     }
 
@@ -777,7 +787,7 @@ public class GenericCrudService {
                 cols.add(f.columnName());
                 args.add(v);
             });
-            jdbc.update("insert into \"" + c.table() + "\" (" + quoteAll(cols) + ") values (" + marks(cols) + ")", args.toArray());
+            jdbc.update("insert into \"" + c.table() + "\" (" + quoteAll(cols) + ") values (" + marks(c, cols) + ")", args.toArray());
         }
     }
 
@@ -791,7 +801,7 @@ public class GenericCrudService {
                 ext.put(code, v);
                 return;
             }
-            sets.add("\"" + f.columnName() + "\" = ?");
+            sets.add("\"" + f.columnName() + "\" = " + (jsonb(f) ? "?::jsonb" : "?"));
             args.add(v);
         });
         if (!ext.isEmpty()) {
@@ -817,10 +827,17 @@ public class GenericCrudService {
         return String.join(", ", cols.stream().map(c -> "\"" + com.lsmom.meta.concept.MetaNames.requireIdentifier(c) + "\"").toList());
     }
 
-    private static String marks(List<String> cols) {
+    /** 占位符：jsonb 列（ext_attrs、JSON 与附件字段）显式转换，JDBC 以文本传参。 */
+    private static String marks(LedgerModel model, List<String> cols) {
+        Set<String> json = new java.util.HashSet<>(Set.of("ext_attrs"));
+        model.fields().values().stream().filter(GenericCrudService::jsonb).forEach(f -> json.add(f.columnName()));
         List<String> m = new ArrayList<>();
-        for (String c : cols) m.add(c.equals("ext_attrs") ? "?::jsonb" : "?");
+        for (String c : cols) m.add(json.contains(c) ? "?::jsonb" : "?");
         return String.join(", ", m);
+    }
+
+    private static boolean jsonb(FieldDef f) {
+        return !f.ext() && (f.dataType() == DataType.JSON || f.dataType() == DataType.FILE);
     }
 
     // —— 输出装饰：字典翻译、引用展开 ——

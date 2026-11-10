@@ -1,0 +1,72 @@
+{
+  "viewType": "FORM",
+  "formCode": "acme.toolloan.loanForm",
+  "version": 1,
+  "conceptCode": "acme.toolloan.LoanOrder",
+  "title": "工器具借还单",
+  "layout": [
+    { "type": "field", "key": "loanNo" },
+    { "type": "field", "key": "borrower" },
+    { "type": "field", "key": "loanDate" },
+    { "type": "field", "key": "returnDue" },
+    { "type": "field", "key": "purpose" },
+    { "type": "field", "key": "outsourceUnit" },
+    { "type": "field", "key": "asset" },
+    { "type": "subTable", "key": "loanLine" },
+    { "type": "field", "key": "attachments" },
+    { "type": "field", "key": "remark" },
+    { "type": "field", "key": "auditNote" }
+  ],
+  "fields": [
+    { "key": "loanNo", "label": "借用单号", "widget": "input", "required": true, "maxLength": 32 },
+    { "key": "borrower", "label": "借用人", "widget": "userRef", "required": true },
+    { "key": "loanDate", "label": "借出日期", "widget": "date", "required": true },
+    { "key": "returnDue", "label": "预计归还", "widget": "date" },
+    {
+      "key": "purpose",
+      "label": "用途",
+      "widget": "select",
+      "required": true,
+      "options": [
+        { "label": "检修", "value": "MAINTENANCE" },
+        { "label": "点检", "value": "INSPECTION" },
+        { "label": "外协", "value": "OUTSOURCE" },
+        { "label": "其他", "value": "OTHER" }
+      ]
+    },
+    { "key": "outsourceUnit", "label": "外协单位", "widget": "input", "help": "用途为外协时必填" },
+    { "key": "asset", "label": "用于设备", "widget": "assetRef", "ref": { "concept": "ls.asset.Asset", "labelField": "name" } },
+    { "key": "attachments", "label": "附件", "widget": "attachment", "maxCount": 5 },
+    { "key": "remark", "label": "备注", "widget": "textarea" },
+    { "key": "auditNote", "label": "审核意见", "widget": "textarea", "readonly": true }
+  ],
+  "subTables": [
+    {
+      "key": "loanLine",
+      "label": "借出明细",
+      "conceptCode": "acme.toolloan.LoanLine",
+      "minRows": 1,
+      "fields": [
+        { "key": "tool", "label": "工器具", "widget": "input", "required": true },
+        { "key": "spec", "label": "规格", "widget": "input" },
+        { "key": "qty", "label": "数量", "widget": "number", "required": true, "min": 1 }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "code": "outsourceUnitRequired",
+      "level": "L1",
+      "when": "$model.purpose == 'OUTSOURCE'",
+      "assert": "has($model.outsourceUnit) && $model.outsourceUnit != null && size($model.outsourceUnit) > 0",
+      "field": "outsourceUnit",
+      "message": "用途为外协时必须填写外协单位"
+    }
+  ],
+  "nodePolicies": {
+    "deptAudit": { "readonly": ["*"], "editable": ["auditNote"], "required": ["auditNote"] },
+    "initiator": { "readonly": ["*"], "editable": ["returnDue", "outsourceUnit", "remark"] },
+    "confirm": { "readonly": ["*"] }
+  },
+  "actions": [{ "key": "submit", "label": "提交审核", "operation": "acme.toolloan.LoanOrder.submit" }]
+}

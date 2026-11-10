@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { ExportJob, ListSchema, OperationCall, Page, QuerySpec } from './types';
+import type { ExportJob, ImportReport, ListSchema, OperationCall, Page, QuerySpec } from './types';
 
 /** 统一取 RuoYi 响应中的 data。 */
 const data = <T>(p: Promise<any>): Promise<T> => p.then((res) => res.data as T);
@@ -28,6 +28,25 @@ export const crudApi = {
     data<unknown>(request({ url: `/api/crud/${enc(concept)}/${id}`, method: 'delete', params: { version } })),
   copy: (concept: string, id: number | string) => data<{ id: number }>(request({ url: `/api/crud/${enc(concept)}/${id}/copy`, method: 'post' })),
   exportJob: (concept: string, spec: QuerySpec) => data<ExportJob>(request({ url: `/api/crud/${enc(concept)}/export`, method: 'post', data: spec })),
+  exportStatus: (jobId: number) => data<ExportJob>(request({ url: `/api/crud/export/${jobId}`, method: 'get' })),
+  exportFile: (jobId: number) => request({ url: `/api/crud/export/${jobId}/download`, method: 'get', responseType: 'blob' }) as Promise<Blob>,
+  importTemplate: (concept: string) =>
+    request({ url: `/api/crud/${enc(concept)}/import/template`, method: 'get', responseType: 'blob' }) as Promise<Blob>,
+  importPrecheck: (concept: string, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return data<ImportReport>(
+      // FormData 序列化后都是 {}，防重复提交会把连续两次不同文件的预检误判为重复
+      request({
+        url: `/api/crud/${enc(concept)}/import`,
+        method: 'post',
+        data: fd,
+        headers: { 'Content-Type': 'multipart/form-data', repeatSubmit: false }
+      })
+    );
+  },
+  importConfirm: (concept: string, batchId: number) =>
+    data<number>(request({ url: `/api/crud/${enc(concept)}/import/${batchId}/confirm`, method: 'post' })),
   /** 正式动作一律经 Operation Gateway。 */
   execute: (operation: string, call: OperationCall, idempotencyKey?: string) =>
     data<{ targetId: string; version: number; status: string; warnings: string[] }>(

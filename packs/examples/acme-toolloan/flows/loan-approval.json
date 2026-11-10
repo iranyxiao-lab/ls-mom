@@ -1,0 +1,31 @@
+{
+  "code": "acme.toolloan.loanApproval",
+  "name": "工器具借还审批",
+  "concept": "acme.toolloan.LoanOrder",
+  "startOn": "acme.toolloan.LoanOrder.submit",
+  "form": { "code": "acme.toolloan.loanForm", "version": 1 },
+  "callbacks": {
+    "approved": "acme.toolloan.LoanOrder.archive",
+    "rejected": "acme.toolloan.LoanOrder.reject",
+    "returned": "acme.toolloan.LoanOrder.return",
+    "resubmitted": "acme.toolloan.LoanOrder.resubmit",
+    "withdrawn": "acme.toolloan.LoanOrder.withdraw"
+  },
+  "nodes": [
+    {
+      "key": "deptAudit",
+      "type": "AUDIT",
+      "name": "部门审核",
+      "assignee": { "strategy": "ROLE", "value": "workshop_leader" },
+      "operation": "acme.toolloan.LoanOrder.audit",
+      "permission": "acme:toolloan:flow"
+    },
+    {
+      "key": "confirm",
+      "type": "CONFIRM",
+      "name": "确认归档",
+      "assignee": { "strategy": "ROLE", "value": "asset_keeper" },
+      "permission": "acme:toolloan:flow"
+    }
+  ]
+}

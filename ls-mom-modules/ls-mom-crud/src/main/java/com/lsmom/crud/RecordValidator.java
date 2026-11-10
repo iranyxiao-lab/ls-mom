@@ -11,6 +11,9 @@ import java.util.Map;
  */
 public interface RecordValidator {
 
+    /** 报文标记：Excel 导入行（只含主表字段，校验时不要求子表行数）。 */
+    String IMPORT_FLAG = "_import";
+
     /**
      * @param body    本次报文（表单编码与版本放在 {@code _form: {code, version}}）
      * @param current 修改时的当前记录（字段编码键，子表键为行列表）；新建时为 null

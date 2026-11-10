@@ -1,0 +1,11 @@
+code: acme.toolloan.outsourceUnitRequired
+concept: acme.toolloan.LoanOrder
+level: L1
+kind: CEL
+name: 外协借用须填外协单位
+message: 用途为外协时必须填写外协单位
+definition:
+  when: "$model.purpose == 'OUTSOURCE'"
+  assert: "has($model.outsourceUnit) && $model.outsourceUnit != null && size($model.outsourceUnit) > 0"
+  field: outsourceUnit
+  appliesTo: [acme.toolloan.LoanOrder.submit]

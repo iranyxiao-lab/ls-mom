@@ -287,7 +287,20 @@ public class FlowRegistry {
     // ---------------- 发布 ----------------
 
     /** 校验并发布为新版本；返回发布的版本号。 */
+    private final List<java.util.function.Consumer<FlowDefinition>> publishListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    /** 发布后回调（如流程运行时为节点 Operation 注册字段写入效果）；经 Pack 安装发布的流程同样触发。 */
+    public void onPublished(java.util.function.Consumer<FlowDefinition> listener) {
+        publishListeners.add(listener);
+    }
+
     public Version publish(FlowDefinition input, Long by) {
+        Version published = publishVersion(input, by);
+        publishListeners.forEach(l -> l.accept(published.definition()));
+        return published;
+    }
+
+    private Version publishVersion(FlowDefinition input, Long by) {
         FlowDefinition probe = input.withVersion(nextVersion(input.code()));
         require(probe);
         String xml = generator.generate(probe);

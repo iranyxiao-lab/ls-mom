@@ -216,8 +216,10 @@ public class WorkCenter {
         n.put("name", t.nodeName());
         n.put("type", node == null ? (initiatorNode ? "INITIATOR" : null) : node.type());
         n.put("mode", node == null ? null : node.mode());
-        n.put("operation", node == null ? null : node.operation());
-        n.put("inputSchema", node == null || node.operation() == null ? null : gateway.operationSchema(node.operation()));
+        // 发起人（被退回）待办：再提交 Operation 携带按 nodePolicies.initiator 可编辑的字段
+        String nodeOp = node != null ? node.operation() : initiatorNode && def.callbacks() != null ? def.callbacks().resubmitted() : null;
+        n.put("operation", nodeOp);
+        n.put("inputSchema", nodeOp == null ? null : gateway.operationSchema(nodeOp));
         m.put("node", n);
         boolean open = "TODO".equals(t.status()) && handler && !"CC".equals(t.kind());
         Map<String, Object> actions = new LinkedHashMap<>();
@@ -248,7 +250,8 @@ public class WorkCenter {
             }
         }
         m.put("form", form);
-        JsonNode policy = node == null ? null : node.fieldPolicy() != null ? node.fieldPolicy()
+        JsonNode policy = node == null ? (initiatorNode && form != null ? form.path("nodePolicies").get(BpmnTemplateGenerator.INITIATOR) : null)
+            : node.fieldPolicy() != null ? node.fieldPolicy()
             : form == null || node.policyKey() == null ? null : form.path("nodePolicies").get(node.policyKey());
         m.put("fieldPolicy", policy);
         Map<String, Object> record = record(inst.bizType(), inst.bizId(), actor);

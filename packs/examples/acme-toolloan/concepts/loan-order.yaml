@@ -1,0 +1,21 @@
+code: acme.toolloan.LoanOrder
+displayName: 工器具借还单
+description: 借用工器具的登记单，含借出明细；用于哪台设备、谁借用、附件（借用照片或外协委托书）
+fields:
+  - { code: loanNo, displayName: 借用单号, dataType: STRING, required: true, props: { queryable: true, sortable: true, unique: true, maxLength: 32 } }
+  - { code: borrower, displayName: 借用人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
+  - { code: loanDate, displayName: 借出日期, dataType: DATE, required: true, props: { sortable: true, queryable: true } }
+  - { code: returnDue, displayName: 预计归还, dataType: DATE }
+  - { code: purpose, displayName: 用途, dataType: ENUM, required: true, options: [MAINTENANCE, INSPECTION, OUTSOURCE, OTHER], props: { queryable: true, optionLabels: { MAINTENANCE: 检修, INSPECTION: 点检, OUTSOURCE: 外协, OTHER: 其他 } } }
+  - { code: outsourceUnit, displayName: 外协单位, dataType: STRING, props: { maxLength: 100 } }
+  - { code: asset, displayName: 用于设备, dataType: REF, refConcept: ls.asset.Asset, props: { queryable: true } }
+  - { code: attachments, displayName: 附件, dataType: FILE }
+  - { code: remark, displayName: 备注, dataType: TEXT }
+  - { code: auditNote, displayName: 审核意见, dataType: STRING, props: { maxLength: 200 } }
+children:
+  - code: acme.toolloan.LoanLine
+    displayName: 借出明细
+    fields:
+      - { code: tool, displayName: 工器具, dataType: STRING, required: true, props: { maxLength: 100 } }
+      - { code: spec, displayName: 规格, dataType: STRING, props: { maxLength: 100 } }
+      - { code: qty, displayName: 数量, dataType: INTEGER, required: true, props: { minimum: 1 } }

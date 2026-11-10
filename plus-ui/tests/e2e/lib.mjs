@@ -48,6 +48,8 @@ export async function open({ width = 1600, height = 1000, user = 'admin', mobile
     await page.locator('input[type="password"]').press('Enter');
     try {
       await page.waitForURL((u) => !u.pathname.includes('login'), { timeout: 20000 });
+      // 登录页本身的错误（如连续登录触发验证码接口限流）不计入被测页面
+      errors.length = 0;
       break;
     } catch (e) {
       const shown = await page.locator('.el-message, .el-message-box, .el-form-item__error').allTextContents();

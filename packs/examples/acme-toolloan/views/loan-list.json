@@ -1,0 +1,13 @@
+{
+  "viewType": "LIST",
+  "formCode": "acme.toolloan.loanList",
+  "version": 1,
+  "conceptCode": "acme.toolloan.LoanOrder",
+  "columns": ["loanNo", "borrower", "loanDate", "purpose", "asset", "returnDue"],
+  "filters": ["loanNo", "borrower", "purpose", "asset", "loanDate"],
+  "defaultSort": [{ "field": "loanNo", "dir": "desc" }],
+  "rowActions": [
+    { "key": "submit", "label": "提交审核", "operation": "acme.toolloan.LoanOrder.submit" },
+    { "key": "withdraw", "label": "撤回", "operation": "acme.toolloan.LoanOrder.withdraw" }
+  ]
+}

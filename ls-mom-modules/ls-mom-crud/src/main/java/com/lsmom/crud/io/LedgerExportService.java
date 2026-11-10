@@ -98,7 +98,7 @@ public class LedgerExportService {
                     List<Object> row = new ArrayList<>();
                     row.add(r.get("id"));
                     row.add(r.get("status"));
-                    for (FieldDef f : cols) row.add(r.containsKey(f.code() + "Label") ? r.get(f.code() + "Label") : r.get(f.code()));
+                    for (FieldDef f : cols) row.add(cell(r.containsKey(f.code() + "Label") ? r.get(f.code() + "Label") : r.get(f.code())));
                     data.add(row);
                 }
                 if (p.rows().size() < batch || data.size() >= props.exportMaxRows()) break;
@@ -143,5 +143,16 @@ public class LedgerExportService {
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    /** 单元格值：附件列为文件名、JSON 列为文本（Excel 只接受标量）。 */
+    public static Object cell(Object v) {
+        if (v instanceof java.util.Collection<?> c) {
+            return String.join("、", c.stream().map(x -> x instanceof Map<?, ?> m && m.get("name") != null ? String.valueOf(m.get("name"))
+                : String.valueOf(x)).toList());
+        }
+        if (v instanceof Map<?, ?> m) return m.containsKey("label") ? String.valueOf(m.get("label")) : String.valueOf(m);
+        if (v instanceof com.fasterxml.jackson.databind.JsonNode j) return j.isValueNode() ? j.asText() : j.toString();
+        return v;
     }
 }

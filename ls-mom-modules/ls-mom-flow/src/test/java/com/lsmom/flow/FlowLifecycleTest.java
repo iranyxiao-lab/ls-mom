@@ -49,8 +49,12 @@ class FlowLifecycleTest {
         assertThat(f.runtime.todo(s.applicant().id())).extracting(FlowRuntime.TaskView::taskId).contains(back.getId());
 
         // 发起人修改后再提交，流程回到部门审核
-        f.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "已补充", null, f.actor(s.applicant()));
+        assertThatThrownBy(() -> f.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "改单号", j("{\"loanNo\":\"L-9\"}"),
+            f.actor(s.applicant()))).isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.getCode()).isEqualTo("FIELD_READONLY"));
+        f.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "已补充", j("{\"remark\":\"借 2 把扭力扳手\"}"), f.actor(s.applicant()));
         assertThat(f.status(s, id)).isEqualTo("IN_REVIEW");
+        assertThat(f.action.stores.of(s.order()).attributes(id).get("remark")).isEqualTo("借 2 把扭力扳手");
+        assertThat(f.action.stores.of(s.order()).attributes(id).get("loanNo")).isEqualTo("L-1001");
         Task audit2 = f.task(inst.procInstId(), "deptAudit");
 
         // 审核节点必须填审核意见（节点策略 required）
