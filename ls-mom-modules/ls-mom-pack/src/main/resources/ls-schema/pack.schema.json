@@ -41,14 +41,18 @@
     },
     "entries": {
       "type": "array",
-      "description": "协同应用中心中的 Pack 入口",
+      "description": "Pack 入口：出现在协同应用中心，并按 group 自动归入导航菜单的固定分组",
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["name", "path"],
         "properties": {
           "name": { "type": "string", "minLength": 1, "maxLength": 50 },
-          "path": { "type": "string", "pattern": "^/[A-Za-z0-9/_:.?=&%-]*$" }
+          "path": { "type": "string", "pattern": "^/[A-Za-z0-9/_:.?=&%-]*$" },
+          "group": {
+            "enum": ["work", "ledger", "analysis", "config"],
+            "description": "菜单分组：工作 / 台账 / 分析 / 配置。省略时台账路径（/lsmom/ledger/…）归台账，其余归工作"
+          }
         }
       }
     }

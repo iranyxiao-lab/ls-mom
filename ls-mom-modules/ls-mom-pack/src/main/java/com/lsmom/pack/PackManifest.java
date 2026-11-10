@@ -35,7 +35,17 @@ public record PackManifest(String code, String version, String name, String desc
         }
     }
 
-    public record Entry(String name, String path) {
+    /** Pack 入口；group 为菜单分组（work/ledger/analysis/config），省略时按路径推断。 */
+    public record Entry(String name, String path, String group) {
+
+        public Entry(String name, String path) {
+            this(name, path, null);
+        }
+
+        public String effectiveGroup() {
+            if (group != null && !group.isBlank()) return group;
+            return path != null && path.startsWith("/lsmom/ledger/") ? "ledger" : "work";
+        }
     }
 
     public record Issue(String path, String code, String message) {

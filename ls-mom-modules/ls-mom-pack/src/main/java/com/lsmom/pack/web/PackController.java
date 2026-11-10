@@ -10,6 +10,7 @@ import com.lsmom.pack.PackInstaller;
 import com.lsmom.pack.PackLifecycle;
 import com.lsmom.pack.PackReview;
 import com.lsmom.pack.PackSource;
+import com.lsmom.pack.PackManifest;
 import com.lsmom.pack.PackStore;
 import com.lsmom.pack.PackTester;
 import com.lsmom.pack.SemVer;
@@ -63,6 +64,29 @@ public class PackController {
     @GetMapping("/packs")
     public R<List<Map<String, Object>>> list() {
         return R.ok(store.list().stream().map(p -> summary(p, false)).toList());
+    }
+
+    /**
+     * 导航菜单用：已启用 Pack 的入口及其菜单分组（工作／台账／分析／配置）。
+     * 菜单是否可见由前端按用户已有的路由与权限过滤；这里只返回入口清单，不含敏感信息。
+     */
+    @GetMapping("/packs/menu")
+    public R<List<Map<String, Object>>> menu() {
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        for (PackStore.Pack p : store.list()) {
+            if (!"ENABLED".equals(p.status())) continue;
+            for (com.fasterxml.jackson.databind.JsonNode e : p.manifest().path("entries")) {
+                PackManifest.Entry entry = new PackManifest.Entry(e.path("name").asText(), e.path("path").asText(), e.path("group").asText(null));
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("pack", p.code());
+                m.put("packName", p.name());
+                m.put("name", entry.name());
+                m.put("path", entry.path());
+                m.put("group", entry.effectiveGroup());
+                out.add(m);
+            }
+        }
+        return R.ok(out);
     }
 
     @GetMapping("/packs/{code}")

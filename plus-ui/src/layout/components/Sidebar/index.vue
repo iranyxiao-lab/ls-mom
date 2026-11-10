@@ -27,7 +27,8 @@ import SidebarItem from './SidebarItem.vue';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
 import { usePermissionStore } from '@/store/modules/permission';
-import { RouteRecordRaw } from 'vue-router';
+import { mixGroupKey, useGroupedMenus } from '@/layout/useGroupedMenus';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
 
 const { proxy } = getCurrentInstance() as ComponentInternalInstance;
 
@@ -35,7 +36,11 @@ const route = useRoute();
 const appStore = useAppStore();
 const settingsStore = useSettingsStore();
 const permissionStore = usePermissionStore();
-const sidebarRouters = computed<RouteRecordRaw[]>(() => permissionStore.getSidebarRoutes());
+// 固定分组：工作 / 台账 / 分析 / 配置（最多三级）；混合布局下只显示顶栏所选分组的内容
+const grouped = useGroupedMenus(() => permissionStore.getDefaultRoutes());
+const sidebarRouters = computed(() =>
+  settingsStore.navType === NavTypeEnum.MIX ? (grouped.value.find((g) => g.path === mixGroupKey.value)?.children ?? []) : grouped.value
+);
 const showLogo = computed(() => settingsStore.sidebarLogo);
 const sideTheme = computed(() => settingsStore.sideTheme);
 const theme = computed(() => settingsStore.theme);

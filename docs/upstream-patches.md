@@ -50,6 +50,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 33 | `plus-ui/src/utils/auth.ts`、`plus-ui/src/api/login.ts` | `useStorage` 显式引入（单测不依赖自动引入）；租户列表同一会话缓存 5 分钟 | 租户列表按 IP 限流，刷新页面会触发「访问过于频繁」 | UI 2.5、3.1 |
 | 34 | `plus-ui/src/layout/index.vue`、`Navbar.vue`、`Sidebar/index.vue`、`.env.*` | 三档断点（手机抽屉／平板收起／桌面按偏好），小屏上的展开不改写桌面偏好；侧栏与顶栏颜色由令牌驱动；去掉顶栏上游仓库与文档链接；非超级管理员不请求租户列表；产品名改为 LS-MOM | 应用外壳 | UI 3.1 |
 | 35 | `plus-ui/src/utils/createCustomNameComponent.tsx`、`plus-ui/src/layout/components/TagsView/index.vue` | 路由页面包装组件统一保留滚动位置、切换页签时隐藏／恢复该页打开的对话框；关闭含未保存内容的页签（含批量关闭）先确认 | 多页签状态保留 | UI 3.2 |
+| 36 | `plus-ui/src/layout/components/Sidebar/{index,SidebarItem}.vue`、`plus-ui/src/layout/components/TopBar/index.vue`、`plus-ui/src/components/TopNav/index.vue` | 菜单改由 `layout/menuGroups.ts` 整理为固定分组（工作／台账／分析／配置，最多三级，Pack 入口自动归组，隐藏上游演示目录与外链）；菜单项支持完整路径；混合布局顶栏显示分组；修正顶栏「更多菜单」切片 | 菜单层级与归组 | UI 3.3 |
 
 ## 生产前必须替换的上游密钥
 

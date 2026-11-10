@@ -89,11 +89,13 @@ const resolvePath = (routePath: string, routeQuery?: string): any => {
   if (isExternal(props.basePath as string)) {
     return props.basePath;
   }
+  // 分组菜单中的页面带完整路径（见 layout/menuGroups.ts），不再拼接上级路径
+  const full = routePath.startsWith('/') ? routePath : getNormalPath(props.basePath + '/' + routePath);
   if (routeQuery) {
     const query = JSON.parse(routeQuery);
-    return { path: getNormalPath(props.basePath + '/' + routePath), query: query };
+    return { path: full, query: query };
   }
-  return getNormalPath(props.basePath + '/' + routePath);
+  return full;
 };
 
 const router = useRouter();

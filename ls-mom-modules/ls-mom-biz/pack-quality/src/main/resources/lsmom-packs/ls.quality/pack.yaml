@@ -1,6 +1,6 @@
 # 质量标准 Pack：质量记录（可独立、可多对象关联）、不符合项（条件必填）、受控质量闭环（登记 → 车间审核 → 整改工作 → 验证 → 关闭）
 code: ls.quality
-version: 1.0.0
+version: 1.0.1
 name: 质量
 description: 质量记录、不符合项、受控质量流程、整改证据要求、质量终判仅限真人
 standard: true
@@ -29,5 +29,5 @@ contents:
     - ls.quality.recordForm
     - ls.quality.ncForm
 entries:
-  - { name: 质量记录, path: /quality/records }
+  - { name: 质量记录, path: /quality/records, group: ledger }
   - { name: 不符合项, path: /quality/nc }
