@@ -60,7 +60,7 @@
           {{ loading ? '正在搜索…' : query.trim() ? '没有找到匹配的结果，换个关键词或用拼音首字母试试' : '还没有最近访问或收藏的内容' }}
         </div>
       </div>
-      <div class="ls-palette__foot">
+      <div v-if="hotkeyHints" class="ls-palette__foot" data-testid="palette-hints">
         <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span><span><kbd>Enter</kbd> 打开</span
         ><span
           ><kbd>{{ isMac ? '⌘' : 'Ctrl' }}</kbd
@@ -83,10 +83,11 @@ import { Star, StarFilled } from '@element-plus/icons-vue';
 import { usePermissionStore } from '@/store/modules/permission';
 import { useUserStore } from '@/store/modules/user';
 import { useNavHistoryStore, type NavEntry } from '@/store/modules/navHistory';
-import { useGroupedMenus } from '@/layout/useGroupedMenus';
+import { FAVORITES_GROUP, useGroupedMenus } from '@/layout/useGroupedMenus';
 import { availableCommands, type Command } from '@/layout/commands';
 import { registerBuiltinCommands } from '@/layout/builtinCommands';
 import { loadPinyin, rankBy } from '@/utils/pinyinMatch';
+import { hotkeyHints } from '@/utils/prefSync';
 import { globalSearch, objectPath, WORK, PARTY, type SearchHit } from '@/api/lsmom/uiSearch';
 
 interface Item {
@@ -124,7 +125,8 @@ const menus = computed(() => {
   const out: { path: string; title: string; trail: string; icon?: string }[] = [];
   const walk = (rs: RouteRecordRaw[], base: string, trail: string[]) => {
     for (const r of rs) {
-      if ((r as any).hidden) continue;
+      // 收藏分组里的页面在各自的分组中已经有了
+      if ((r as any).hidden || r.path === FAVORITES_GROUP) continue;
       const full = join(base, r.path);
       const title = r.meta?.title as string | undefined;
       const kids = (r.children ?? []).filter((c) => !(c as any).hidden);

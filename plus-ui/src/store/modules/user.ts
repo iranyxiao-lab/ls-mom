@@ -1,5 +1,6 @@
 import { to } from 'await-to-js';
 import { getToken, removeToken, setToken } from '@/utils/auth';
+import { resetPrefSync } from '@/utils/prefSync';
 import { login as loginApi, logout as logoutApi, getInfo as getUserInfo } from '@/api/login';
 import { LoginData } from '@/api/types';
 import defAva from '@/assets/images/profile.jpg';
@@ -64,6 +65,7 @@ export const useUserStore = defineStore('user', () => {
     roles.value = [];
     permissions.value = [];
     removeToken();
+    resetPrefSync();
   };
 
   const setAvatar = (value: string) => {

@@ -59,6 +59,15 @@ export async function loggedIn(browser: Browser, user = 'admin', opts: BrowserCo
 }
 
 /** 以当前登录身份调用后端接口。 */
+/** 不复用任何登录态与本地存储的新上下文（相当于换一个浏览器登录）。 */
+export async function freshLogin(browser: Browser, user: string, opts: BrowserContextOptions = {}): Promise<{ context: BrowserContext; page: Page }> {
+  const baseURL = process.env.LSMOM_E2E_BASE ?? 'http://127.0.0.1:18081';
+  const context = await browser.newContext({ baseURL, ...opts });
+  const page = await context.newPage();
+  await loginOnPage(page, user);
+  return { context, page };
+}
+
 export function api(page: Page) {
   return <T = any>(method: string, url: string, body?: unknown): Promise<T> =>
     page.evaluate(

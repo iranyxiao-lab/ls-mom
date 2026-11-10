@@ -89,10 +89,11 @@ try {
   // 菜单可能较多：展开前先等侧栏渲染
   await admin.page.locator('.sidebar-container ul.el-menu').first().waitFor();
   const tree = await fullTree(admin.page);
-  const paths = flat(tree);
+  const paths = flat(tree).filter((p) => !p.startsWith('收藏'));
   check(
-    JSON.stringify(tree.map((n) => n.title)) === JSON.stringify(['首页', '工作', '台账', '分析', '配置']),
-    '顶层：首页＋工作 / 台账 / 分析 / 配置'
+    // 有收藏时「收藏」分组排在首页之后（偏好中心 3.6）
+    JSON.stringify(tree.map((n) => n.title).filter((t) => t !== '收藏')) === JSON.stringify(['首页', '工作', '台账', '分析', '配置']),
+    '顶层：首页＋（收藏）＋工作 / 台账 / 分析 / 配置'
   );
   check(depth(tree) <= 3, `菜单层级不超过三级（实际 ${depth(tree)} 级）`);
   for (const hidden of ['测试菜单', 'PLUS官网']) check(!paths.some((p) => p.includes(hidden)), `不显示上游${hidden}`);

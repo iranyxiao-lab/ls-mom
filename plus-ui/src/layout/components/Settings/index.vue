@@ -203,6 +203,12 @@ watch(
   { immediate: true, deep: true }
 );
 
+// 偏好中心或服务端偏好修改了布局时，抽屉里的选中状态跟着变
+watch(
+  () => settingsStore.navType,
+  (v) => (navType.value = v)
+);
+
 const handleNavType = (val: NavTypeEnum) => {
   settingsStore.navType = val;
   navType.value = val;

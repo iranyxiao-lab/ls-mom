@@ -136,6 +136,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/system/user/profile/index.vue'),
         name: 'Profile',
         meta: { title: '个人中心', icon: 'user' }
+      },
+      {
+        path: 'prefs',
+        component: () => import('@/views/lsmom/prefs/index.vue'),
+        name: 'LsPrefCenter',
+        meta: { title: '偏好设置', icon: 'skill' }
       }
     ]
   }

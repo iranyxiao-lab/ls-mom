@@ -12,7 +12,7 @@ import { computed, watch } from 'vue';
 import { useRoute, useRouter, type RouteRecordRaw } from 'vue-router';
 import { useAppStore } from '@/store/modules/app';
 import { usePermissionStore } from '@/store/modules/permission';
-import { mixGroupKey, useGroupedMenus } from '@/layout/useGroupedMenus';
+import { mixGroupKey, useGroupedMenus, FAVORITES_GROUP } from '@/layout/useGroupedMenus';
 
 const appStore = useAppStore();
 const permissionStore = usePermissionStore();
@@ -27,7 +27,14 @@ const topMenus = computed<RouteRecordRaw[]>(() =>
 const contains = (r: RouteRecordRaw, path: string): boolean => r.path === path || (r.children ?? []).some((c) => contains(c, path));
 
 // 当前页面所在的分组；首页等不在分组中的页面隐藏侧栏
-const activeKey = computed(() => grouped.value.find((g) => g.path.startsWith('/menu-group/') && contains(g, route.path))?.path ?? route.path);
+// 收藏的页面同时在所属分组里：优先高亮所属分组
+const activeKey = computed(
+  () =>
+    (
+      grouped.value.find((g) => g.path.startsWith('/menu-group/') && g.path !== FAVORITES_GROUP && contains(g, route.path)) ??
+      grouped.value.find((g) => g.path === FAVORITES_GROUP && contains(g, route.path))
+    )?.path ?? route.path
+);
 watch(
   activeKey,
   (k) => {

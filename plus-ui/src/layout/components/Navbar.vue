@@ -27,7 +27,7 @@
         </el-select>
 
         <command-palette ref="searchMenuRef" />
-        <el-tooltip content="搜索（Ctrl/⌘+K）" effect="dark" placement="bottom">
+        <el-tooltip :content="hotkeyHints ? '搜索（Ctrl/⌘+K）' : '搜索'" effect="dark" placement="bottom">
           <div class="right-menu-item hover-effect" role="button" aria-label="搜索" data-testid="open-palette" @click="openSearchMenu">
             <svg-icon class-name="search-icon" icon-class="search" />
           </div>
@@ -70,6 +70,9 @@
               <router-link v-if="!dynamic" to="/user/profile">
                 <el-dropdown-item>{{ proxy.$t('navbar.personalCenter') }}</el-dropdown-item>
               </router-link>
+              <router-link to="/user/prefs">
+                <el-dropdown-item data-testid="menu-prefs">偏好设置</el-dropdown-item>
+              </router-link>
               <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
                 <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
               </el-dropdown-item>
@@ -86,6 +89,7 @@
 
 <script setup lang="ts">
 import CommandPalette from './CommandPalette/index.vue';
+import { hotkeyHints } from '@/utils/prefSync';
 import { useAppStore } from '@/store/modules/app';
 import { useUserStore } from '@/store/modules/user';
 import { useSettingsStore } from '@/store/modules/settings';

@@ -1,5 +1,6 @@
 import { to as tos } from 'await-to-js';
 import router from './router';
+import { startPrefSync } from '@/utils/prefSync';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { getToken } from '@/utils/auth';
@@ -43,6 +44,8 @@ router.beforeEach(async (to, from, next) => {
           next({ path: '/' });
         } else {
           isRelogin.show = false;
+          // 偏好（主题、布局、收藏等）以服务端为准，先应用再进入页面，避免布局闪变
+          await startPrefSync();
           const accessRoutes = await usePermissionStore().generateRoutes();
           // 根据roles权限生成可访问的路由表
           accessRoutes.forEach((route) => {
