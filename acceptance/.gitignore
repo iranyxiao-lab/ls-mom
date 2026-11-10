@@ -3,3 +3,5 @@ coverage.md
 coverage.json
 summary.md
 runs/*/videos/
+runs/reset/
+runs/demo-*/

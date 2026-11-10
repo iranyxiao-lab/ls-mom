@@ -1,0 +1,17 @@
+# 验收种子账号（acceptance-walkthrough 2.1）——仅限本地与 CI 的 Compose 验收环境。
+# 口令只写在本文件里，由 deploy/scripts/acceptance-reset.sh 经标准输入交给数据库（pgcrypto bcrypt），不出现在命令行、日志和报告中。
+# 走查脚本按账号名从本文件读取口令。
+password: 'Acc-4b50822d2df5d434'
+accounts:
+  - { user: acc_admin,       name: 管理员（验收）,          dept: 2000, role: 2190, kind: 管理员 }
+  - { user: acc_implementer, name: 陈顾问（验收·实施）,     dept: 2000, role: 2106, kind: 实施顾问 }
+  - { user: acc_leader,      name: 周主任（验收·一车间）,   dept: 2010, role: 2101, kind: 车间主任 }
+  - { user: acc_leader_b,    name: 孙主任（验收·二车间）,   dept: 2020, role: 2101, kind: 车间主任 }
+  - { user: acc_team,        name: 吴班长（验收·甲班）,     dept: 2011, role: 2102, kind: 班组长 }
+  - { user: acc_operator,    name: 郑师傅（验收·甲班）,     dept: 2011, role: 2103, kind: 操作工 }
+  - { user: acc_operator_b,  name: 钱师傅（验收·丙班）,     dept: 2021, role: 2103, kind: 操作工 }
+  - { user: acc_asset,       name: 王工（验收·设备科）,     dept: 2030, role: 2104, kind: 设备员 }
+  - { user: acc_repair,      name: 何师傅（验收·维修）,     dept: 2030, role: 2104, kind: 设备员 }
+  - { user: acc_quality,     name: 冯工（验收·质量科）,     dept: 2040, role: 2105, kind: 质检员 }
+  - { user: acc_quality2,    name: 林工（验收·质量科）,     dept: 2040, role: 2105, kind: 质检员 }
+# Agent（第 8 类角色）使用服务身份，不登录：shift-assistant（演示种子 V10）与本数据集的 acc-agent。

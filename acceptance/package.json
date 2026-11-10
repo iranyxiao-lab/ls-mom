@@ -10,11 +10,18 @@
     "manual": "node tools/manual.ts",
     "report": "node tools/report.ts",
     "pages": "node tools/pages.ts",
-    "test": "node --test tools/*.test.ts"
+    "test": "node --test tools/*.test.ts",
+    "walk": "playwright test",
+    "seed-sql": "node tools/seed-sql.ts"
   },
   "dependencies": {
     "ajv": "8.17.1",
     "yaml": "2.8.1"
   },
-  "engines": { "node": ">=22.18" }
+  "engines": {
+    "node": ">=22.18"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
 }

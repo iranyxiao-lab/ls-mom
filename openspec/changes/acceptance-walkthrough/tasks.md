@@ -12,11 +12,11 @@
 
 ## 2. 数据基线与执行框架
 
-- [ ] 2.1 编写 `deploy/scripts/acceptance-reset.sh` 与 `acceptance` 种子数据集（固定组织、8 类角色账号、设备、点位、模板），口令只存种子文件；验证连续两次重置后数据一致且报告和日志中不出现口令
-- [ ] 2.2 编写 Playwright 走查夹具：按角色登录、每步自动截图、记录响应 `trace_id`、失败保留 trace 与录像、以 `[AC-xxx]` 标题绑定用例；验证故意失败的示例用例生成完整证据目录
-- [ ] 2.3 编写 `tools/collect.ts`，把 Playwright JSON 结果写入 `runs/<run>/results.json`；验证结果中每条记录含用例 ID、结果、耗时与证据路径
-- [ ] 2.4 编写只读的跨模块一致性断言库（业务状态、待办读模型、流程实例、时间轴、审计、Outbox、看板指标，通过命名 Query 与审计查询接口读取）；验证在一条示例审批上全部断言通过
-- [ ] 2.5 编写 `tools/manual.ts`：按本轮范围生成人工用例与 UI 走查 Markdown 检查表，并能把填写结果解析回 results.json；验证填写示例表后结果被正确导入
+- [x] 2.1 编写 `deploy/scripts/acceptance-reset.sh` 与 `acceptance` 种子数据集（固定组织、8 类角色账号、设备、点位、模板），口令只存种子文件；验证连续两次重置后数据一致且报告和日志中不出现口令
+- [x] 2.2 编写 Playwright 走查夹具：按角色登录、每步自动截图、记录响应 `trace_id`、失败保留 trace 与录像、以 `[AC-xxx]` 标题绑定用例；验证故意失败的示例用例生成完整证据目录
+- [x] 2.3 编写 `tools/collect.ts`，把 Playwright JSON 结果写入 `runs/<run>/results.json`；验证结果中每条记录含用例 ID、结果、耗时与证据路径
+- [x] 2.4 编写只读的跨模块一致性断言库（业务状态、待办读模型、流程实例、时间轴、审计、Outbox、看板指标，通过命名 Query 与审计查询接口读取）；验证在一条示例审批上全部断言通过
+- [x] 2.5 编写 `tools/manual.ts`：按本轮范围生成人工用例与 UI 走查 Markdown 检查表，并能把填写结果解析回 results.json；验证填写示例表后结果被正确导入
 
 ## 3. 缺陷管理与报告
 

@@ -84,3 +84,50 @@ test('没有 openspec CLI 时解析 spec 文件，结果与 CLI 一致', async (
   const k = (x: (typeof md)[number]) => key(x.spec, x.requirement, x.scenario);
   assert.deepEqual(md.map(k).sort(), cli!.map(k).sort());
 });
+
+test('人工检查表：生成 → 填写 → 导入，结果写入 results.json', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const { generate, parse } = await import('./manual.ts');
+  const { collect } = await import('./collect.ts');
+  const c = {
+    id: 'AC-DEMO-801',
+    title: '人工示例',
+    ref: { change: 'modernize-ui-ux', spec: 'ui/app-shell-navigation', requirement: '角色化首页工作台', scenario: '操作工首页' },
+    priority: 'P1',
+    mode: 'MANUAL',
+    roles: ['operator'],
+    dataset: 'acceptance',
+    steps: ['登录', '查看首页'],
+    expected: ['显示我的待办']
+  } as unknown as Case;
+  const md = generate({
+    run: 'r',
+    cases: [c],
+    pages: [{ id: 'P-HOME', path: '/index', name: '首页', area: '工作台' }],
+    heuristics: [
+      { id: 'H-01', group: '可用性', name: '系统状态可见', judge: '操作有反馈' },
+      { id: 'H-02', group: '可用性', name: '防错', judge: '危险操作需确认' }
+    ],
+    viewports: ['phone', 'desktop'],
+    themes: ['dark']
+  });
+  assert.equal((md.match(/^### UI · /gm) ?? []).length, 2);
+  let filled = md.replace('[ ] 失败', '[x] 失败').replace('- 走查员：', '- 走查员：张三').replace('- 说明：', '- 说明：待办数为 0');
+  let n = 0;
+  filled = filled.replace(/^\| (H-0\d) \| (.+?) \| (.+?) \|  \|  \|$/gm, (_, id, a, b) => `| ${id} | ${a} | ${b} | ${n++ === 1 ? '问题 | 删除未确认' : '通过 | '} |`);
+  const r = parse(filled);
+  assert.deepEqual(r.problems, []);
+  assert.deepEqual(
+    r.rows.map((x) => [x.caseId, x.result, x.tester, x.notes]),
+    [['AC-DEMO-801', 'FAILED', '张三', '待办数为 0']]
+  );
+  assert.equal(r.uiChecks.length, 4);
+  assert.deepEqual(r.uiChecks[1], { page: 'P-HOME', viewport: 'phone', theme: 'dark', path: '/index', item: 'H-02', name: '可用性：防错', result: 'ISSUE', note: '删除未确认' });
+  assert.match(parse(filled.replace('删除未确认', '')).problems[0], /须写说明/);
+  assert.match(parse(filled.replace('[ ] 通过', '[x] 通过')).problems[0], /勾选了多项/);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'acc-manual-'));
+  fs.writeFileSync(path.join(dir, 'manual.json'), JSON.stringify({ rows: r.rows, uiChecks: r.uiChecks }));
+  assert.deepEqual(collect(dir).rows.map((x) => [x.caseId, x.source, x.result]), [['AC-DEMO-801', 'manual', 'FAILED']]);
+  fs.rmSync(dir, { recursive: true });
+});

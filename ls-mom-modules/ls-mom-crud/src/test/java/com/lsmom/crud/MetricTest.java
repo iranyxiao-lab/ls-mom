@@ -12,6 +12,7 @@ import com.lsmom.crud.metric.MetricEngine;
 import com.lsmom.crud.metric.MetricRegistry;
 import com.lsmom.crud.metric.NamedQueryDef;
 import com.lsmom.crud.metric.NamedQueryRegistry;
+import com.lsmom.crud.metric.AuditQueries;
 import com.lsmom.test.CoreFixture;
 import org.junit.jupiter.api.Test;
 
@@ -232,6 +233,23 @@ class MetricTest {
         assertThat(queries.register(ok).version()).isEqualTo(1);
         assertThat(queries.register(new NamedQueryDef(ok.code(), ok.name(), null, schema, ok.sql().replace("limit 1", "limit 2"), 1000, null,
             ok.examples())).version()).isEqualTo(2);
+    }
+
+    @Test
+    void 审计命名Query_登记合格_按对象与trace_id只读查询_无权限被拒() {
+        AuditQueries a = new AuditQueries();
+        for (NamedQueryDef d : List.of(a.auditObjectOperationsQuery(), a.auditObjectEventsQuery(), a.auditTraceQuery())) {
+            assertThat(queries.check(d)).as(d.code()).isEmpty();
+            queries.register(d);
+        }
+        assertThat(queries.execute("ls.audit.objectOperations", json("{\"concept\":\"ls.core.Work\",\"id\":\"0\"}"), ActionFixture.admin()).rows())
+            .isEmpty();
+        assertThat(queries.execute("ls.audit.trace", json("{\"traceId\":\"none\"}"), ActionFixture.admin()).rows())
+            .isEmpty();
+        com.lsmom.action.api.ActorContext nobody = new com.lsmom.action.api.ActorContext(com.lsmom.action.api.ActorContext.ActorType.HUMAN, 9L, 9L,
+            null, false, java.util.Set.of(), com.lsmom.core.org.DataScope.unrestricted(), "无审计权限");
+        assertThatThrownBy(() -> queries.execute("ls.audit.objectEvents", json("{\"concept\":\"ls.core.Work\",\"id\":\"0\"}"), nobody))
+            .hasMessageContaining("权限");
     }
 
     /** 18.5：问数门面——只经已发布指标取数，按维度过滤、按数据域裁剪，可钻取到记录。 */
