@@ -92,7 +92,12 @@ class ConsultationPackTest {
         scheduler = cfg.consultationScheduler(f.core.jdbc, records, f.action.gateway, clock);
         PackSource src = new StandardPacks(f.installer, f.store).discover().stream()
             .filter(s -> PackManifest.parse(s).code().equals(ConsultationPack.CODE)).findFirst().orElseThrow();
-        assertThat(f.installer.install(src, null).status()).isIn("INSTALLED", "UPGRADED", "UNCHANGED");
+        try {
+            assertThat(f.installer.install(src, null).status()).isIn("INSTALLED", "UPGRADED", "UNCHANGED");
+        } catch (LsBizException ex) {
+            // 升级测试已在本 JVM 中装了更高版本
+            assertThat(ex.getCode()).isEqualTo("PACK_DOWNGRADE");
+        }
         f.action.operations.reconcilePending();
         assertThat(f.action.operations.pendingCodes()).isEmpty();
     }
@@ -270,5 +275,50 @@ class ConsultationPackTest {
         // 本模块类路径中没有培训 Pack
         assertThat(new StandardPacks(f.installer, f.store).discover()).extracting(s -> PackManifest.parse(s).code()).doesNotContain("ls.training");
         assertThat(f.store.find(ConsultationPack.CODE).orElseThrow().status()).isEqualTo("ENABLED");
+    }
+
+    @Test
+    void DOM05_独立安装_升级保留数据_停用后入口关闭数据保留_再启用恢复() {
+        PackSource src = new StandardPacks(f.installer, f.store).discover().stream()
+            .filter(s -> PackManifest.parse(s).code().equals(ConsultationPack.CODE)).findFirst().orElseThrow();
+        assertThat(PackManifest.parse(src).dependsOn()).isEmpty();
+        long kept = topic("升级前的议题", false);
+        opine(zheng, kept, "升级前的意见", null);
+        String table = records.table(TOPIC);
+        int rows = f.core.jdbc.queryForObject("select count(*) from " + table, Integer.class);
+        assertThat(table.replace("\"", "")).startsWith("c_");
+
+        // 升级：新版本给 Concept 增加一个字段；已有数据保留，新字段可用
+        java.util.Map<String, byte[]> files = new java.util.TreeMap<>(src.files());
+        String manifest = new String(files.get("pack.yaml"), java.nio.charset.StandardCharsets.UTF_8);
+        files.put("pack.yaml", manifest.replace("version: 1.0.0", "version: 1.0.1").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String yaml = new String(files.get("concepts/topic.yaml"), java.nio.charset.StandardCharsets.UTF_8);
+        files.put("concepts/topic.yaml", (yaml.stripTrailing() + "\n  - { code: upgradeNote, displayName: 升级备注, dataType: STRING }\n")
+            .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        if (!"1.0.1".equals(f.store.get(ConsultationPack.CODE).version())) {
+            com.lsmom.pack.PackInstaller.Result up = f.installer.install(PackSource.of(files), null);
+            assertThat(up.status()).isEqualTo("UPGRADED");
+            assertThat(up.previousVersion()).isEqualTo("1.0.0");
+        }
+        assertThat(f.action.concepts.get(TOPIC).fields()).extracting(com.lsmom.meta.concept.FieldDef::code).contains("upgradeNote");
+        assertThat(f.core.jdbc.queryForObject("select count(*) from " + table, Integer.class)).isEqualTo(rows);
+        assertThat(records.row(TOPIC, kept)).isNotNull();
+        // 降级被拒
+        assertThatThrownBy(() -> f.installer.install(src, null)).satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("PACK_DOWNGRADE"));
+
+        // 停用：台账接口与 Operation 不可用，数据保留并可导出；再启用恢复
+        f.lifecycle.disable(ConsultationPack.CODE);
+        try {
+            assertThatThrownBy(() -> f.crud.crud.list(TOPIC, com.lsmom.crud.query.QuerySpec.all(), ActionFixture.admin()))
+                .satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("PACK_DISABLED"));
+            assertThatThrownBy(() -> opine(wu, kept, "停用后提交", null)).satisfies(e -> assertThat(((LsBizException) e).getCode()).isEqualTo("PACK_DISABLED"));
+            assertThat(f.core.jdbc.queryForObject("select count(*) from " + table, Integer.class)).isEqualTo(rows);
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, java.util.List<?>> data = (java.util.Map<String, java.util.List<?>>) f.lifecycle.export(ConsultationPack.CODE).get("data");
+            assertThat(data.get(TOPIC)).hasSize(rows);
+        } finally {
+            f.lifecycle.enable(ConsultationPack.CODE);
+        }
+        assertThat(f.crud.crud.list(TOPIC, com.lsmom.crud.query.QuerySpec.all(), ActionFixture.admin()).total()).isEqualTo(rows);
     }
 }

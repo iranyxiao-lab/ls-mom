@@ -29,6 +29,11 @@ jobs:
         run: |
           python3 -m pip install --quiet pyyaml==6.0.2
           python3 scripts/ci/scan-dcs-write.py
+      # DOM-05：核心 schema 与核心代码中不得出现培训 / 咨询等扩展领域概念（只能由扩展 Pack 提供）
+      - name: DOM-05 核心领域纯净扫描
+        run: |
+          python3 scripts/ci/scan-dom05.py --self-test
+          python3 scripts/ci/scan-dom05.py
       # 上游模块默认跳过测试；ls-mom-modules 覆盖为执行测试（含架构测试与基于 Docker 的 PostgreSQL 集成测试）
       - name: Maven 构建与测试
         run: mvn -B -ntp install
