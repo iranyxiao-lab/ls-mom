@@ -16,17 +16,26 @@ import java.util.List;
 /** 通用台账测试装配：在 ActionFixture 之上装配 DDL、通用 CRUD 与受控表状态存储。 */
 public class CrudFixture {
 
-    public final ActionFixture action = new ActionFixture();
-    public final PackMigrator migrator = new PackMigrator(action.core.jdbc);
-    public final LedgerPublisher publisher = new LedgerPublisher(action.concepts, new DdlPlanner(), migrator, action.core.jdbc);
-    public final GenericCrudService crud = new GenericCrudService(action.core.jdbc, action.concepts,
-        new GenericWritePolicy(action.core.jdbc, action.operations), action.operations, new IdempotencyStore(action.core.jdbc, action.core.clock),
-        new OperationAudit(action.core.jdbc, action.txm), action.events, action.core.parties, action.txm, action.core.clock,
-        CrudProperties.defaults());
-
-    public final ManagedStateStore states = new ManagedStateStore(action.core.jdbc, action.concepts);
+    public final ActionFixture action;
+    public final PackMigrator migrator;
+    public final LedgerPublisher publisher;
+    public final GenericCrudService crud;
+    public final ManagedStateStore states;
 
     public CrudFixture() {
+        this(java.util.List.of());
+    }
+
+    /** 带事件订阅方（如读模型）的夹具：台账写入的事件经 action.outbox 投递给它们。 */
+    public CrudFixture(java.util.List<com.lsmom.core.event.OutboxDestination> destinations) {
+        action = new ActionFixture(destinations);
+        migrator = new PackMigrator(action.core.jdbc);
+        publisher = new LedgerPublisher(action.concepts, new DdlPlanner(), migrator, action.core.jdbc);
+        crud = new GenericCrudService(action.core.jdbc, action.concepts,
+            new GenericWritePolicy(action.core.jdbc, action.operations), action.operations, new IdempotencyStore(action.core.jdbc, action.core.clock),
+            new OperationAudit(action.core.jdbc, action.txm), action.events, action.core.parties, action.txm, action.core.clock,
+            CrudProperties.defaults());
+        states = new ManagedStateStore(action.core.jdbc, action.concepts);
         action.stores.addResolver(states);
     }
 

@@ -40,9 +40,9 @@ class ModuleDependencyTest {
     private static final ArchRule uiOnlyUsesCoreAndAction = noClasses()
         .that().resideInAPackage("com.lsmom.ui..")
         .should().dependOnClassesThat().resideInAnyPackage(
-            "com.lsmom.crud..", "com.lsmom.form..", "com.lsmom.flow..", "com.lsmom.pack..",
+            "com.lsmom.form..", "com.lsmom.flow..", "com.lsmom.pack..",
             "com.lsmom.ai..", "com.lsmom.mcp..", "com.lsmom.dcs..", "com.lsmom.biz..")
-        .because("ui 只依赖 core/action");
+        .because("ui 只依赖 core/action/meta，以及 crud 的只读查询（全局搜索）");
 
     /** 通用运行时（crud/form/flow）不依赖任何具体业务 Pack。 */
     private static final ArchRule runtimeDoesNotDependOnBiz = noClasses()

@@ -11,7 +11,7 @@
 
     <artifactId>ls-mom-ui</artifactId>
 
-    <description>LS 前端体验后端：使用埋点与放弃点报表（后续：用户偏好、表单草稿、全局搜索索引）</description>
+    <description>LS 前端体验后端：使用埋点与放弃点报表、全局搜索索引（后续：用户偏好、表单草稿）</description>
 
     <dependencies>
         <dependency>
@@ -26,7 +26,32 @@
         </dependency>
         <dependency>
             <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-crud</artifactId>
+            <version>${revision}</version>
+        </dependency>
+        <!-- 汉字转拼音（BSD 许可）：全局搜索的拼音与首字母匹配 -->
+        <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+            <version>2.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
             <artifactId>ls-mom-core</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-action</artifactId>
+            <version>${revision}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-crud</artifactId>
             <version>${revision}</version>
             <type>test-jar</type>
             <scope>test</scope>
