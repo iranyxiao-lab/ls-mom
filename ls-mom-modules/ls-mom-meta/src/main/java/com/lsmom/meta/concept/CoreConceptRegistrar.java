@@ -34,6 +34,7 @@ public class CoreConceptRegistrar implements ApplicationRunner {
         CORE.put("ls.core.Observation", new String[]{"core_observation", "事实观察"});
         CORE.put("ls.core.DocumentLink", new String[]{"core_document_link", "附件"});
         CORE.put("ls.core.Summary", new String[]{"core_summary", "摘要"});
+        CORE.put("ls.core.KnowledgeDocument", new String[]{"core_knowledge_document", "知识库文档"});
     }
 
     private static final Set<String> SYSTEM_COLUMNS = Set.of("id", "created_at", "updated_at", "version");

@@ -263,6 +263,52 @@ DRAFT → READY → ASSIGNED → IN_PROGRESS → PENDING_CONFIRM → DONE
 | `created_at` / `updated_at` | timestamp | 创建、修改时间 |
 | `version` | int | 乐观锁 |
 
+### `core_knowledge_document`
+
+知识库文档（ls.core.KnowledgeDocument）。可见性：组织为空表示全公司；否则本组织、下级与上级组织成员可见；密级不得高于调用者的密级许可。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `code` | varchar(64) | 编码（唯一） |
+| `title` | varchar(200) | 标题 |
+| `category` | varchar(32) | 分类（SOP…） |
+| `org_unit_id` | bigint | 所属组织，空为全公司 |
+| `classification` | varchar(16) | PUBLIC / INTERNAL / CONFIDENTIAL / SECRET |
+| `published_version` | int | 当前发布版本（问答只引用该版本） |
+| `created_by` | bigint | 创建人 |
+| `created_at` / `updated_at` | timestamp | 创建、修改时间 |
+
+### `core_knowledge_version`
+
+文档版本。每个文档最多一个修订稿（DRAFT）；发布时旧发布版本改为 SUPERSEDED。修订稿不入索引、不可检索。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `document_id` | bigint | 文档 |
+| `version` | int | 版本号 |
+| `content` | text | 正文（# 开头为小节标题） |
+| `change_note` | varchar(500) | 修订说明 |
+| `status` | varchar(16) | DRAFT / PUBLISHED / SUPERSEDED |
+| `created_by` / `created_at` | bigint / timestamp | 编写人与时间 |
+| `published_by` / `published_at` | bigint / timestamp | 发布人（真人）与时间 |
+
+### `core_knowledge_chunk`
+
+已发布版本的分块与向量（pgvector）。冗余文档的组织与密级，检索 SQL 先按权限与"当前发布版本"过滤再按相似度排序；返回前再按文档当前状态复核。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `document_id` / `version` / `chunk_no` | bigint / int / int | 来源文档、版本与块序号 |
+| `org_unit_id` / `classification` | bigint / varchar | 权限过滤字段（随文档同步） |
+| `heading` | varchar(200) | 所在小节标题 |
+| `text` | text | 分块正文 |
+| `embed_model` | varchar(64) | 向量模型（检索只比较同一模型的向量） |
+| `embedding` | vector | 向量 |
+| `created_at` | timestamp | 入库时间 |
+
 ### `core_access_audit`
 
 受控访问审计，只允许追加（数据库触发器禁止修改与删除）。

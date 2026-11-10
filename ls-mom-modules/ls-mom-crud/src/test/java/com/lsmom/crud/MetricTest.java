@@ -233,4 +233,37 @@ class MetricTest {
         assertThat(queries.register(new NamedQueryDef(ok.code(), ok.name(), null, schema, ok.sql().replace("limit 1", "limit 2"), 1000, null,
             ok.examples())).version()).isEqualTo(2);
     }
+
+    /** 18.5：问数门面——只经已发布指标取数，按维度过滤、按数据域裁剪，可钻取到记录。 */
+    @Test
+    void 指标门面_按组织取数与钻取_数据域裁剪() {
+        registry.publish(CoreMetrics.metrics().get(0), 1L);
+        var port = new com.lsmom.crud.metric.MetricPortAdapter(registry, engine);
+        assertThat(port.metrics()).anySatisfy(m -> {
+            assertThat(m.code()).isEqualTo(CoreMetrics.ISSUE_COUNT);
+            assertThat(m.dimensions()).contains("orgUnitId");
+            assertThat(m.timed()).isTrue();
+        });
+        CoreFixture.Plant p = core.plant();
+        for (String t : List.of("跑偏", "漏油")) {
+            String id = a.op("ls.core.Issue.raise", ActionFixture.admin(), "{\"type\":\"DEFECT\",\"title\":\"" + t + "\",\"orgUnitId\":" + p.teamA().id() + "}").targetId();
+            a.step("ls.core.Issue.submit", ActionFixture.admin(), "ls.core.Issue", id, "{}");
+        }
+        a.op("ls.core.Issue.raise", ActionFixture.admin(), "{\"type\":\"DEFECT\",\"title\":\"草稿不计\",\"orgUnitId\":" + p.teamA().id() + "}");
+        String from = LocalDate.now().minusDays(1) + "T00:00:00";
+        String to = LocalDate.now().plusDays(1) + "T00:00:00";
+        var q = new com.lsmom.action.api.MetricPort.Query(CoreMetrics.ISSUE_COUNT, from, to,
+            List.of(Map.of("field", "orgUnitId", "op", "in", "value", List.of(p.teamA().id()))));
+        var v = port.value(q, ActionFixture.admin());
+        assertThat(((Number) v.value()).intValue()).isEqualTo(2);
+        assertThat(v.version()).isGreaterThanOrEqualTo(1);
+        var d = port.drill(q, 20, ActionFixture.admin());
+        assertThat(d.total()).isEqualTo(2);
+        assertThat(d.concept()).isEqualTo("ls.core.Issue");
+        assertThat(d.rows()).extracting(r -> r.get("title")).containsExactlyInAnyOrder("跑偏", "漏油");
+        // 其他车间的人看不到
+        Party outsider = core.employee("外部", core.plant().workshop());
+        ActorContext o = a.human(outsider, DataScopeLevel.WORKSHOP, "lsmom:issue:raise");
+        assertThat(((Number) port.value(q, o).value()).intValue()).isZero();
+    }
 }

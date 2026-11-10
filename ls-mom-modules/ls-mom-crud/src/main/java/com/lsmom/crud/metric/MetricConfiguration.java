@@ -30,6 +30,11 @@ public class MetricConfiguration {
     }
 
     @Bean
+    public MetricPortAdapter metricPort(MetricRegistry registry, MetricEngine engine) {
+        return new MetricPortAdapter(registry, engine);
+    }
+
+    @Bean
     public NamedQueryRegistry namedQueryRegistry(JdbcTemplate jdbc, InputSchemaValidator validator, PlatformTransactionManager txm) {
         return new NamedQueryRegistry(jdbc, validator, txm);
     }
