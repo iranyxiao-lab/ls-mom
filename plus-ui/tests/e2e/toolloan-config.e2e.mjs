@@ -144,6 +144,8 @@ try {
   await pick(p, 'input-borrower', '郑师傅', '郑');
   await ed.getByTestId('field-loanDate').locator('input').fill('2026-11-10');
   await ed.getByTestId('field-loanDate').locator('input').press('Enter');
+  // Enter 跳到下一项（预计归还）时其日期面板会展开，先收起
+  await p.keyboard.press('Escape');
   await pick(p, 'input-purpose', '外协');
   await pick(p, 'input-asset', `焊机 ${run}`, `焊机 ${run}`);
   await ed.getByTestId('add-row-loanLine').click();

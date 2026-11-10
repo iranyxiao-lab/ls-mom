@@ -11,6 +11,8 @@ export interface RenderCtx {
   errors: Record<string, string>;
   api: RendererApi;
   set: (key: string, v: unknown) => void;
+  /** 设置或清除单元格问题（如粘贴后的逐格校验结果；null 为清除） */
+  setCellErrors?: (e: Record<string, string | null>) => void;
   orgId?: number;
   only?: Set<string>;
   single?: boolean;

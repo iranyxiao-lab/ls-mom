@@ -198,8 +198,17 @@ const ctx = computed<RenderCtx>(() => ({
   single: props.single,
   capture: props.capture,
   metrics: props.metrics,
-  origin
+  origin,
+  setCellErrors
 }));
+
+function setCellErrors(map: Record<string, string | null>) {
+  for (const [k, v] of Object.entries(map)) {
+    if (v) errors[k] = v;
+    else delete errors[k];
+    delete fixes[k];
+  }
+}
 
 /** 默认值与计算字段初始化（只补缺失的键）。 */
 function init() {
@@ -369,8 +378,11 @@ function onBlur(e: FocusEvent) {
   if (!key || props.readonly) return;
   // 焦点仍在同一字段内（如下拉框）时不校验
   if (e.relatedTarget && host!.contains(e.relatedTarget as Node)) return;
-  const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
-  if (r.errors[key]) errors[key] = r.errors[key];
+  // 日期等控件在失焦时才写回取值：等取值更新后再校验
+  setTimeout(() => {
+    const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
+    if (r.errors[key]) errors[key] = r.errors[key];
+  }, 0);
 }
 
 /**

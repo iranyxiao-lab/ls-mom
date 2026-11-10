@@ -57,7 +57,7 @@ async function search(keyword: string) {
 
 /** 展开时还没搜过就列出默认候选；输入关键字打开下拉时已在搜索，不再用空关键字覆盖。 */
 function onOpen(open: boolean) {
-  if (open && !options.length && !seq) void search('');
+  if (open && !options.value.length && !seq) void search('');
 }
 
 function selected(): number[] {

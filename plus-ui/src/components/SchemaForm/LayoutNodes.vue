@@ -39,6 +39,7 @@
         :org-id="ctx.orgId"
         class="ls-form__block"
         @update:model-value="(v: unknown) => ctx.set(n.key!, v)"
+        @cell-errors="(e: Record<string, string | null>) => ctx.setCellErrors?.(e)"
       />
     </template>
     <el-row v-else-if="n.type === 'row'" :gutter="16">

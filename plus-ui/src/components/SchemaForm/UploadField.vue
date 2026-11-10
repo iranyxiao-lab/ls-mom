@@ -20,8 +20,15 @@ import { computed, ref } from 'vue';
 import type { RendererApi } from '@/api/lsmom/form';
 import type { FileRef } from './types';
 
-
-const props = defineProps<{ modelValue: unknown; api: RendererApi; image?: boolean; disabled?: boolean; maxCount?: number; accept?: string; capture?: boolean }>();
+const props = defineProps<{
+  modelValue: unknown;
+  api: RendererApi;
+  image?: boolean;
+  disabled?: boolean;
+  maxCount?: number;
+  accept?: string;
+  capture?: boolean;
+}>();
 const emit = defineEmits<{ (e: 'update:modelValue', v: FileRef[]): void }>();
 const uploading = ref(false);
 const files = computed<FileRef[]>(() => (Array.isArray(props.modelValue) ? (props.modelValue as FileRef[]) : []));
@@ -41,7 +48,10 @@ async function pick(e: Event) {
 }
 
 function remove(i: number) {
-  emit('update:modelValue', files.value.filter((_, j) => j !== i));
+  emit(
+    'update:modelValue',
+    files.value.filter((_, j) => j !== i)
+  );
 }
 </script>
 

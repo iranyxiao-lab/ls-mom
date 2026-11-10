@@ -23,6 +23,7 @@
   />
   <el-alert v-else-if="field.widget === 'registered'" type="error" :closable="false" :title="'组件未注册：' + (field.component?.code ?? '')" />
   <el-input
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'input'"
     :model-value="modelValue as any"
     :maxlength="field.maxLength"
@@ -32,6 +33,7 @@
     @update:model-value="set"
   />
   <el-input
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'textarea'"
     type="textarea"
     :rows="3"
@@ -43,6 +45,7 @@
     @update:model-value="set"
   />
   <el-input-number
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'number' || field.widget === 'money'"
     :model-value="modelValue as any"
     :min="field.min"
@@ -54,6 +57,7 @@
     @update:model-value="set"
   />
   <el-date-picker
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'date' || field.widget === 'datetime'"
     :model-value="modelValue as any"
     :type="field.widget"
@@ -62,8 +66,15 @@
     :data-testid="'input-' + field.key"
     @update:model-value="set"
   />
-  <el-switch v-else-if="field.widget === 'switch'" :model-value="!!modelValue" :data-testid="'input-' + field.key" @update:model-value="set" />
+  <el-switch
+    :aria-label="ariaLabel"
+    v-else-if="field.widget === 'switch'"
+    :model-value="!!modelValue"
+    :data-testid="'input-' + field.key"
+    @update:model-value="set"
+  />
   <el-select
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'select' || field.widget === 'dict'"
     :model-value="modelValue as any"
     :multiple="field.multiple"
@@ -76,10 +87,17 @@
   >
     <el-option v-for="o in options" :key="String(o.value)" :label="o.label" :value="o.value" />
   </el-select>
-  <el-radio-group v-else-if="field.widget === 'radio'" :model-value="modelValue as any" :data-testid="'input-' + field.key" @update:model-value="set">
+  <el-radio-group
+    :aria-label="ariaLabel"
+    v-else-if="field.widget === 'radio'"
+    :model-value="modelValue as any"
+    :data-testid="'input-' + field.key"
+    @update:model-value="set"
+  >
     <el-radio v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</el-radio>
   </el-radio-group>
   <el-checkbox-group
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'checkbox'"
     :model-value="(modelValue as any) ?? []"
     :data-testid="'input-' + field.key"
@@ -88,6 +106,7 @@
     <el-checkbox v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</el-checkbox>
   </el-checkbox-group>
   <el-cascader
+    :aria-label="ariaLabel"
     v-else-if="field.widget === 'cascader'"
     :model-value="modelValue as any"
     :options="field.options as any"
@@ -96,8 +115,15 @@
     style="width: 100%"
     @update:model-value="set"
   />
-  <el-rate v-else-if="field.widget === 'rate'" :model-value="(modelValue as any) ?? 0" :max="field.max ?? 5" @update:model-value="set" />
+  <el-rate
+    :aria-label="ariaLabel"
+    v-else-if="field.widget === 'rate'"
+    :model-value="(modelValue as any) ?? 0"
+    :max="field.max ?? 5"
+    @update:model-value="set"
+  />
   <RefSelect
+    :aria-label="ariaLabel"
     v-else-if="refSpec"
     :model-value="modelValue"
     :ref-spec="refSpec"
@@ -119,7 +145,13 @@
     :capture="capture"
     @update:model-value="set"
   />
-  <el-input v-else-if="field.widget === 'sourceRef'" :model-value="modelValue as any" placeholder="来源编号或链接" @update:model-value="set" />
+  <el-input
+    :aria-label="ariaLabel"
+    v-else-if="field.widget === 'sourceRef'"
+    :model-value="modelValue as any"
+    placeholder="来源编号或链接"
+    @update:model-value="set"
+  />
   <el-checkbox v-else-if="field.widget === 'confirm'" :model-value="!!modelValue" :data-testid="'input-' + field.key" @update:model-value="set">
     {{ field.help ?? '我已确认' }}
   </el-checkbox>
@@ -128,6 +160,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { dictOptions as loadDictOptions } from './dictCache';
 import type { FormField, Option } from '@/types/lsView';
 import type { RendererApi } from '@/api/lsmom/form';
 import RefSelect from './RefSelect.vue';
@@ -136,6 +169,8 @@ import { refOf, REF_WIDGETS } from './refDefaults';
 import { resolveFormComponent } from './registry';
 
 const props = defineProps<{
+  /** 无可见标签时的无障碍名称（子表单元格：列名 第 n 行） */
+  ariaLabel?: string;
   field: FormField;
   modelValue: unknown;
   editable: boolean;
@@ -159,7 +194,7 @@ const options = computed<Option[]>(() => (props.field.widget === 'dict' ? dictOp
 
 async function loadDict() {
   if (props.field.widget !== 'dict' || !props.field.dictType) return;
-  dictOptions.value = await props.api.dict(props.field.dictType);
+  dictOptions.value = await loadDictOptions(props.api, props.field.dictType);
 }
 onMounted(loadDict);
 watch(() => props.field.dictType, loadDict);

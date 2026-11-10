@@ -36,6 +36,8 @@ test('子表第 3 行服务端错误：单元格高亮、滚动到该处并聚�
   await pick(page, ed, 'input-borrower', '郑师傅', '郑');
   await ed.getByTestId('field-loanDate').locator('input').fill('2026-11-10');
   await ed.getByTestId('field-loanDate').locator('input').press('Enter');
+  // Enter 跳到下一项（预计归还）时其日期面板会展开，先收起
+  await page.keyboard.press('Escape');
   await pick(page, ed, 'input-purpose', /^检修$/);
   const line = ed.getByTestId('subtable-loanLine');
   for (let i = 0; i < 3; i++) {
