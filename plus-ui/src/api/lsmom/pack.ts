@@ -171,6 +171,8 @@ export interface PackApi {
   submit(archiveBase64: string): Promise<ChangeSet>;
   approve(id: number, approve: boolean, note?: string): Promise<ChangeSet>;
   release(id: number): Promise<{ code: string; version: string; status: string }>;
+  /** 后台发布（任务中心）：返回任务编号。 */
+  releaseAsync?(id: number): Promise<number>;
   provenance(code: string): Promise<Provenance>;
 }
 
@@ -191,5 +193,6 @@ export const packApi: PackApi = {
   submit: (archive) => data(request({ url: '/api/changesets', method: 'post', data: { archive }, timeout: 120000 })),
   approve: (id, approve, note) => data(request({ url: `/api/changesets/${id}/approve`, method: 'post', data: { approve, note } })),
   release: (id) => data(request({ url: `/api/changesets/${id}/release`, method: 'post', timeout: 300000 })),
+  releaseAsync: (id) => data(request({ url: `/api/changesets/${id}/release/async`, method: 'post' })),
   provenance: (code) => data(request({ url: `/api/packs/${enc(code)}/provenance`, method: 'get' }))
 };

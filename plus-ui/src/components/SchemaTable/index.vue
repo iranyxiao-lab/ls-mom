@@ -404,6 +404,7 @@ import type { ExportJob, FilterOp, ListSchema, QuerySpec, SchemaField, SchemaOpe
 import { mapServerErrors } from '@/utils/lsform/serverErrors';
 import { buildQuerySpec, cellText, columnsOf, filterOf, rowOperations } from './querySpec';
 import type { SavedView, SavedViewApi, ViewContext, ViewDefinition, ViewFilter } from '@/api/lsmom/savedViews';
+import { startLocalTask } from '@/utils/taskCenter';
 import {
   KEYWORD,
   statesOf,
@@ -1005,6 +1006,9 @@ async function batchTargets(): Promise<Record<string, any>[]> {
 
 async function execItems(op: SchemaOperation, items: BatchItem[]) {
   batch.running = true;
+  // 登记到任务中心：离开本页后批量操作继续执行，完成时弹通知
+  const task = startLocalTask('BATCH', `批量${op.name}${schema.value?.displayName ? '：' + schema.value.displayName : ''}`, batch.items.length);
+  task.progress(batch.done, batchFailed.value.length);
   let next = 0;
   const worker = async () => {
     while (next < items.length) {
@@ -1016,12 +1020,19 @@ async function execItems(op: SchemaOperation, items: BatchItem[]) {
         Object.assign(it, { state: 'failed', message: e?.message ?? String(e) });
       }
       batch.done++;
+      task.progress(batch.done, batchFailed.value.length);
     }
   };
   await Promise.all(Array.from({ length: Math.min(4, items.length) }, worker));
   batch.running = false;
   const failed = batchFailed.value;
   const ok = batchOk.value;
+  if (unmounted) {
+    // 已离开页面：由任务中心通知结果
+    task.finish({ ok, failed: failed.length });
+    return;
+  }
+  task.consume({ ok, failed: failed.length });
   if (failed.length) ElMessage.warning(`${op.name}：成功 ${ok} 条，失败 ${failed.length} 条`);
   else ElMessage.success(`${op.name}：成功 ${ok} 条`);
   emit('action-done', { operation: op.operation, ok, failed: failed.map((f) => ({ id: f.id, message: f.message ?? '' })) });
@@ -1127,7 +1138,11 @@ onMounted(async () => {
   if (sort.value) grid.value?.setSort?.({ field: sort.value.field, order: sort.value.dir });
   startPolling();
 });
-onBeforeUnmount(stopPolling);
+let unmounted = false;
+onBeforeUnmount(() => {
+  unmounted = true;
+  stopPolling();
+});
 onActivated(() => {
   if (schema.value) {
     void poll();

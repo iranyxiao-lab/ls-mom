@@ -270,7 +270,7 @@ public class PackController {
         if (tasks == null) throw new LsBizException("TASKS_UNAVAILABLE", "任务中心不可用");
         var actor = actors.current();
         ChangeSetPipeline.ChangeSet cs = pipeline.get(id);
-        long task = tasks.start("PACK_INSTALL", "安装 Pack：" + cs.title() + "（" + cs.pack() + "）", actor.userId(), 1);
+        long task = tasks.start("PACK_INSTALL", "发布 Pack：" + cs.title(), actor.userId(), 1);
         taskExecutor.execute(() -> {
             try {
                 tasks.finish(task, pipeline.release(id, actor));

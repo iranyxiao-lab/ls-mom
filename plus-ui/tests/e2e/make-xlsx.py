@@ -16,7 +16,8 @@ def col(i):
 
 
 def main(out, rows_json):
-    rows = json.loads(rows_json)
+    # 行数多时命令行参数放不下：@文件 表示从文件读取
+    rows = json.loads(open(rows_json[1:], encoding='utf-8').read() if rows_json.startswith('@') else rows_json)
     body = []
     for r, row in enumerate(rows, start=1):
         cells = ''.join(

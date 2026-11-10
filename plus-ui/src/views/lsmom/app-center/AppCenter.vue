@@ -152,8 +152,9 @@
               size="small"
               :type="row.status === 'APPROVED' ? 'success' : 'default'"
               :data-testid="`btn-release-${row.id}`"
+              :loading="releasingId === row.id"
               @click="release(row)"
-              >发布</el-button
+              >{{ releasingId === row.id ? '安装中' : '发布' }}</el-button
             >
           </template>
         </el-table-column>
@@ -328,10 +329,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { UploadFile } from 'element-plus';
 import type { ChangeSet, DriftReport, PackApi, PackSummary, Provenance, Stage, StageResult, TestReport } from '@/api/lsmom/pack';
+import { followTask } from '@/utils/taskCenter';
 
 /** 协同应用中心：已安装 Pack 的版本、依赖、负责人、复审、使用量、失败任务、漂移与下线状态，以及 ChangeSet 发布。 */
 const props = defineProps<{ api: PackApi }>();
@@ -542,11 +544,37 @@ async function approve(c: ChangeSet, ok: boolean) {
   await load();
 }
 
+let releasing: { stop: () => void } | null = null;
+const releasingId = ref<number | null>(null);
 async function release(c: ChangeSet) {
+  if (props.api.releaseAsync) {
+    if (releasingId.value) return;
+    // 后台安装（任务中心）：可离开页面，完成后通知
+    releasingId.value = c.id;
+    let id: number;
+    try {
+      id = await props.api.releaseAsync(c.id);
+    } catch (e) {
+      releasingId.value = null;
+      throw e;
+    }
+    ElMessage.info('正在后台安装，完成后会通知你');
+    releasing?.stop();
+    releasing = followTask(id, async (t) => {
+      if (t.status === 'RUNNING') return;
+      releasing = null;
+      releasingId.value = null;
+      if (t.status === 'DONE') ElMessage.success(`已发布 ${t.result?.code ?? ''} ${t.result?.version ?? ''}`);
+      else ElMessage.error(t.error || '安装失败');
+      await load();
+    });
+    return;
+  }
   const r = await props.api.release(c.id);
   ElMessage.success(`已发布 ${r.code} ${r.version}`);
   await load();
 }
+onBeforeUnmount(() => releasing?.stop());
 
 onMounted(load);
 defineExpose({ load, open });

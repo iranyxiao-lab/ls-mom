@@ -97,6 +97,16 @@
         <el-button link type="primary" data-testid="import-template" @click="downloadTemplate">下载导入模板</el-button>
         <input :key="imp.inputKey" type="file" accept=".xlsx" data-testid="import-file" @change="precheck" />
       </div>
+      <div v-if="imp.task" class="ledger__import-task" data-testid="import-progress">
+        <el-progress
+          :percentage="imp.task.total ? Math.min(100, Math.round((imp.task.done / imp.task.total) * 100)) : 0"
+          :indeterminate="!imp.task.total"
+        />
+        <p class="ledger__hint">
+          {{ imp.phase === 'check' ? '正在检查' : '正在导入'
+          }}{{ imp.task.total ? `：${imp.task.done} / ${imp.task.total} 行` : '…' }}。可以离开本页，完成后会通知你，结果在顶栏「任务中心」查看。
+        </p>
+      </div>
       <template v-if="imp.report">
         <p data-testid="import-summary">共 {{ imp.report.total }} 行：可导入 {{ imp.report.valid }} 行，错误 {{ imp.report.invalid }} 行</p>
         <el-table v-if="imp.report.errors.length" :data="imp.report.errors" size="small" max-height="240" data-testid="import-errors">
@@ -109,7 +119,7 @@
         <el-button @click="imp.visible = false">取消</el-button>
         <el-button
           type="primary"
-          :disabled="!imp.report || imp.report.invalid > 0 || !imp.report.valid"
+          :disabled="!imp.report || imp.report.invalid > 0 || !imp.report.valid || !!imp.task"
           data-testid="import-confirm"
           @click="confirmImport"
         >
@@ -121,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SchemaTable from '@/components/SchemaTable/index.vue';
@@ -135,6 +145,8 @@ import type { ExportJob, ImportReport } from '@/api/lsmom/types';
 import type { FormAction, FormSchema } from '@/types/lsView';
 import { EXPORT_STATUS, idempotencyKey, recordLabel, saveBlob } from './ledgerModel';
 import { useUnsavedGuard } from '@/utils/pageState';
+import type { BgTask } from '@/api/lsmom/tasks';
+import { followTask, refreshTasks } from '@/utils/taskCenter';
 
 /**
  * 通用台账工作区：列表（筛选、导出、行动作）＋ 默认表单录入编辑 ＋ 冻结版本只读详情 ＋ 导入预检。
@@ -172,7 +184,28 @@ const detail = reactive({
   stale: false,
   startOp: null as string | null
 });
-const imp = reactive({ visible: false, report: null as ImportReport | null, inputKey: 0 });
+const imp = reactive({
+  visible: false,
+  report: null as ImportReport | null,
+  inputKey: 0,
+  /** 后台任务进行中（任务中心） */
+  task: null as BgTask | null,
+  phase: 'check' as 'check' | 'import'
+});
+let following: { stop: () => void } | null = null;
+function unfollow() {
+  following?.stop();
+  following = null;
+  imp.task = null;
+}
+// 关掉对话框或离开页面：任务在后台继续，完成后弹通知
+watch(
+  () => imp.visible,
+  (v) => {
+    if (!v) unfollow();
+  }
+);
+onBeforeUnmount(unfollow);
 const exportJob = ref<ExportJob>();
 
 // 打开编辑后表单内容与打开时不同即视为未保存（关闭页签时提示）
@@ -331,17 +364,53 @@ async function precheck(e: Event) {
   const file = input.files?.[0];
   if (!file) return;
   imp.report = null;
+  unfollow();
   try {
-    imp.report = await props.crud.importPrecheck(props.concept, file);
+    if (props.crud.importPrecheckAsync) {
+      // 后台检查：大文件可离开页面，完成后通知
+      const id = await props.crud.importPrecheckAsync(props.concept, file);
+      imp.phase = 'check';
+      follow(id, (t) => {
+        if (t.status === 'DONE') imp.report = t.result?.report ?? null;
+        else ElMessage.error(t.error || '导入检查失败');
+      });
+    } else {
+      imp.report = await props.crud.importPrecheck(props.concept, file);
+    }
   } finally {
     input.value = '';
     imp.inputKey++;
   }
 }
 
+function follow(id: number, onDone: (t: BgTask) => void) {
+  imp.task = { id, kind: '', title: '', status: 'RUNNING', total: 0, done: 0, failed: 0, createdAt: '', notified: false };
+  following = followTask(id, (t) => {
+    if (t.status === 'RUNNING') {
+      imp.task = t;
+      return;
+    }
+    following = null;
+    imp.task = null;
+    onDone(t);
+  });
+}
+
 async function confirmImport() {
   if (!imp.report) return;
-  const n = await props.crud.importConfirm(props.concept, imp.report.batchId);
+  const batchId = imp.report.batchId;
+  if (props.crud.importConfirmAsync) {
+    const id = await props.crud.importConfirmAsync(props.concept, batchId);
+    imp.phase = 'import';
+    follow(id, async (t) => {
+      if (t.status !== 'DONE') return void ElMessage.error(t.error || '导入失败');
+      ElMessage.success(`已导入 ${t.result?.imported ?? 0} 条`);
+      imp.visible = false;
+      await table.value?.load();
+    });
+    return;
+  }
+  const n = await props.crud.importConfirm(props.concept, batchId);
   ElMessage.success(`已导入 ${n} 条`);
   imp.visible = false;
   await table.value?.load();
@@ -349,6 +418,8 @@ async function confirmImport() {
 
 async function watchExport(job: ExportJob) {
   exportJob.value = job;
+  // 导出在服务端记为任务：任务中心开始跟进，离开页面后完成也会通知
+  void refreshTasks();
   for (let i = 0; i < 60 && ['PENDING', 'RUNNING'].includes(exportJob.value.status); i++) {
     await new Promise((r) => setTimeout(r, 500));
     exportJob.value = await props.crud.exportStatus(job.id);
@@ -400,6 +471,13 @@ defineExpose({ openCreate, openEdit, openDetail, openImport });
 .ledger__dpos {
   color: var(--el-text-color-secondary);
   font-size: 12px;
+}
+.ledger__import-task {
+  margin-top: var(--ls-space-2);
+}
+.ledger__hint {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 .ledger__import {
   display: flex;

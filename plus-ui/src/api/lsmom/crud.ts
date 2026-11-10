@@ -62,6 +62,22 @@ export const crudApi = {
       })
     );
   },
+  /** 后台预检（任务中心）：返回任务编号，完成后任务结果含预检报告。 */
+  importPrecheckAsync: (concept: string, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return data<number>(
+      request({
+        url: `/api/crud/${enc(concept)}/import/async`,
+        method: 'post',
+        data: fd,
+        headers: { 'Content-Type': 'multipart/form-data', repeatSubmit: false }
+      })
+    );
+  },
+  /** 后台确认导入（任务中心）：返回任务编号。 */
+  importConfirmAsync: (concept: string, batchId: number) =>
+    data<number>(request({ url: `/api/crud/${enc(concept)}/import/${batchId}/confirm/async`, method: 'post' })),
   importConfirm: (concept: string, batchId: number) =>
     data<number>(request({ url: `/api/crud/${enc(concept)}/import/${batchId}/confirm`, method: 'post' })),
   timeline: (concept: string, id: number | string) =>
