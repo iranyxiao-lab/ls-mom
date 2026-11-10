@@ -1,4 +1,5 @@
 import { createWebHistory, createRouter, RouteRecordRaw } from 'vue-router';
+import StatusPage from '@/views/error/StatusPage.vue';
 /* Layout */
 import Layout from '@/layout/index.vue';
 
@@ -55,6 +56,17 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/error/404.vue'),
+    hidden: true
+  },
+  // 出错页与断网页随主包加载（断网时取不到按需加载的页面资源）
+  {
+    path: '/500',
+    component: StatusPage,
+    hidden: true
+  },
+  {
+    path: '/offline',
+    component: StatusPage,
     hidden: true
   },
   {

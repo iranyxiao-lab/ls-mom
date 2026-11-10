@@ -29,6 +29,12 @@
             <artifactId>ls-mom-crud</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- 申请权限时通知管理员（只用 flow.notice） -->
+        <dependency>
+            <groupId>com.lsmom</groupId>
+            <artifactId>ls-mom-flow</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <!-- 汉字转拼音（BSD 许可）：全局搜索的拼音与首字母匹配 -->
         <dependency>
             <groupId>com.belerweb</groupId>

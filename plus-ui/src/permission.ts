@@ -17,7 +17,8 @@ NProgress.configure({
   barSelector: '.bar',
   template: '<div class="bar" role="progressbar" aria-label="页面加载中"><div class="peg"></div></div>'
 });
-const whiteList = ['/login', '/register', '/social-callback', '/register*', '/register/*'];
+// 错误页不需要登录（断网时取不到用户信息，也要能显示）
+const whiteList = ['/login', '/register', '/social-callback', '/register*', '/register/*', '/offline', '/500'];
 
 const isWhiteList = (path: string) => {
   return whiteList.some((pattern) => isPathMatch(pattern, path));
@@ -71,6 +72,14 @@ router.beforeEach(async (to, from, next) => {
       NProgress.done();
     }
   }
+});
+
+// 页面资源加载失败（断网、发版后旧资源已失效）：显示断网页或出错页，可重试
+router.onError((err, to) => {
+  const msg = String((err as Error)?.message ?? err);
+  if (to.path === '/offline' || to.path === '/500') return;
+  if (!/dynamically imported module|Importing a module script failed|Loading chunk|Unable to preload|Failed to fetch/i.test(msg)) return;
+  void router.replace({ path: navigator.onLine ? '/500' : '/offline', query: { from: to.fullPath } });
 });
 
 router.afterEach(() => {

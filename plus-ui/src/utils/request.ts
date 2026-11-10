@@ -3,6 +3,7 @@ import { useUserStore } from '@/store/modules/user';
 import { getToken } from '@/utils/auth';
 import { tansParams, blobValidate } from '@/utils/ruoyi';
 import cache from '@/plugins/cache';
+import { rememberTrace, withTrace } from '@/utils/trace';
 import { HttpStatus } from '@/enums/RespEnum';
 import { errorCode } from '@/utils/errorCode';
 import { LoadingInstance } from 'element-plus/es/components/loading/src/loading';
@@ -120,6 +121,7 @@ service.interceptors.response.use(
         res.data = JSON.parse(decryptData);
       }
     }
+    const trace = rememberTrace(res.headers as any);
     // 未设置状态码则默认成功状态
     const code = res.data.code || HttpStatus.SUCCESS;
     // 获取错误信息
@@ -152,28 +154,30 @@ service.interceptors.response.use(
       }
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
     } else if (code === HttpStatus.SERVER_ERROR) {
-      ElMessage({ message: msg, type: 'error' });
+      ElMessage({ message: withTrace(msg, trace), type: 'error' });
       return Promise.reject(new Error(msg));
     } else if (code === HttpStatus.WARN) {
       ElMessage({ message: msg, type: 'warning' });
       return Promise.reject(new Error(msg));
     } else if (code !== HttpStatus.SUCCESS) {
-      ElNotification.error({ title: msg });
+      // 无权限等错误：附上追踪编号，便于反馈给管理员
+      ElNotification.error({ title: msg, message: trace ? `追踪编号 ${trace}` : undefined });
       return Promise.reject('error');
     } else {
       return Promise.resolve(res.data);
     }
   },
   (error: any) => {
+    const trace = rememberTrace(error?.response?.headers);
     let { message } = error;
     if (message == 'Network Error') {
-      message = '后端接口连接异常';
+      message = typeof navigator !== 'undefined' && !navigator.onLine ? '网络已断开，恢复连接后再试' : '后端接口连接异常';
     } else if (message.includes('timeout')) {
       message = '系统接口请求超时';
     } else if (message.includes('Request failed with status code')) {
       message = '系统接口' + message.substr(message.length - 3) + '异常';
     }
-    ElMessage({ message: message, type: 'error', duration: 5 * 1000 });
+    ElMessage({ message: withTrace(message, trace), type: 'error', duration: 5 * 1000 });
     return Promise.reject(error);
   }
 );
