@@ -72,7 +72,7 @@ public class ProductionConfiguration {
 
     @Bean
     public TransitionEffect handoverReturnEffect(ProductionEffects e) {
-        return e.reason(ProductionPack.HANDOVER + ".returnBack");
+        return e.handoverReturn();
     }
 
     @Bean

@@ -53,6 +53,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 36 | `plus-ui/src/layout/components/Sidebar/{index,SidebarItem}.vue`、`plus-ui/src/layout/components/TopBar/index.vue`、`plus-ui/src/components/TopNav/index.vue` | 菜单改由 `layout/menuGroups.ts` 整理为固定分组（工作／台账／分析／配置，最多三级，Pack 入口自动归组，隐藏上游演示目录与外链）；菜单项支持完整路径；混合布局顶栏显示分组；修正顶栏「更多菜单」切片 | 菜单层级与归组 | UI 3.3 |
 | 37 | `plus-ui/src/layout/components/Navbar.vue`、`plus-ui/src/router/index.ts` | 顶栏搜索由上游菜单搜索（`TopBar/search.vue`，保留未用）换为命令面板 `CommandPalette`（Ctrl/⌘+K，菜单、动作、单据与对象、收藏与最近访问）；新增静态路由 `/lsmom/object/:type/:id` | 命令面板 | UI 3.5 |
 | 38 | `plus-ui/src/permission.ts`、`plus-ui/src/store/modules/user.ts`、`plus-ui/src/layout/components/Settings/index.vue`、`plus-ui/src/layout/components/Navbar.vue`、`plus-ui/src/router/index.ts` | 登录后先读取服务端偏好（主题、密度、布局、页签、快捷键提示、收藏与最近访问）再进入页面；退出登录清掉本机的收藏与最近访问；布局设置抽屉跟随偏好中心的修改；用户菜单增加「偏好设置」（`/user/prefs`） | 偏好中心 | UI 3.6 |
+| 39 | `plus-ui/src/layout/components/Navbar.vue` | 顶栏消息弹框（上游 `notice/index.vue`，保留未用）换为通知抽屉 `NotificationDrawer`：按待办提醒／系统消息／@我分组、未读数、点通知直达对象、抽屉内完成简单确认；SSE 推送的公告归入系统消息 | 通知抽屉 | UI 3.7 |
 
 ## 生产前必须替换的上游密钥
 

@@ -47,6 +47,9 @@ test('命令面板：拼音匹配菜单、编号直达工作与设备、动作�
   const ts = Date.now().toString(36);
   const { context, page } = await loggedIn(browser, 'admin', { viewport: { width: 1440, height: 900 } });
   await page.goto('/index');
+  // 收藏与最近访问保存在服务端（3.6）：从空白开始，不受上次运行影响
+  await api(page, 'PUT', '/api/ui/prefs/nav', { recent: [], favorites: [] });
+  await page.reload();
   const orgs = (await api(page, 'GET', '/api/asset/orgs')).data;
   const teamA = orgs.find((o: any) => o.name === '一车间甲班');
   const work = (

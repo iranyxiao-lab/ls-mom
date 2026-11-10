@@ -105,7 +105,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { HANDOVER, SHIFTS, WORK_STATUS, shiftLabel, type Team } from '@/api/lsmom/productionModel';
 import type { ProductionApi } from '@/api/lsmom/production';
@@ -213,6 +214,20 @@ onMounted(async () => {
   teams.value = await props.api.teams().catch(() => []);
   await load();
 });
+
+// ?id=<交接班 id>：通知、收藏等入口直接打开该交接班
+const route = useRoute();
+const router = useRouter();
+watch(
+  () => [route?.path, route?.query?.id] as const,
+  async ([path, id]) => {
+    if (!id || !path) return;
+    const { id: _drop, ...rest } = route.query;
+    await router.replace({ path, query: rest });
+    await openDetail(Number(id));
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

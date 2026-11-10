@@ -286,12 +286,20 @@ class ProductionPackTest {
 
         step(HANDOVER + ".publish", a, HANDOVER, h, "{}");
         assertThat(f.crud.crud.list(HANDOVER, all, b).rows()).anyMatch(r -> ((Number) r.get("id")).longValue() == h);
+        // 通知抽屉：接班班组的人收到"交接班待确认"，可在抽屉内直接确认接班；交班人自己不收
+        List<Map<String, Object>> notes = f.core.jdbc.queryForList(
+            "select party_id, kind, title, link, action::text as action, done_at from biz_flow_notice where biz_type = ? and biz_id = ?", HANDOVER, String.valueOf(h));
+        assertThat(notes).extracting(n -> ((Number) n.get("party_id")).longValue()).containsExactly(receiver.id());
+        assertThat(notes.get(0)).containsEntry("kind", "ACTION").containsEntry("title", "交接班待确认").containsEntry("link", "/production/handover?id=" + h);
+        assertThat((String) notes.get(0).get("action")).contains(HANDOVER + ".accept").contains("确认接班");
         // 交班人不能自己接班；其他车间的人不能接班
         assertThatThrownBy(() -> step(HANDOVER + ".accept", a, HANDOVER, h, "{}")).satisfies(e -> assertThat(e.getMessage()).contains("不能自己接班"));
         assertThatThrownBy(() -> step(HANDOVER + ".accept", o, HANDOVER, h, "{}")).satisfies(e -> assertThat(e.getMessage()).contains("接班班组"));
 
         OperationResult acc = step(HANDOVER + ".accept", b, HANDOVER, h, "{\"note\":\"已了解\"}");
         assertThat(acc.status()).isEqualTo("COMPLETED");
+        assertThat(f.core.jdbc.queryForObject("select count(*) from biz_flow_notice where biz_type = ? and biz_id = ? and done_at is null", Long.class,
+            HANDOVER, String.valueOf(h))).as("接班后待确认通知标记为已处理").isZero();
         Map<String, Object> done = records.row(HANDOVER, h);
         assertThat(((Number) done.get("acceptedBy")).longValue()).isEqualTo(receiver.id());
         assertThat(((Number) done.get("publishedBy")).longValue()).isEqualTo(handing.id());

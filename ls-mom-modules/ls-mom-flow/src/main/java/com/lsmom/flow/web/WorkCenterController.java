@@ -66,6 +66,11 @@ public class WorkCenterController {
         return R.ok(center.delegations(me()));
     }
 
+    @GetMapping("/notifications")
+    public R<Map<String, Object>> notifications() {
+        return R.ok(center.notifications(me()));
+    }
+
     @GetMapping("/messages")
     public R<List<Map<String, Object>>> messages(@RequestParam(required = false) Boolean unread) {
         return R.ok(center.messages(me(), unread));

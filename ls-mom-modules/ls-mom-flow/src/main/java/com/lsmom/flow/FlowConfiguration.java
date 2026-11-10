@@ -42,6 +42,11 @@ import java.util.List;
 public class FlowConfiguration {
 
     @Bean
+    public com.lsmom.flow.notice.Notices flowNotices(JdbcTemplate jdbc) {
+        return new com.lsmom.flow.notice.Notices(jdbc);
+    }
+
+    @Bean
     public TaskSync flowTaskSync(JdbcTemplate jdbc) {
         return new TaskSync(jdbc);
     }

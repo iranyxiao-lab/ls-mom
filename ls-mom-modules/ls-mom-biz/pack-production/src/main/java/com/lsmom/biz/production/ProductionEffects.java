@@ -12,6 +12,7 @@ import com.lsmom.core.work.WorkItemService;
 import com.lsmom.core.work.WorkType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.lsmom.flow.notice.Notices;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -43,10 +44,12 @@ public class ProductionEffects {
     private final AssignmentService assignments;
     private final HandoverSummarizer summarizer;
     private final Clock clock;
+    private final Notices notices;
 
     public ProductionEffects(JdbcTemplate jdbc, ManagedRecords records, WorkItemService works, AssignmentService assignments,
                              HandoverSummarizer summarizer, Clock clock) {
         this.jdbc = jdbc;
+        this.notices = new Notices(jdbc);
         this.records = records;
         this.works = works;
         this.assignments = assignments;
@@ -191,6 +194,7 @@ public class ProductionEffects {
             changes.put("summary", summary);
             changes.put("publishedAt", LocalDateTime.now(clock));
             changes.put("publishedBy", ctx.actor().effectiveParty());
+            notifyReceivers(ctx, before.id(), h);
             return changes;
         });
     }
@@ -231,7 +235,29 @@ public class ProductionEffects {
             changes.put("acceptedAt", LocalDateTime.now(clock));
             changes.put("acceptedBy", ctx.actor().effectiveParty());
             changes.put("acceptNote", ctx.text("note"));
+            notices.resolve(HANDOVER, String.valueOf(id));
             return changes;
+        });
+    }
+
+    /** 交班确认后通知接班班组（班组没有在岗人员时通知最近一级有人员的上级组织），可在通知抽屉内直接确认接班。 */
+    private void notifyReceivers(OperationContext ctx, String id, Map<String, Object> h) {
+        Long toTeam = h.get("toTeam") == null ? null : ((Number) h.get("toTeam")).longValue();
+        if (toTeam == null) return;
+        String from = jdbc.queryForList("select name from core_org_unit where id = ?", String.class, ((Number) h.get("fromTeam")).longValue())
+            .stream().findFirst().orElse("交班班组");
+        String when = ShiftWindow.of(h.get("shiftDate"), h.get("shift")).label();
+        List<Long> to = notices.nearestMembers(toTeam).stream().filter(p -> !p.equals(ctx.actor().effectiveParty())).toList();
+        notices.notify("ACTION", to, HANDOVER, id, "交接班待确认", from + " " + when + " 的交接班已确认交班，请接班确认",
+            "/production/handover?id=" + id, new Notices.Action(HANDOVER + ".accept", HANDOVER, id, "确认接班"), ctx.actor().effectiveParty());
+    }
+
+    /** 退回交班人：记录原因，接班方的待确认通知标记为已处理。 */
+    public TransitionEffect handoverReturn() {
+        return effect(HANDOVER + ".returnBack", (ctx, before) -> {
+            ctx.eventPayload().put("reason", ctx.text("reason"));
+            notices.resolve(HANDOVER, before.id());
+            return Map.of();
         });
     }
 

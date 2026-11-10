@@ -30,6 +30,8 @@ import java.util.Optional;
  */
 public class WorkCenter {
 
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+
     /** 距到期不足该时长视为「即将到期」。 */
     public static final java.time.Duration DUE_SOON = java.time.Duration.ofHours(24);
 
@@ -148,6 +150,43 @@ public class WorkCenter {
               from biz_flow_notice n left join core_party p on p.id = n.created_by
              where n.party_id = ?""" + (Boolean.TRUE.equals(unreadOnly) ? " and n.read_at is null" : "")
             + " order by n.id desc limit 200", party);
+    }
+
+    /**
+     * 通知抽屉：按"待办提醒 / 系统消息 / @我"分组，每组最近 50 条（未读在前），带未读数。
+     * 带动作的通知（action）可在抽屉内直接完成；已办结的显示为已处理。
+     */
+    public Map<String, Object> notifications(Long party) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        Map<String, Object> unread = new LinkedHashMap<>();
+        Map<String, List<String>> groups = new LinkedHashMap<>();
+        groups.put("todo", com.lsmom.flow.notice.Notices.TODO_KINDS);
+        groups.put("system", com.lsmom.flow.notice.Notices.SYSTEM_KINDS);
+        groups.put("mention", com.lsmom.flow.notice.Notices.MENTION_KINDS);
+        for (Map.Entry<String, List<String>> g : groups.entrySet()) {
+            String[] kinds = g.getValue().toArray(String[]::new);
+            List<Map<String, Object>> rows = jdbc.queryForList("""
+                select n.id, n.kind, n.title, n.message, n.link, n.action::text as action, n.task_id as "taskId", n.biz_type as "bizType",
+                       n.biz_id as "bizId", n.created_at as "createdAt", n.read_at as "readAt", n.done_at as "doneAt", p.name as "fromName"
+                  from biz_flow_notice n left join core_party p on p.id = n.created_by
+                 where n.party_id = ? and n.kind = any(?)
+                 order by (n.read_at is null) desc, n.id desc limit 50""", party, kinds);
+            for (Map<String, Object> r : rows) {
+                Object a = r.get("action");
+                try {
+                    r.put("action", a == null ? null : JSON.readTree((String) a));
+                } catch (Exception e) {
+                    r.put("action", null);
+                }
+                // 流程待办类通知没有单独地址：打开协同工作中心
+                if (r.get("link") == null && r.get("taskId") != null) r.put("link", "/lsmom/workbench");
+            }
+            out.put(g.getKey(), rows);
+            unread.put(g.getKey(), jdbc.queryForObject("select count(*) from biz_flow_notice where party_id = ? and read_at is null and kind = any(?)",
+                Long.class, party, kinds));
+        }
+        out.put("unread", unread);
+        return out;
     }
 
     /** 标记消息已读：只改消息，不影响任何待办。 */
