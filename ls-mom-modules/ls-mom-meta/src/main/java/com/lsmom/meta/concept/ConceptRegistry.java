@@ -47,11 +47,13 @@ public class ConceptRegistry {
         FieldDef.FieldStatus.valueOf(rs.getString("status")), rs.getInt("sort_order"), readProps(rs.getString("props")));
 
     public Optional<ConceptDef> find(String code) {
+        // 先读完主行再查字段：不在 RowMapper 里嵌套查询，否则每个请求同时占两个连接，并发高时连接池互等死锁
         List<ConceptDef> list = jdbc.query("select * from meta_concept where code = ?", (rs, i) -> new ConceptDef(rs.getString("code"),
             rs.getString("namespace"), rs.getString("display_name"), ConceptDef.Storage.valueOf(rs.getString("storage")),
             rs.getString("table_name"), rs.getBoolean("editable"), rs.getString("owner_pack"), rs.getString("description"),
-            fields(rs.getString("code"), true), rs.getString("status"), rs.getInt("version"), rs.getString("parent_concept")), code);
-        return list.stream().findFirst();
+            List.of(), rs.getString("status"), rs.getInt("version"), rs.getString("parent_concept")), code);
+        return list.stream().findFirst().map(c -> new ConceptDef(c.code(), c.namespace(), c.displayName(), c.storage(), c.tableName(),
+            c.editable(), c.ownerPack(), c.description(), fields(c.code(), true), c.status(), c.version(), c.parentConcept()));
     }
 
     public ConceptDef get(String code) {

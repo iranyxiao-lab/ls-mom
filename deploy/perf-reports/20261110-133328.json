@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-10T04:35:49.936Z",
+  "base": "http://127.0.0.1:18097",
+  "concept": "acme.bench.Visit",
+  "rows": 1000000,
+  "list": {
+    "kind": "list",
+    "concurrency": 50,
+    "seconds": 60,
+    "requests": 22938,
+    "errors": 0,
+    "lastError": null,
+    "throughput": 382,
+    "p50": 132,
+    "p95": 205,
+    "p99": 252,
+    "max": 437,
+    "limitP95": 800,
+    "passed": true
+  },
+  "save": {
+    "kind": "save",
+    "concurrency": 30,
+    "seconds": 60,
+    "requests": 459175,
+    "errors": 0,
+    "lastError": null,
+    "throughput": 7653,
+    "p50": 4,
+    "p95": 6,
+    "p99": 9,
+    "max": 480,
+    "limitP95": 500,
+    "passed": true
+  },
+  "passed": true
+}

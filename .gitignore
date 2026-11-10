@@ -83,3 +83,4 @@ sbom-frontend.json
 
 # 备份产物
 deploy/backups/
+__pycache__/
