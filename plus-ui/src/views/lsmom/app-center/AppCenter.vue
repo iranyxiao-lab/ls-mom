@@ -252,6 +252,60 @@
               <el-table-column prop="path" label="文件" min-width="180" />
             </el-table>
           </el-tab-pane>
+          <el-tab-pane label="来源" name="provenance">
+            <div v-if="!prov || prov.provenance === null" class="sub" data-testid="prov-none">手写 Pack，没有生成或转换来源记录。</div>
+            <template v-else>
+              <el-descriptions :column="2" size="small" border data-testid="prov-info">
+                <el-descriptions-item label="来源类型">{{ SOURCE_TYPE[prov.sourceType ?? ''] ?? prov.sourceType }}</el-descriptions-item>
+                <el-descriptions-item label="来源应用">{{ prov.source?.app }} {{ prov.source?.version }}</el-descriptions-item>
+                <el-descriptions-item label="许可证">{{ prov.license }}</el-descriptions-item>
+                <el-descriptions-item label="转换器">{{ prov.converter?.name }} {{ prov.converter?.version }}</el-descriptions-item>
+                <el-descriptions-item label="模型">{{ prov.model ? `${prov.model.name} ${prov.model.version}` : '（未使用）' }}</el-descriptions-item>
+                <el-descriptions-item label="生成时间">{{ fmt(prov.generatedAt) }}</el-descriptions-item>
+              </el-descriptions>
+              <el-alert
+                v-if="openManual.length"
+                type="warning"
+                :closable="false"
+                class="mb"
+                :title="`还有 ${openManual.length} 项需人工处理（其中禁止自动转换 ${openManual.filter((m) => m.kind === 'BLOCKED').length} 项），处理前 ChangeSet 不能发布`"
+                data-testid="prov-open"
+              />
+              <h4>对象来源</h4>
+              <el-table :data="elementRows" size="small" data-testid="prov-elements">
+                <el-table-column prop="code" label="编码" min-width="200" />
+                <el-table-column prop="kind" label="类型" width="110" />
+                <el-table-column label="来源" min-width="220">
+                  <template #default="{ row }">{{ [row.source?.type, row.source?.name, row.source?.path].filter(Boolean).join(' · ') }}</template>
+                </el-table-column>
+              </el-table>
+              <h4>需人工处理</h4>
+              <el-table :data="prov.manualRequired ?? []" size="small" data-testid="prov-manual">
+                <el-table-column label="状态" width="90">
+                  <template #default="{ row }">
+                    <el-tag size="small" :type="row.status === 'RESOLVED' ? 'success' : row.kind === 'BLOCKED' ? 'danger' : 'warning'">
+                      {{ row.status === 'RESOLVED' ? '已处理' : row.kind === 'BLOCKED' ? '禁止自动转换' : '需人工' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="path" label="位置" min-width="180" />
+                <el-table-column prop="reason" label="原因" min-width="220" />
+                <el-table-column label="处理" min-width="160">
+                  <template #default="{ row }">{{ row.resolution ? `${row.resolvedBy}：${row.resolution}` : '' }}</template>
+                </el-table-column>
+              </el-table>
+              <h4>人工修改历史</h4>
+              <el-table :data="prov.manualEdits ?? []" size="small" data-testid="prov-edits">
+                <el-table-column label="时间" width="140">
+                  <template #default="{ row }">{{ fmt(row.at) }}</template>
+                </el-table-column>
+                <el-table-column prop="by" label="修改人" width="100" />
+                <el-table-column prop="path" label="位置" min-width="160" />
+                <el-table-column prop="reason" label="原因" min-width="200" />
+                <el-table-column prop="lines" label="行数" width="60" />
+              </el-table>
+            </template>
+          </el-tab-pane>
           <el-tab-pane label="测试结果" name="test">
             <div v-if="!report" class="sub">点击"运行测试"执行黄金场景与越权检查（在事务中执行并回滚）。</div>
             <template v-else>
@@ -277,7 +331,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import type { UploadFile } from 'element-plus';
-import type { ChangeSet, DriftReport, PackApi, PackSummary, Stage, StageResult, TestReport } from '@/api/lsmom/pack';
+import type { ChangeSet, DriftReport, PackApi, PackSummary, Provenance, Stage, StageResult, TestReport } from '@/api/lsmom/pack';
 
 /** 协同应用中心：已安装 Pack 的版本、依赖、负责人、复审、使用量、失败任务、漂移与下线状态，以及 ChangeSet 发布。 */
 const props = defineProps<{ api: PackApi }>();
@@ -329,6 +383,10 @@ const cur = ref<PackSummary>();
 const drift = ref<DriftReport>();
 const report = ref<TestReport>();
 const detailTab = ref('drift');
+const prov = ref<Provenance>();
+const SOURCE_TYPE: Record<string, string> = { REQUIREMENT: '需求生成', FRAPPE: 'Frappe 转换', LEGACY_SCHEMA: '旧表结构', MANUAL: '人工编写' };
+const openManual = computed(() => (prov.value?.manualRequired ?? []).filter((m) => m.status !== 'RESOLVED'));
+const elementRows = computed(() => Object.entries(prov.value?.elements ?? {}).map(([code, e]) => ({ code, ...e })));
 const busy = ref('');
 
 const pendingCount = computed(() => changes.value.filter((c) => c.status === 'REVIEWING' || c.status === 'APPROVED').length);
@@ -352,7 +410,14 @@ const shownPacks = computed(() =>
   })
 );
 
-const fmt = (s?: string) => (s ? s.replace('T', ' ').substring(0, 16) : '');
+const pad = (n: number) => String(n).padStart(2, '0');
+/** 服务端本地时间原样显示；带时区（如生成时间 ...Z）的按浏览器本地时间显示。 */
+const fmt = (s?: string) => {
+  if (!s) return '';
+  if (!/(Z|[+-]\d\d:?\d\d)$/.test(s)) return s.replace('T', ' ').substring(0, 16);
+  const d = new Date(s);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 const show = (v: unknown) => (v === null || v === undefined ? '（无）' : typeof v === 'string' ? v : JSON.stringify(v));
 const stageOf = (c: ChangeSet, s: Stage) => c.stages.find((x) => x.stage === s);
 const dotClass = (c: ChangeSet, s: Stage) => {
@@ -381,6 +446,7 @@ async function load() {
 async function open(code: string) {
   cur.value = await props.api.get(code);
   drift.value = await props.api.drift(code);
+  prov.value = await props.api.provenance(code).catch(() => undefined);
   report.value = undefined;
   detailTab.value = drift.value.drifted ? 'drift' : 'items';
   drawer.value = true;

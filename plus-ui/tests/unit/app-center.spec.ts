@@ -125,7 +125,29 @@ function makeApi() {
     gate: vi.fn(async () => ({ ready: true, problems: [] })),
     submit: vi.fn(async () => changes[0]),
     approve: vi.fn(async () => changes[0]),
-    release: vi.fn(async () => ({ code: 'ls.training', version: '1.3.0', status: 'UPGRADED' }))
+    release: vi.fn(async () => ({ code: 'ls.training', version: '1.3.0', status: 'UPGRADED' })),
+    provenance: vi.fn(async (code: string) =>
+      code === 'acme.cust'
+        ? {
+            pack: code,
+            version: '0.1.0',
+            sourceType: 'FRAPPE',
+            source: { app: 'frappe', version: 'develop@5511749c' },
+            license: 'MIT',
+            converter: { name: 'ls-mom-cli frappe-import', version: '1.0.0' },
+            model: null,
+            generatedAt: '2026-11-10T08:00:00Z',
+            manualEdits: [
+              { at: '2026-11-10T09:00:00Z', by: '实施顾问', path: 'concepts/to-do.yaml', reason: 'referenceType 改为文本说明', lines: 2 }
+            ],
+            manualRequired: [
+              { path: 'server_script/auto_close.json', kind: 'BLOCKED', reason: 'Server Script 禁止自动转换', status: 'OPEN' },
+              { path: 'patches/v1_0/x.py', kind: 'MANUAL', reason: 'Patch 不执行', status: 'RESOLVED', resolvedBy: '实施顾问', resolution: '已评审' }
+            ],
+            elements: { 'acme.cust.ToDo': { kind: 'CONCEPT', source: { type: 'DocType', name: 'ToDo', path: 'desk/doctype/todo/todo.json' } } }
+          }
+        : { pack: code, version: '1.2.0', provenance: null }
+    )
   };
   return api;
 }
@@ -195,6 +217,29 @@ describe('协同应用中心', () => {
     q('btn-test')!.click();
     await flush(200);
     expect(q('test-result')!.textContent).toContain('全部通过');
+  });
+
+  it('来源：转换生成的 Pack 显示 Frappe 来源、许可证、转换器、人工修改与未处理项；手写 Pack 无来源', async () => {
+    const { ac } = await mount();
+    await ac.value.open('acme.cust');
+    await flush(200);
+    ([...document.querySelectorAll('.el-drawer .el-tabs__item')] as HTMLElement[]).find((e) => e.textContent!.trim() === '来源')!.click();
+    await flush(200);
+    expect(q('prov-info')!.textContent).toContain('Frappe 转换');
+    expect(q('prov-info')!.textContent).toContain('MIT');
+    expect(q('prov-info')!.textContent).toContain('ls-mom-cli frappe-import 1.0.0');
+    expect(q('prov-info')!.textContent).toContain('（未使用）');
+    expect(q('prov-open')!.textContent).toContain('还有 1 项需人工处理（其中禁止自动转换 1 项）');
+    expect(q('prov-elements')!.textContent).toContain('DocType · ToDo · desk/doctype/todo/todo.json');
+    expect(q('prov-manual')!.textContent).toContain('禁止自动转换');
+    expect(q('prov-manual')!.textContent).toContain('实施顾问：已评审');
+    expect(q('prov-edits')!.textContent).toContain('referenceType 改为文本说明');
+
+    await ac.value.open('ls.training');
+    await flush(200);
+    ([...document.querySelectorAll('.el-drawer .el-tabs__item')] as HTMLElement[]).find((e) => e.textContent!.trim() === '来源')!.click();
+    await flush(200);
+    expect(q('prov-none')).not.toBeNull();
   });
 
   it('建议下线的 Pack 在详情中提示', async () => {

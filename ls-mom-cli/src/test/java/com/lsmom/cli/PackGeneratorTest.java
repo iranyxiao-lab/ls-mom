@@ -60,11 +60,13 @@ class PackGeneratorTest {
         args.addAll(sources);
         ByteArrayOutputStream diag = new ByteArrayOutputStream();
         assertThat(javac.run(null, diag, diag, args.toArray(String[]::new))).as(diag.toString()).isZero();
+        QualityReport.recordRun(out, "compile", "PASSED", null);
 
         // 2. 在临时数据库安装并运行黄金场景
         PackFixture f = new PackFixture();
         PackInstaller.Result r = f.installer.install(PackSource.fromDirectory(out.resolve("pack")), null);
         assertThat(r.status()).isEqualTo("INSTALLED");
+        QualityReport.recordRun(out, "install", "PASSED", null);
         PackTester.Report rep = f.tester.run("acme.permit");
         rep.regression().forEach(c -> assertThat(c.passed()).as(c.name() + "：" + c.message()).isTrue());
         assertThat(rep.passed()).isTrue();
@@ -81,6 +83,7 @@ class PackGeneratorTest {
             TestExecutionSummary sum = l.getSummary();
             assertThat(sum.getTestsSucceededCount()).as(sum.getFailures().toString()).isEqualTo(1);
             assertThat(sum.getTotalFailureCount()).isZero();
+            QualityReport.recordRun(out, "test", "PASSED", null);
         } finally {
             System.clearProperty("lsmom.generated.pack");
         }
@@ -97,6 +100,28 @@ class PackGeneratorTest {
         assertThat(rpt.path("validation").asText()).isEqualTo("PASSED");
         assertThat(rpt.path("manualEdits").get(0).path("reason").asText()).isEqualTo("补充作业类型枚举");
         assertThat(rpt.path("requirementToUatHours").asDouble()).isEqualTo(8.5);
+
+        // 质量指标报告：本次 + 一次首轮测试失败的生成
+        Path other = Files.createTempDirectory("lsir-gen2");
+        PackGenerator.write(o, other);
+        QualityReport.recordRun(other, "compile", "PASSED", null);
+        QualityReport.recordRun(other, "install", "PASSED", null);
+        QualityReport.recordRun(other, "test", "FAILED", "场景数据缺必填");
+        QualityReport.recordRun(other, "test", "PASSED", null);
+        Path qf = out.resolve("quality.json");
+        ByteArrayOutputStream qo = new ByteArrayOutputStream();
+        assertThat(LsMomCli.run(new String[]{"quality", out.toString(), other.toString(), "--out", qf.toString()}, new java.io.PrintStream(qo),
+            new java.io.PrintStream(qo))).isZero();
+        JsonNode q = LsIr.JSON.readTree(Files.readString(qf));
+        assertThat(q.path("runs").asInt()).isEqualTo(2);
+        assertThat(q.path("validationPassRate").asDouble()).isEqualTo(1.0);
+        assertThat(q.path("compileAndInstallFirstPassRate").asDouble()).isEqualTo(1.0);
+        assertThat(q.path("testFirstPassRate").asDouble()).isEqualTo(0.5);
+        assertThat(q.path("manualEdits").path("count").asInt()).isEqualTo(2);
+        assertThat(q.path("manualEdits").path("lines").asInt()).isEqualTo(6);
+        assertThat(q.path("manualEdits").path("reasons").path("补充作业类型枚举").asInt()).isEqualTo(2);
+        assertThat(q.path("reuseRatio").asDouble()).isZero();
+        assertThat(q.path("requirementToUatHoursAvg").asDouble()).isEqualTo(8.5);
     }
 
     @Test

@@ -70,6 +70,12 @@ public class PackController {
         return R.ok(summary(store.get(code), true));
     }
 
+    /** 来源追溯：生成 / 转换来源、许可证、转换器与模型版本、人工修改历史；concept 指定时返回该 Concept 的来源（AI-03）。 */
+    @GetMapping("/packs/{code}/provenance")
+    public R<JsonNode> provenance(@PathVariable String code, @RequestParam(required = false) String concept) {
+        return R.ok(com.lsmom.pack.PackProvenance.of(store, code, concept));
+    }
+
     private Map<String, Object> summary(PackStore.Pack p, boolean detail) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("code", p.code());
@@ -224,6 +230,6 @@ public class PackController {
     @SaCheckPermission("lsmom:pack:install")
     @PostMapping("/changesets/{id}/release")
     public R<PackInstaller.Result> release(@PathVariable long id) {
-        return R.ok(pipeline.release(id, actors.current().effectiveParty()));
+        return R.ok(pipeline.release(id, actors.current()));
     }
 }

@@ -333,6 +333,16 @@ public class GenericCrudService {
                 Map<String, Object> v = new LinkedHashMap<>(values);
                 v.remove("orgId");
                 Object formVersion = v.remove(FORM_VERSION_KEY);
+                // 种子等来源直接给出的日期文本转换为日期值
+                v.replaceAll((k, x) -> {
+                    FieldDef f = m.field(k);
+                    if (f == null || !(x instanceof String str)) return x;
+                    return switch (f.dataType()) {
+                        case DATE -> LocalDate.parse(str);
+                        case DATETIME -> LocalDateTime.parse(str.replace(' ', 'T'));
+                        default -> x;
+                    };
+                });
                 long id = insertMaster(m, v, org, actor);
                 if (formVersion instanceof Number n) freezeForm(m, id, n.intValue());
                 publish("crud.created", m, id, org, actor, null, Map.of("summary", source));

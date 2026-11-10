@@ -108,6 +108,54 @@ export interface Gate {
   problems: string[];
 }
 
+export interface ItemSource {
+  type?: string;
+  name?: string;
+  field?: string;
+  path?: string;
+}
+
+export interface ProvenanceElement {
+  kind: string;
+  parent?: string;
+  concept?: string;
+  source?: ItemSource;
+  fields?: Record<string, ItemSource>;
+}
+
+export interface ManualEdit {
+  at: string;
+  by: string;
+  path: string;
+  reason: string;
+  lines?: number;
+}
+
+export interface ManualRequired {
+  path: string;
+  kind: 'MANUAL' | 'BLOCKED';
+  reason: string;
+  status: 'OPEN' | 'RESOLVED';
+  resolution?: string;
+  resolvedBy?: string;
+}
+
+/** 生成 / 转换来源记录；手写 Pack 的 provenance 为 null。 */
+export interface Provenance {
+  pack: string;
+  version: string;
+  provenance?: null;
+  sourceType?: 'REQUIREMENT' | 'FRAPPE' | 'LEGACY_SCHEMA' | 'MANUAL';
+  source?: { app: string; version?: string; path?: string; ref?: string };
+  license?: string;
+  converter?: { name: string; version: string };
+  model?: { name: string; version: string } | null;
+  generatedAt?: string;
+  manualEdits?: ManualEdit[];
+  manualRequired?: ManualRequired[];
+  elements?: Record<string, ProvenanceElement>;
+}
+
 export interface PackApi {
   list(): Promise<PackSummary[]>;
   get(code: string): Promise<PackSummary>;
@@ -123,6 +171,7 @@ export interface PackApi {
   submit(archiveBase64: string): Promise<ChangeSet>;
   approve(id: number, approve: boolean, note?: string): Promise<ChangeSet>;
   release(id: number): Promise<{ code: string; version: string; status: string }>;
+  provenance(code: string): Promise<Provenance>;
 }
 
 const noRepeat = { repeatSubmit: false };
@@ -141,5 +190,6 @@ export const packApi: PackApi = {
   gate: (id) => data(request({ url: `/api/changesets/${id}/gate`, method: 'get' })),
   submit: (archive) => data(request({ url: '/api/changesets', method: 'post', data: { archive }, timeout: 120000 })),
   approve: (id, approve, note) => data(request({ url: `/api/changesets/${id}/approve`, method: 'post', data: { approve, note } })),
-  release: (id) => data(request({ url: `/api/changesets/${id}/release`, method: 'post', timeout: 300000 }))
+  release: (id) => data(request({ url: `/api/changesets/${id}/release`, method: 'post', timeout: 300000 })),
+  provenance: (code) => data(request({ url: `/api/packs/${enc(code)}/provenance`, method: 'get' }))
 };

@@ -84,7 +84,7 @@ public final class PackGenerator {
         for (JsonNode s : ir.path("seeds")) pack.put("seed/" + String.format("%02d", ++si) + "-" + kebab(last(s.path("concept").asText())) + ".yaml", yaml(s));
         int ti = 0;
         for (JsonNode t : ir.path("tests")) pack.put("tests/scenarios/" + String.format("%02d", ++ti) + ".yaml", yaml(t));
-        pack.put(PackContents.PROVENANCE, json(ir.path("provenance")));
+        pack.put(PackContents.PROVENANCE, json(provenance(ir)));
         pack.put("docs/permissions.yaml", yaml(permissions(ir)));
 
         Map<String, String> java = new TreeMap<>();
@@ -353,14 +353,50 @@ public final class PackGenerator {
         return o;
     }
 
+    /** Pack 中的来源记录：IR provenance ＋ 各元素（Concept、字段、子表、状态机与迁移）的来源索引，供按 Concept 查询。 */
+    static ObjectNode provenance(JsonNode ir) {
+        ObjectNode p = ir.path("provenance").deepCopy();
+        ObjectNode el = p.putObject("elements");
+        for (JsonNode c : ir.path("concepts")) {
+            ObjectNode e = el.putObject(c.path("code").asText());
+            e.put("kind", "CONCEPT");
+            if (c.has("source")) e.set("source", c.path("source"));
+            ObjectNode fs = e.putObject("fields");
+            c.path("fields").forEach(f -> { if (f.has("source")) fs.set(f.path("code").asText(), f.path("source")); });
+            for (JsonNode ch : c.path("children")) {
+                ObjectNode ce = el.putObject(ch.path("code").asText());
+                ce.put("kind", "CHILD").put("parent", c.path("code").asText());
+                if (ch.has("source")) ce.set("source", ch.path("source"));
+                ObjectNode cf = ce.putObject("fields");
+                ch.path("fields").forEach(f -> { if (f.has("source")) cf.set(f.path("code").asText(), f.path("source")); });
+            }
+        }
+        for (JsonNode o : ir.path("operations")) {
+            ObjectNode e = el.putObject(o.path("code").asText());
+            e.put("kind", o.path("kind").asText()).put("concept", o.path("concept").asText());
+            if (o.has("source")) e.set("source", o.path("source"));
+            for (JsonNode t : o.path("transitions")) {
+                ObjectNode te = el.putObject(t.path("operation").asText());
+                te.put("kind", "TRANSITION").put("concept", o.path("concept").asText());
+                if (t.has("source")) te.set("source", t.path("source"));
+            }
+        }
+        return p;
+    }
+
     private static ObjectNode permissions(JsonNode ir) {
         ObjectNode o = LsIr.JSON.createObjectNode();
         o.put("pack", ir.path("namespace").asText());
         ArrayNode list = o.putArray("permissions");
-        ir.path("permissions").forEach(list::add);
-        // 通用台账权限点（由平台按对象提供）
+        java.util.Set<String> declared = new java.util.HashSet<>();
+        ir.path("permissions").forEach(p -> {
+            list.add(p);
+            declared.add(p.path("code").asText());
+        });
+        // 通用台账权限点（由平台按对象提供；IR 已声明的保留其角色）
         for (JsonNode c : ir.path("concepts")) {
             for (String act : List.of("list", "query", "add", "edit", "remove")) {
+                if (declared.contains("crud:" + c.path("code").asText() + ":" + act)) continue;
                 list.addObject().put("code", "crud:" + c.path("code").asText() + ":" + act).put("name", c.path("displayName").asText() + " " + act).put("kind", "CRUD");
             }
         }

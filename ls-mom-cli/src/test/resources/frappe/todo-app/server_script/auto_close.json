@@ -1,0 +1,7 @@
+{
+ "doctype": "Server Script",
+ "name": "Auto Close Old ToDo",
+ "script_type": "Scheduler Event",
+ "event_frequency": "Daily",
+ "script": "frappe.db.set_value('ToDo', {'status': 'Open'}, 'status', 'Closed')"
+}

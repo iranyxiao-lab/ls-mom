@@ -258,12 +258,18 @@ class PackLifecycleTest {
         assertThat(f.pipeline.gate(cs.id()).ready()).isTrue();
 
         // 测试通过但未经批准 → 发布被拒
-        assertThatThrownBy(() -> f.pipeline.release(cs.id(), 1L)).isInstanceOf(LsBizException.class)
+        assertThatThrownBy(() -> f.pipeline.release(cs.id(), human(1L))).isInstanceOf(LsBizException.class)
             .satisfies(e -> assertThat(code(e)).isEqualTo("CHANGESET_NOT_APPROVED"));
         assertThat(f.store.find(ns)).isEmpty();
 
         f.pipeline.approve(cs.id(), true, "同意上线", 2L);
-        PackInstaller.Result r = f.pipeline.release(cs.id(), 1L);
+        // AI-01：已批准的 ChangeSet，生成流水线（服务账号）与 Agent 也不能直接发布
+        for (var t : List.of(com.lsmom.action.api.ActorContext.ActorType.SERVICE, com.lsmom.action.api.ActorContext.ActorType.AGENT,
+            com.lsmom.action.api.ActorContext.ActorType.SYSTEM)) {
+            assertThatThrownBy(() -> f.pipeline.release(cs.id(), actor(t, 9L))).extracting(PackLifecycleTest::code).isEqualTo("CHANGESET_RELEASE_HUMAN_ONLY");
+        }
+        assertThat(f.store.find(ns)).isEmpty();
+        PackInstaller.Result r = f.pipeline.release(cs.id(), human(1L));
         assertThat(r.status()).isEqualTo("INSTALLED");
         assertThat(f.pipeline.get(cs.id()).status()).isEqualTo("APPLIED");
         assertThat(f.store.get(ns).artifactSha()).isEqualTo(cs.artifactSha());
@@ -311,7 +317,7 @@ class PackLifecycleTest {
         // 回灌版本发布后漂移消失
         passStages(cs.id(), cs.artifactSha());
         f.pipeline.approve(cs.id(), true, null, 2L);
-        f.pipeline.release(cs.id(), 1L);
+        f.pipeline.release(cs.id(), human(1L));
         assertThat(f.store.get(ns).version()).isEqualTo("1.0.1");
         assertThat(f.drift.report(ns).drifted()).isFalse();
         assertThatThrownBy(() -> f.drift.toChangeSet(ns, 1L)).extracting(PackLifecycleTest::code).isEqualTo("PACK_NO_DRIFT");
@@ -372,11 +378,19 @@ class PackLifecycleTest {
         ChangeSetPipeline.Gate g = f.pipeline.gate(cs.id());
         assertThat(g.ready()).isFalse();
         assertThat(String.join("；", g.problems())).contains("升级演练失败：迁移 V2__bad_column.sql");
-        assertThatThrownBy(() -> f.pipeline.release(cs.id(), 1L)).isInstanceOf(LsBizException.class)
+        assertThatThrownBy(() -> f.pipeline.release(cs.id(), human(1L))).isInstanceOf(LsBizException.class)
             .satisfies(e -> {
                 assertThat(code(e)).isEqualTo("CHANGESET_GATE_FAILED");
                 assertThat(e.getMessage()).contains("V2__bad_column.sql");
             });
         assertThatThrownBy(() -> f.pipeline.approve(cs.id(), true, null, 2L)).extracting(PackLifecycleTest::code).isEqualTo("CHANGESET_NOT_READY");
+    }
+
+    static com.lsmom.action.api.ActorContext human(Long party) {
+        return actor(com.lsmom.action.api.ActorContext.ActorType.HUMAN, party);
+    }
+
+    static com.lsmom.action.api.ActorContext actor(com.lsmom.action.api.ActorContext.ActorType type, Long party) {
+        return new com.lsmom.action.api.ActorContext(type, party, party, null, false, java.util.Set.of(), com.lsmom.core.org.DataScope.unrestricted(), "测试");
     }
 }

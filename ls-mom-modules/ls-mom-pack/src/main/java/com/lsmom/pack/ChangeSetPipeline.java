@@ -159,7 +159,22 @@ public class ChangeSetPipeline {
                 problems.add(label(s) + "结果不是针对当前制品");
             }
         }
+        problems.addAll(openManualItems(cs.artifactSha()));
         return new Gate(problems.isEmpty(), problems);
+    }
+
+    /** 制品来源记录（provenance.json）中未处理的"需人工 / 禁止自动转换"项：处理并关闭前不能发布。 */
+    List<String> openManualItems(String sha) {
+        if (sha == null) return List.of();
+        PackSource src = store.artifact(sha);
+        if (src.file(PackContents.PROVENANCE) == null) return List.of();
+        JsonNode prov = PackJson.read(PackContents.PROVENANCE, src.file(PackContents.PROVENANCE));
+        List<String> out = new ArrayList<>();
+        for (JsonNode m : prov.path("manualRequired")) {
+            if ("RESOLVED".equals(m.path("status").asText())) continue;
+            out.add(("BLOCKED".equals(m.path("kind").asText()) ? "禁止自动转换项未处理：" : "需人工项未处理：") + m.path("path").asText() + "（" + m.path("reason").asText() + "）");
+        }
+        return out;
     }
 
     private static String failure(JsonNode d) {
@@ -179,8 +194,15 @@ public class ChangeSetPipeline {
         };
     }
 
-    /** 发布到当前环境：门禁通过且已批准，才执行安装。 */
-    public PackInstaller.Result release(long id, Long by) {
+    /**
+     * 发布到当前环境：只有真人可以发布（生成流水线、Agent、服务账号均无发布权限）；门禁通过且已批准，才执行安装。
+     */
+    public PackInstaller.Result release(long id, com.lsmom.action.api.ActorContext actor) {
+        if (actor == null || actor.type() != com.lsmom.action.api.ActorContext.ActorType.HUMAN) {
+            throw new LsBizException("CHANGESET_RELEASE_HUMAN_ONLY", "只有真人可以发布 ChangeSet，生成流水线与 Agent 不能直接发布",
+                Map.of("actorType", actor == null ? "NONE" : actor.type().name()));
+        }
+        Long by = actor.effectiveParty();
         ChangeSet cs = get(id);
         if ("APPLIED".equals(cs.status())) throw new LsBizException("CHANGESET_STATE_INVALID", "ChangeSet 已发布");
         Gate g = gate(id);

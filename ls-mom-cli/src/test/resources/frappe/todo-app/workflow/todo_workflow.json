@@ -1,0 +1,18 @@
+{
+ "doctype": "Workflow",
+ "name": "ToDo Closing",
+ "document_type": "ToDo",
+ "is_active": 1,
+ "workflow_state_field": "status",
+ "states": [
+  {"doctype": "Workflow Document State", "state": "Open", "doc_status": "0", "allow_edit": "All"},
+  {"doctype": "Workflow Document State", "state": "Closed", "doc_status": "0", "allow_edit": "All"},
+  {"doctype": "Workflow Document State", "state": "Cancelled", "doc_status": "0", "allow_edit": "System Manager"}
+ ],
+ "transitions": [
+  {"doctype": "Workflow Transition", "state": "Open", "action": "Close", "next_state": "Closed", "allowed": "All"},
+  {"doctype": "Workflow Transition", "state": "Open", "action": "Cancel", "next_state": "Cancelled", "allowed": "System Manager"},
+  {"doctype": "Workflow Transition", "state": "Closed", "action": "Reopen", "next_state": "Open", "allowed": "All",
+   "condition": "doc.allocated_to == frappe.session.user"}
+ ]
+}

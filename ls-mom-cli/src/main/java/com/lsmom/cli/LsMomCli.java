@@ -16,7 +16,11 @@ import java.util.Map;
  * ls-mom-cli validate &lt;ir.json|yaml&gt;
  * ls-mom-cli generate &lt;ir&gt; --out &lt;目录&gt;
  * ls-mom-cli copilot &lt;需求.txt|.csv|.sql&gt; --out &lt;ir.json&gt; [--catalog &lt;Pack 目录&gt;...] [--replay &lt;录制目录&gt;]
- * ls-mom-cli frappe-import &lt;Frappe 资产目录&gt; --namespace &lt;编码&gt; --out &lt;ir.json&gt; [--license MIT]
+ * ls-mom-cli frappe-import &lt;Frappe 资产目录&gt; --namespace &lt;编码&gt; --out &lt;ir.json&gt; [--license MIT] [--app 名称] [--version 版本]
+ * ls-mom-cli record-edit &lt;ir&gt; --by &lt;人&gt; --path &lt;位置&gt; --reason &lt;原因&gt; [--lines n]
+ * ls-mom-cli resolve &lt;ir&gt; --path &lt;需人工项&gt; --by &lt;人&gt; --resolution &lt;结论&gt;
+ * ls-mom-cli record-run &lt;生成目录&gt; --stage compile|install|test --result PASSED|FAILED
+ * ls-mom-cli quality &lt;生成目录&gt;... [--out quality.json]
  * </pre>
  * 只产出文件（LS-IR、Pack 目录、ChangeSet 制品、报告），没有任何发布或连接生产环境的能力。
  */
@@ -31,7 +35,7 @@ public final class LsMomCli {
 
     public static int run(String[] args, PrintStream out, PrintStream err) {
         if (args.length == 0) {
-            err.println("用法：ls-mom-cli <validate|generate|copilot|frappe-import> ...");
+            err.println("用法：ls-mom-cli <validate|generate|copilot|frappe-import|record-edit|resolve|record-run|quality> ...");
             return 2;
         }
         Args a = Args.parse(Arrays.copyOfRange(args, 1, args.length));
@@ -41,6 +45,10 @@ public final class LsMomCli {
                 case "generate" -> PackGenerator.cli(a, out, err);
                 case "copilot" -> BuildCopilot.cli(a, out, err);
                 case "frappe-import" -> FrappeImporter.cli(a, out, err);
+                case "record-edit" -> ProvenanceEdits.recordEdit(a, out);
+                case "resolve" -> ProvenanceEdits.resolve(a, out, err);
+                case "record-run" -> QualityReport.recordRun(a, out);
+                case "quality" -> QualityReport.cli(a, out);
                 default -> {
                     err.println("未知命令：" + args[0]);
                     yield 2;

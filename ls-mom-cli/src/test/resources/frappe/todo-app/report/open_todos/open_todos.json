@@ -1,0 +1,8 @@
+{
+ "doctype": "Report",
+ "name": "Open ToDos",
+ "ref_doctype": "ToDo",
+ "report_type": "Report Builder",
+ "is_standard": "Yes",
+ "json": "{\"filters\": [[\"ToDo\", \"status\", \"=\", \"Open\"]]}"
+}
