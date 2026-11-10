@@ -1,6 +1,7 @@
 import { to } from 'await-to-js';
 import { getToken, removeToken, setToken } from '@/utils/auth';
 import { resetPrefSync } from '@/utils/prefSync';
+import { currentUserId } from '@/utils/currentUser';
 import { login as loginApi, logout as logoutApi, getInfo as getUserInfo } from '@/api/login';
 import { LoginData } from '@/api/types';
 import defAva from '@/assets/images/profile.jpg';
@@ -53,6 +54,7 @@ export const useUserStore = defineStore('user', () => {
       avatar.value = profile;
       userId.value = user.userId;
       tenantId.value = user.tenantId;
+      currentUserId.value = user.userId;
       return Promise.resolve();
     }
     return Promise.reject(err);
@@ -66,6 +68,9 @@ export const useUserStore = defineStore('user', () => {
     permissions.value = [];
     removeToken();
     resetPrefSync();
+    // 本机草稿只在登录期间保留（服务端仍有，重新登录后可恢复）
+    void import('@/utils/lsform/draftStore').then((m) => m.localDrafts.clearUser(String(userId.value)));
+    currentUserId.value = '';
   };
 
   const setAvatar = (value: string) => {
@@ -76,6 +81,7 @@ export const useUserStore = defineStore('user', () => {
     userId,
     tenantId,
     token,
+    name,
     nickname,
     avatar,
     roles,

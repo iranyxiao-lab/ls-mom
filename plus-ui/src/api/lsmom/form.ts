@@ -62,6 +62,12 @@ export const formApi = {
   formContext: (form: string) => data<FormContextData>(request({ url: '/api/ui/form-context', method: 'get', params: { form } })),
   remember: (form: string, values: Record<string, unknown>) =>
     data<Record<string, unknown>>(request({ url: `/api/ui/form-context/remembered/${enc(form)}`, method: 'put', data: values })),
+  /** 本人的表单草稿（尚未提交的录入内容） */
+  draftGet: (key: string) =>
+    data<{ content: Record<string, unknown>; hash: string; updatedAt: string } | null>(request({ url: `/api/ui/drafts/${enc(key)}`, method: 'get', headers: { silentAuth: true } })),
+  draftSave: (key: string, body: { content: Record<string, unknown>; hash: string }) =>
+    data<unknown>(request({ url: `/api/ui/drafts/${enc(key)}`, method: 'put', data: body, headers: { repeatSubmit: false, silentAuth: true } })),
+  draftDelete: (key: string) => data<unknown>(request({ url: `/api/ui/drafts/${enc(key)}`, method: 'delete' })),
   upload: (file: File) => {
     const fd = new FormData();
     fd.append('file', file);
@@ -74,4 +80,4 @@ export const formApi = {
 export type FormApi = typeof formApi;
 
 /** 组件只依赖这一小部分接口，测试中可直接替换。 */
-export type RendererApi = Pick<FormApi, 'refSearch' | 'upload' | 'dict'> & Partial<Pick<FormApi, 'formContext' | 'remember'>>;
+export type RendererApi = Pick<FormApi, 'refSearch' | 'upload' | 'dict'> & Partial<Pick<FormApi, 'formContext' | 'remember' | 'draftGet' | 'draftSave' | 'draftDelete'>>;

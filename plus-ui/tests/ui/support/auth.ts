@@ -13,7 +13,7 @@ export const API = /^VITE_APP_BASE_API\s*=\s*'([^']*)'/m.exec(env)![1];
 // 不放在 test-results 下（每次运行会被清空）
 const STATE_DIR = path.join(root, 'plus-ui/node_modules/.cache/ls-ui-auth');
 
-function seedPassword(user: string) {
+export function seedPassword(user: string) {
   const row = fs
     .readFileSync(path.join(root, 'deploy/seed/README.md'), 'utf8')
     .split('\n')

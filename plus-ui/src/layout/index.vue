@@ -15,6 +15,7 @@
         <navbar ref="navbarRef" @set-layout="setLayout" />
         <tags-view v-if="needTagsView" />
         <offline-banner />
+        <relogin-dialog />
       </div>
       <app-main />
       <settings ref="settingRef" />
@@ -25,6 +26,7 @@
 <script setup lang="ts">
 import SideBar from './components/Sidebar/index.vue';
 import OfflineBanner from './components/OfflineBanner.vue';
+import ReloginDialog from './components/ReloginDialog/index.vue';
 import { AppMain, Navbar, Settings, TagsView } from './components';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';

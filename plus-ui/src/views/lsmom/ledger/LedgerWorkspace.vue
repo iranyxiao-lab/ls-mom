@@ -24,7 +24,15 @@
     <!-- 录入 / 编辑：Concept 默认表单（编辑时按冻结版本与迁移策略） -->
     <el-drawer v-model="editor.visible" :title="editor.id ? '编辑' : '新增'" size="60%" append-to-body data-testid="ledger-editor">
       <el-alert v-if="editor.hint" type="info" :closable="false" :title="editor.hint" class="ledger__hint" data-testid="edit-version-hint" />
-      <SchemaForm v-if="editor.schema" ref="formRef" v-model="editor.model" :schema="editor.schema" :api="forms" :show-actions="false" />
+      <SchemaForm
+        v-if="editor.schema"
+        ref="formRef"
+        v-model="editor.model"
+        :schema="editor.schema"
+        :api="forms"
+        :show-actions="false"
+        :draft-key="`${concept}:${editor.id ?? 'new'}`"
+      />
       <el-empty v-else-if="!editor.loading" description="该台账没有已发布的表单" />
       <template #footer>
         <el-button @click="editor.visible = false">取消</el-button>
@@ -199,6 +207,7 @@ async function save(action?: FormAction) {
       ElMessage.success('已保存草稿');
     }
     snapshot = JSON.stringify(editor.model);
+    await form.clearDraft();
     editor.visible = false;
     await table.value?.load();
   } finally {

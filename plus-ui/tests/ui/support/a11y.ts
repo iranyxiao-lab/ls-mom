@@ -19,6 +19,12 @@ export function describeViolations(vs: Awaited<ReturnType<typeof scan>>) {
 }
 
 export async function expectAccessible(page: Page, where: string, opts?: Parameters<typeof scan>[1]) {
+  // 等对话框、抽屉的进场动画结束再检查（动画中途颜色是半透明的，对比度会被误判）
+  await page
+    .waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running' || a.effect?.getTiming().iterations === Infinity), null, {
+      timeout: 3000
+    })
+    .catch(() => undefined);
   const vs = await scan(page, opts);
   expect(vs, `${where} 存在严重无障碍问题：\n${describeViolations(vs)}`).toEqual([]);
 }

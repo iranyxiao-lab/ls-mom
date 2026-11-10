@@ -117,13 +117,12 @@ const openPanels = (n: LayoutNode) => (n.children ?? []).map((c, j) => (c.collap
   font-size: 11px;
   line-height: 16px;
   font-weight: 400;
-  color: var(--ls-color-primary-text);
-  background: var(--el-color-primary-light-9);
+  color: var(--el-text-color-primary);
+  background: var(--el-color-primary-light-8);
 }
 /* 上次填写的值与系统带入的值用不同颜色区分 */
 .ls-form__origin.is-remembered {
-  color: var(--el-text-color-primary);
-  background: var(--el-color-warning-light-8);
+  background: var(--el-color-warning-light-7);
 }
 .ls-form__metric-title {
   color: var(--el-text-color-secondary);

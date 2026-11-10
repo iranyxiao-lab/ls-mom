@@ -140,6 +140,7 @@
         :source="cur"
         :org-id="cur?.orgId"
         :show-actions="false"
+        :draft-key="`ls.asset.Defect:new:asset-${cur?.id}`"
       />
       <template #footer>
         <el-button @click="defectVisible = false">取消</el-button>
@@ -300,6 +301,7 @@ async function reportDefect() {
   try {
     const r = await props.api.create(DEFECT, { ...form.payload(), orgId: c.orgId });
     await form.commitRemembered();
+    await form.clearDraft();
     try {
       await props.api.op(`${DEFECT}.report`, r.id, r.version);
       ElMessage.success('缺陷已登记');

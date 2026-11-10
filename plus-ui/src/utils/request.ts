@@ -12,6 +12,7 @@ import { getLanguage } from '@/lang';
 import { encryptBase64, encryptWithAes, generateAesKey, decryptWithAes, decryptBase64 } from '@/utils/crypto';
 import { encrypt, decrypt } from '@/utils/jsencrypt';
 import router from '@/router';
+import { reloginAvailable, requestRelogin } from '@/utils/relogin';
 
 const encryptHeader = 'encrypt-key';
 let downloadLoadingInstance: LoadingInstance;
@@ -41,6 +42,8 @@ service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 对应国际化资源文件后缀
     config.headers['Content-Language'] = getLanguage();
+    // 保留加密前的原始请求体，会话过期重新登录后按原样重发
+    if (!('_lsRaw' in config)) (config as any)._lsRaw = config.data;
 
     const isToken = config.headers?.isToken === false;
     // 是否需要防止数据重复提交
@@ -131,6 +134,20 @@ service.interceptors.response.use(
       return res.data;
     }
     if (code === 401) {
+      const cfg = res.config as InternalAxiosRequestConfig & { _lsRaw?: unknown; _lsRetried?: boolean };
+      // 后台自动保存等请求不弹登录框，失败由调用方处理（内容已存本机）
+      if (cfg.headers?.silentAuth) return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
+      // 原地重新登录：登录成功后重发原请求，页面与填写内容不变
+      if (reloginAvailable() && !cfg._lsRetried && cfg.headers?.isToken !== false) {
+        return requestRelogin().then((ok) => {
+          if (!ok) return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
+          cfg._lsRetried = true;
+          cfg.data = cfg._lsRaw;
+          cfg.headers.repeatSubmit = false;
+          delete cfg.headers[encryptHeader];
+          return service(cfg);
+        });
+      }
       // prettier-ignore
       if (!isRelogin.show) {
         isRelogin.show = true;
