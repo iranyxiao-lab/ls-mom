@@ -142,8 +142,17 @@
         <el-table-column label="提交时间" width="140">
           <template #default="{ row }">{{ fmt(row.createdAt) }}</template>
         </el-table-column>
-        <el-table-column label="" width="200">
+        <el-table-column label="" width="260">
           <template #default="{ row }">
+            <el-button
+              v-if="grantPending(row) && canGrant"
+              size="small"
+              type="warning"
+              :data-testid="`btn-grant-${row.id}`"
+              @click="applyGrants(row)"
+              >授权</el-button
+            >
+            <el-tag v-else-if="grantPending(row)" size="small" type="warning" :data-testid="`cs-grant-pending-${row.id}`">待管理员授权</el-tag>
             <template v-if="row.status === 'REVIEWING'">
               <el-button size="small" type="primary" :data-testid="`btn-approve-${row.id}`" @click="approve(row, true)">批准</el-button>
               <el-button size="small" @click="approve(row, false)">驳回</el-button>
@@ -336,6 +345,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import type { UploadFile } from 'element-plus';
 import type { ChangeSet, DriftReport, PackApi, PackSummary, Provenance, Stage, StageResult, TestReport } from '@/api/lsmom/pack';
 import { followTask } from '@/utils/taskCenter';
+import { checkPermi } from '@/utils/permission';
+import { templateApi, type GrantState } from '@/api/lsmom/templates';
 
 const TemplateWizard = defineAsyncComponent(() => import('./TemplateWizard.vue'));
 
@@ -438,12 +449,37 @@ const stageText = (r: StageResult) => {
   return '';
 };
 
+/** 模板 / Excel 草稿的授权清单：未授权时显示"授权"（有角色管理权限）或"待管理员授权" */
+const canGrant = checkPermi(['system:role:edit']);
+const grants = ref<Record<number, GrantState>>({});
+const grantPending = (c: ChangeSet) =>
+  c.status !== 'APPLIED' && c.status !== 'REJECTED' && !!grants.value[c.id]?.plan?.length && !grants.value[c.id]?.appliedAt;
+
+async function loadGrants(list: ChangeSet[]) {
+  const pending = list.filter((c) => (c.source === 'TEMPLATE' || c.source === 'EXCEL') && c.status !== 'APPLIED' && c.status !== 'REJECTED');
+  const states = await Promise.all(pending.map((c) => templateApi.grantState(c.id).catch(() => null)));
+  const next: Record<number, GrantState> = {};
+  pending.forEach((c, i) => states[i] && (next[c.id] = states[i]!));
+  grants.value = next;
+}
+
+async function applyGrants(c: ChangeSet) {
+  const plan = grants.value[c.id]?.plan ?? [];
+  await ElMessageBox.confirm(plan.map((g) => `${g.perms} → ${g.roles.join('、')}`).join('\n'), `授权：${c.title}`, {
+    confirmButtonText: '建按钮权限并授予角色',
+    cancelButtonText: '取消'
+  });
+  grants.value = { ...grants.value, [c.id]: await templateApi.applyGrants(c.id) };
+  ElMessage.success('已授权：相关角色的在线用户需重新登录后生效');
+}
+
 async function load() {
   loading.value = true;
   try {
     const [p, c] = await Promise.all([props.api.list(), props.api.changeSets()]);
     packs.value = p;
     changes.value = c;
+    void loadGrants(c);
   } finally {
     loading.value = false;
   }

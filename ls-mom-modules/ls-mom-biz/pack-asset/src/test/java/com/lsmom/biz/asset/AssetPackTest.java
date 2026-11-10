@@ -64,6 +64,8 @@ class AssetPackTest {
         for (var g : List.of(cfg.assetPlanReadyGuard(records), cfg.assetRepairsDoneGuard(records, issues), cfg.assetVerifierGuard(records, issues))) {
             if (!f.action.guardRegistry.isRegistered(g.code())) f.action.guardRegistry.register(g);
         }
+        f.crud.crud.setPartyAccess(List.of(cfg.inspectionInspectorAccess()));
+        f.crud.states.setPartyAccess(List.of(cfg.inspectionInspectorAccess()));
         scheduler = new InspectionScheduler(f.core.jdbc, records, f.action.gateway, Clock.systemDefaultZone());
         installPack();
     }
@@ -149,7 +151,8 @@ class AssetPackTest {
         Party keeper = f.core.employee("设备员", f.plant.workshop());
         Party inspector = f.core.employee("点检员", f.plant.teamA());
         ActorContext a = user(keeper);
-        ActorContext ins = user(inspector);
+        // 操作工的数据范围常为"仅本人"：点检记录由设备员按计划生成，点检人仍能打开并提交分给自己的点检
+        ActorContext ins = f.action.human(inspector, DataScopeLevel.SELF, PERMS);
         long p = pump(a, PackFixture.code("P"));
         LocalDate today = LocalDate.now();
         // 没有检查项的计划不能启用
@@ -177,6 +180,9 @@ class AssetPackTest {
         assertThat(work.orgUnitId()).isEqualTo(f.plant.teamA().id());
         assertThat(records.children(RECORD_ITEM, recId)).extracting(i -> i.get("itemCode")).containsExactly("TEMP", "LEAK");
 
+        assertThat(f.crud.crud.get(RECORD, recId, ins)).containsEntry("inspector", inspector.id());
+        ActorContext other = f.action.human(f.core.employee("其他操作工", f.plant.teamA()), DataScopeLevel.SELF, PERMS);
+        assertThatThrownBy(() -> f.crud.crud.get(RECORD, recId, other)).extracting(AssetPackTest::code).isEqualTo("ACCESS_DENIED");
         // 漏填读数不能提交
         assertThatThrownBy(() -> step(RECORD + ".submit", ins, RECORD, recId, "{\"items\":[{\"itemCode\":\"LEAK\",\"outcome\":\"OK\"}]}"))
             .extracting(AssetPackTest::code).isEqualTo("VALIDATION_FAILED");
@@ -217,6 +223,21 @@ class AssetPackTest {
         ActorContext fit = user(fitter);
         ActorContext ver = user(verifier);
         long p = pump(a, PackFixture.code("P"));
+
+        // 共享引用：数据范围"仅本人"的操作工能选本车间的设备登记缺陷，但不能选兄弟班组的设备；未声明共享时一律拒绝
+        ActorContext opSelf = f.action.human(f.core.employee("操作工", f.plant.teamA()), DataScopeLevel.SELF, PERMS);
+        String byOp = "{\"asset\":%d,\"title\":\"异响\",\"severity\":\"LOW\",\"orgId\":%d}";
+        f.crud.crud.setReferenceScopes(null);
+        f.form.records.setReferenceScopes(null);
+        assertThatThrownBy(() -> create(DEFECT, opSelf, byOp.formatted(p, f.plant.teamA().id()))).isInstanceOf(LsBizException.class)
+            .hasMessageContaining("输入校验失败");
+        var shared = new com.lsmom.crud.ReferenceScopes(f.core.orgUnits, List.of(new AssetConfiguration().assetSharedReference()));
+        f.crud.crud.setReferenceScopes(shared);
+        f.form.records.setReferenceScopes(shared);
+        assertThat(create(DEFECT, opSelf, byOp.formatted(p, f.plant.teamA().id()))).isPositive();
+        long teamBPump = create(ASSET, a, "{\"assetCode\":\"%s\",\"name\":\"乙班泵\",\"assetType\":\"PUMP\",\"orgId\":%d}"
+            .formatted(PackFixture.code("PB"), f.plant.teamB().id()));
+        assertThatThrownBy(() -> create(DEFECT, opSelf, byOp.formatted(teamBPump, f.plant.teamA().id()))).isInstanceOf(LsBizException.class);
 
         // DCS 报警（第 15 组接入）：以 DCS 来源 Issue 关联到该泵；由报警产生缺陷
         Issue alarm = issues.raise(new IssueService.RaiseIssue("DCS_ALARM", "出口压力低低", "", "HIGH", f.plant.workshop().id(), "DCS",

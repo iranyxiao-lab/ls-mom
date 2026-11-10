@@ -241,6 +241,23 @@ class PackLifecycleTest {
     }
 
     @Test
+    void 模板草稿带授权清单_未授权时门禁不放行_授权后放行() {
+        String ns = PackFixture.code("gp");
+        PackSource src = PackFixture.pack(ns, f.training("1.0.0", "2099-01-01"));
+        ChangeSetPipeline.ChangeSet cs = f.pipeline.submit(src, 1L, "TEMPLATE", null);
+        passStages(cs.id(), cs.artifactSha());
+        assertThat(f.pipeline.gate(cs.id()).ready()).as("没有授权清单").isTrue();
+        f.core.jdbc.update("update meta_change_set set grant_plan = '[{\"perms\":\"x:y:flow\",\"label\":\"办理\",\"roles\":[\"workshop_leader\"]}]'::jsonb where id = ?", cs.id());
+        ChangeSetPipeline.Gate g = f.pipeline.gate(cs.id());
+        assertThat(g.ready()).isFalse();
+        assertThat(g.problems()).anyMatch(p -> p.contains("授权未完成"));
+        f.pipeline.approve(cs.id(), true, "同意", 2L);
+        assertThatThrownBy(() -> f.pipeline.release(cs.id(), human(1L))).extracting(PackLifecycleTest::code).isEqualTo("CHANGESET_GATE_FAILED");
+        f.core.jdbc.update("update meta_change_set set grants_applied_at = now() where id = ?", cs.id());
+        assertThat(f.pipeline.gate(cs.id()).ready()).isTrue();
+    }
+
+    @Test
     void ChangeSet流水线_未批准发布被拒_批准后发布() {
         String ns = PackFixture.code("cs");
         PackSource src = PackFixture.pack(ns, f.training("1.0.0", "2099-01-01"));

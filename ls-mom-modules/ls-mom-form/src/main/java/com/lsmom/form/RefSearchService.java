@@ -23,6 +23,14 @@ import java.util.Map;
 @Service
 public class RefSearchService {
 
+    private com.lsmom.crud.ReferenceScopes referenceScopes;
+
+    /** 选用引用时的数据范围（共享引用）；可选注入，未注入时与读取范围相同。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setReferenceScopes(com.lsmom.crud.ReferenceScopes r) {
+        this.referenceScopes = r;
+    }
+
     private final ConceptRegistry concepts;
     private final JdbcTemplate jdbc;
     private final PartyService parties;
@@ -57,7 +65,7 @@ public class RefSearchService {
             String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
             if (err != null) return List.of();
         }
-        RefQuery.scope(actor.dataScope(), target, sql, args);
+        RefQuery.scope(com.lsmom.crud.ReferenceScopes.same(referenceScopes, actor.dataScope(), target.code()), target, sql, args);
         if (byIds) {
             sql.append(" and t.id in (").append(String.join(", ", Collections.nCopies(ids.size(), "?"))).append(")");
             args.addAll(ids);
@@ -96,7 +104,7 @@ public class RefSearchService {
         if (RefQuery.managed(target)) sql.append(" and t.del_flag = '0'");
         String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
         if (err == null) {
-            RefQuery.scope(actor.dataScope(), target, sql, args);
+            RefQuery.scope(com.lsmom.crud.ReferenceScopes.same(referenceScopes, actor.dataScope(), target.code()), target, sql, args);
             sql.append(" and (").append(String.join(" or ", cols.stream().map(c -> "t.\"" + c + "\"::text = ?").toList())).append(")");
             for (int i = 0; i < cols.size(); i++) args.add(code.trim());
             sql.append(" limit 2");

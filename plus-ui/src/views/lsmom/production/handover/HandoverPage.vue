@@ -136,6 +136,8 @@ const note = ref('');
 const draft = reactive({ fromTeam: undefined as number | undefined, toTeam: undefined as number | undefined, shiftDate: '', shift: 'DAY' });
 
 const label = (v: any) => (v && typeof v === 'object' ? (v.label ?? v.id) : (v ?? ''));
+/** 当前班次：夜班 0–8 点、早班 8–16 点、中班 16–24 点（与服务端 ShiftWindow 一致） */
+const currentShift = (h = new Date().getHours()) => (h < 8 ? 'NIGHT' : h < 16 ? 'DAY' : 'EVENING');
 const today = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -162,6 +164,7 @@ async function openNew() {
   draft.fromTeam = mine[0]?.id ?? teams.value[0]?.id;
   draft.toTeam = teams.value.find((t) => t.id !== draft.fromTeam)?.id;
   draft.shiftDate = today();
+  draft.shift = currentShift();
   newVisible.value = true;
 }
 

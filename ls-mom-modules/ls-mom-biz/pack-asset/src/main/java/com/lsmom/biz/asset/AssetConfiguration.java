@@ -142,4 +142,16 @@ public class AssetConfiguration {
     public InspectionScheduler inspectionScheduler(JdbcTemplate jdbc, ManagedRecords records, @Lazy OperationGateway gateway, Clock clock) {
         return new InspectionScheduler(jdbc, records, gateway, clock);
     }
+
+    /** 点检人可见、可提交分给自己的点检记录（操作工数据范围常为"仅本人"，记录由设备员按计划生成）。 */
+    @Bean
+    public com.lsmom.meta.concept.PartyAccess inspectionInspectorAccess() {
+        return new com.lsmom.meta.concept.PartyAccess(AssetPack.RECORD, "inspector");
+    }
+
+    /** 设备是共享引用：操作工（数据范围"仅本人"）也能选本班组、本车间的设备登记缺陷、点检。 */
+    @Bean
+    public com.lsmom.meta.concept.SharedReference assetSharedReference() {
+        return new com.lsmom.meta.concept.SharedReference(AssetPack.ASSET);
+    }
 }

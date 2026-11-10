@@ -239,4 +239,18 @@ describe('交接班', () => {
     await flush(150);
     expect(api.op).toHaveBeenCalledWith('ls.production.ShiftHandover.accept', 8, 2, {});
   });
+
+  it('新建交接班默认当前班次：凌晨 4 点为夜班、上午 10 点为早班', async () => {
+    const api = makeApi({ create: vi.fn(async () => ({ id: 9, version: 1 })), get: vi.fn(async () => ho('DRAFT')) });
+    await mount(HandoverPage, api);
+    for (const [hour, shift] of [[4, 'NIGHT'], [10, 'DAY'], [20, 'EVENING']] as const) {
+      const spy = vi.spyOn(Date.prototype, 'getHours').mockReturnValue(hour);
+      q('btn-new-handover')!.click();
+      await flush(150);
+      (document.querySelector('[data-testid="btn-create-handover"]') as HTMLElement).click();
+      await flush(150);
+      expect(api.create).toHaveBeenLastCalledWith('ls.production.ShiftHandover', expect.objectContaining({ shift }));
+      spy.mockRestore();
+    }
+  });
 });

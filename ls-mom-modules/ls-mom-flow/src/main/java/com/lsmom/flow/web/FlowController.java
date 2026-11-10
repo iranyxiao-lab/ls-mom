@@ -139,8 +139,8 @@ public class FlowController {
              order by p.id limit 50""", k, "%" + k + "%", "%" + k + "%"));
     }
 
-    /** 角色选择器（ROLE / DATA_SCOPE 策略取 roleKey）。 */
-    @SaCheckPermission("lsmom:flow:design")
+    /** 角色选择器（ROLE / DATA_SCOPE 策略取 roleKey；从模板新建应用时选办理角色也用它）。 */
+    @SaCheckPermission(value = {"lsmom:flow:design", "lsmom:pack:install"}, mode = cn.dev33.satoken.annotation.SaMode.OR)
     @GetMapping("/roles")
     public R<List<Map<String, Object>>> roles() {
         return R.ok(jdbc.queryForList("""

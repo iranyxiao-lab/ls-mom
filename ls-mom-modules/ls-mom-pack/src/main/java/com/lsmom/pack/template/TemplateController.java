@@ -30,7 +30,7 @@ public class TemplateController {
 
     /** fragment 与 template 二选一；files 为预览后人工修改过的文件（路径 → 文本），提供时直接用它提交 */
     public record DraftBody(String template, JsonNode fragment, String ns, String title, String owner, String requester,
-                            java.time.LocalDate reviewDue, Map<String, String> files, List<String> initiatorRoles) {
+                            java.time.LocalDate reviewDue, Map<String, String> files, List<String> initiatorRoles, Boolean grant) {
     }
 
     private final ChangeSetPipeline pipeline;
@@ -83,7 +83,79 @@ public class TemplateController {
             files = generate(b);
         }
         String source = b.fragment() != null && "EXCEL".equals(b.fragment().path("provenance").path("source").asText()) ? "EXCEL" : "TEMPLATE";
-        return R.ok(pipeline.submit(PackSource.of(files), actors.current().effectiveParty(), source, null));
+        // 当场授权需要角色管理权限；没有时授权清单随草稿提交，由管理员授权后才能发布
+        boolean grantNow = Boolean.TRUE.equals(b.grant());
+        if (grantNow && !cn.dev33.satoken.stp.StpUtil.hasPermission("system:role:edit")) {
+            throw new LsBizException("ACCESS_DENIED", "没有角色管理权限，不能当场授权；请取消勾选，由管理员在「变更发布」中授权");
+        }
+        List<PermissionGrants.Grant> plan = PermissionGrants.plan(fragment(b), b.ns(), b.initiatorRoles());
+        ChangeSetPipeline.ChangeSet cs = pipeline.submit(PackSource.of(files), actors.current().effectiveParty(), source, null);
+        jdbc.update("update meta_change_set set grant_plan = ?::jsonb where id = ?", com.lsmom.pack.PackJson.JSON.valueToTree(plan).toString(), cs.id());
+        if (grantNow) applyGrants(cs.id(), b.title() == null ? b.ns() : b.title());
+        return R.ok(cs);
+    }
+
+    /** 草稿的授权清单与授权状态。 */
+    public record GrantState(List<PermissionGrants.Grant> plan, java.time.LocalDateTime appliedAt) {
+    }
+
+    @SaCheckPermission("lsmom:pack:install")
+    @GetMapping("/changesets/{id}/grants")
+    public R<GrantState> grantState(@PathVariable long id) {
+        return R.ok(grantStateOf(id));
+    }
+
+    /** 管理员执行草稿的授权清单（建按钮权限并授予角色）。 */
+    @SaCheckPermission("system:role:edit")
+    @PostMapping("/changesets/{id}/grants")
+    public R<GrantState> applyChangeSetGrants(@PathVariable long id) {
+        ChangeSetPipeline.ChangeSet cs = pipeline.get(id);
+        if (grantStateOf(id).plan() == null) throw LsBizException.validation(Map.of("grants", "该变更没有授权清单"));
+        applyGrants(id, cs.title());
+        return R.ok(grantStateOf(id));
+    }
+
+    private void applyGrants(long id, String title) {
+        List<PermissionGrants.Grant> plan = grantStateOf(id).plan();
+        if (plan == null || plan.isEmpty()) return;
+        PermissionGrants.apply(jdbc, title, plan);
+        jdbc.update("update meta_change_set set grants_applied_at = now(), grants_applied_by = ? where id = ?", actors.current().effectiveParty(), id);
+        logoutRoles(plan);
+    }
+
+    /**
+     * 与系统"修改角色"一致：被授权角色的在线用户需重新登录，新权限才生效（权限随登录缓存在会话中）。
+     * 不踢出当前操作人自己。
+     */
+    private void logoutRoles(List<PermissionGrants.Grant> plan) {
+        java.util.Set<String> keys = new java.util.HashSet<>();
+        plan.forEach(g -> keys.addAll(g.roles()));
+        if (keys.isEmpty()) return;
+        java.util.Set<Long> roleIds = new java.util.HashSet<>(jdbc.queryForList(
+            "select role_id from sys_role where del_flag = '0' and role_key in (" + String.join(",", java.util.Collections.nCopies(keys.size(), "?")) + ")",
+            Long.class, keys.toArray()));
+        String me = cn.dev33.satoken.stp.StpUtil.getTokenValue();
+        for (String key : cn.dev33.satoken.stp.StpUtil.searchTokenValue("", 0, -1, false)) {
+            String token = org.dromara.common.core.utils.StringUtils.substringAfterLast(key, ":");
+            if (token.equals(me) || cn.dev33.satoken.stp.StpUtil.stpLogic.getTokenActiveTimeoutByToken(token) < -1) continue;
+            org.dromara.common.core.domain.model.LoginUser u = org.dromara.common.satoken.utils.LoginHelper.getLoginUser(token);
+            if (u == null || u.getRoles() == null || u.getRoles().stream().noneMatch(r -> roleIds.contains(r.getRoleId()))) continue;
+            try {
+                cn.dev33.satoken.stp.StpUtil.logoutByTokenValue(token);
+            } catch (cn.dev33.satoken.exception.NotLoginException ignored) {
+                // 已过期
+            }
+        }
+    }
+
+    private GrantState grantStateOf(long id) {
+        List<GrantState> r = jdbc.query("select grant_plan, grants_applied_at from meta_change_set where id = ?", (rs, i) -> {
+            String json = rs.getString("grant_plan");
+            List<PermissionGrants.Grant> plan = json == null ? null : java.util.Arrays.asList(com.lsmom.pack.PackJson.JSON.convertValue(com.lsmom.pack.PackJson.read("grants.json", json.getBytes(StandardCharsets.UTF_8)), PermissionGrants.Grant[].class));
+            return new GrantState(plan, rs.getObject("grants_applied_at", java.time.LocalDateTime.class));
+        }, id);
+        if (r.isEmpty()) throw LsBizException.notFound("ChangeSet", String.valueOf(id));
+        return r.get(0);
     }
 
     /** Excel 表头与前 50 行（单元格文本） */

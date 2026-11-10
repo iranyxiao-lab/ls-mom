@@ -160,7 +160,15 @@ public class ChangeSetPipeline {
             }
         }
         problems.addAll(openManualItems(cs.artifactSha()));
+        problems.addAll(pendingGrants(id));
         return new Gate(problems.isEmpty(), problems);
+    }
+
+    /** 模板 / Excel 草稿带的授权清单尚未执行：审批节点角色没有办理权限，流程无法办理。 */
+    List<String> pendingGrants(long id) {
+        List<Boolean> pending = jdbc.queryForList("select grant_plan is not null and jsonb_array_length(grant_plan) > 0 and grants_applied_at is null from meta_change_set where id = ?",
+            Boolean.class, id);
+        return !pending.isEmpty() && Boolean.TRUE.equals(pending.get(0)) ? List.of("授权未完成：需管理员在「变更发布」中执行授权清单") : List.of();
     }
 
     /** 制品来源记录（provenance.json）中未处理的"需人工 / 禁止自动转换"项：处理并关闭前不能发布。 */

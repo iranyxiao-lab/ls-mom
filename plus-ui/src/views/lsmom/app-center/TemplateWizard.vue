@@ -148,8 +148,11 @@
           @input="edited.add(file)"
         />
         <div class="tw-grants" data-testid="tpl-grants">
-          <el-checkbox v-model="doGrant" data-testid="tpl-grant">同时建按钮权限并授予角色（审批节点角色须先有办理权限，流程才能发布）</el-checkbox>
-          <ul v-if="doGrant">
+          <el-checkbox v-model="doGrant" :disabled="!canGrant" data-testid="tpl-grant">同时建按钮权限并授予角色（审批节点角色须先有办理权限，流程才能发布）</el-checkbox>
+          <p v-if="!canGrant" class="tw-grants__hint" data-testid="tpl-grant-deferred">
+            你没有角色管理权限：以下授权清单随草稿提交，由管理员在「变更发布」中授权后才能发布。
+          </p>
+          <ul>
             <li v-for="g in grants" :key="g.perms">
               <code>{{ g.perms }}</code> → {{ g.roles.length ? g.roles.map(roleName).join('、') : '（无角色）' }}
             </li>
@@ -183,6 +186,7 @@ import { readSheetSample } from '@/utils/excelSample';
 import { flowApi } from '@/api/lsmom/flow';
 import type { ChangeSet } from '@/api/lsmom/pack';
 import { useUserStore } from '@/store/modules/user';
+import { checkPermi } from '@/utils/permission';
 
 /**
  * 从模板（或 Excel 推断的片段）新建台账应用：选模板 / 上传 Excel（逐项核对推断的字段）→ 名称、编码、负责人、角色 →
@@ -234,7 +238,9 @@ const rules: FormRules = {
 const files = ref<Record<string, string>>({});
 const file = ref('pack.yaml');
 const edited = reactive(new Set<string>());
-const doGrant = ref(true);
+/** 当场授权需要角色管理权限；没有时授权清单随草稿提交，由管理员授权 */
+const canGrant = checkPermi(['system:role:edit']);
+const doGrant = ref(canGrant);
 const grants = ref<Grant[]>([]);
 const roleName = (k: string) => roles.value.find((r) => r.roleKey === k)?.roleName ?? k;
 
@@ -332,8 +338,7 @@ async function next() {
 async function create() {
   busy.value = true;
   try {
-    if (doGrant.value) await templateApi.grant(body());
-    const cs = await templateApi.draft({ ...body(), files: edited.size ? files.value : undefined });
+    const cs = await templateApi.draft({ ...body(), files: edited.size ? files.value : undefined, grant: canGrant && doGrant.value });
     if (cs.status === 'REJECTED') {
       ElMessage.error(`校验未通过：${(cs.stages[0]?.detail as any)?.message ?? ''}`);
       return;
@@ -462,6 +467,11 @@ onMounted(async () => {
 .tw-grants {
   margin-top: var(--ls-space-2);
   font-size: 13px;
+}
+.tw-grants__hint {
+  margin: var(--ls-space-1) 0 0;
+  color: var(--el-color-warning);
+  font-size: var(--ls-font-size-sm, 12px);
 }
 .tw-grants ul {
   margin: var(--ls-space-1) 0 0;

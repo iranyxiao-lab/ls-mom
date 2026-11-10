@@ -34,6 +34,14 @@ import java.util.regex.Pattern;
 @Component
 public class FormRecordValidator implements RecordValidator {
 
+    private com.lsmom.crud.ReferenceScopes referenceScopes;
+
+    /** 选用引用时的数据范围（共享引用）；可选注入，未注入时与读取范围相同。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setReferenceScopes(com.lsmom.crud.ReferenceScopes r) {
+        this.referenceScopes = r;
+    }
+
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private final FormRegistry forms;
@@ -302,7 +310,7 @@ public class FormRecordValidator implements RecordValidator {
 
             StringBuilder scoped = new StringBuilder(base);
             List<Object> scopeArgs = new ArrayList<>(List.of(id));
-            RefQuery.scope(ctx.actor().dataScope(), target, scoped, scopeArgs);
+            RefQuery.scope(com.lsmom.crud.ReferenceScopes.same(referenceScopes, ctx.actor().dataScope(), target.code()), target, scoped, scopeArgs);
             if (count(scoped.toString(), scopeArgs) == 0) return new Problem("REF_SCOPE", "你无权使用所选" + target.displayName() + "，请重新选择", fix);
         }
         return null;

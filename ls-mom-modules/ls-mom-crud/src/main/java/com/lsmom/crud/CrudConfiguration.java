@@ -27,4 +27,11 @@ public class CrudConfiguration {
         pool.allowCoreThreadTimeOut(true);
         return pool;
     }
+
+    /** 选用引用时的数据范围（业务 Pack 声明的共享引用，如设备）。 */
+    @Bean
+    public ReferenceScopes lsmomReferenceScopes(com.lsmom.core.org.OrgUnitService orgUnits,
+                                                org.springframework.beans.factory.ObjectProvider<com.lsmom.meta.concept.SharedReference> shared) {
+        return new ReferenceScopes(orgUnits, shared.orderedStream().toList());
+    }
 }

@@ -48,6 +48,11 @@ export interface TemplateSummary {
   children: number;
   nodes: number;
 }
+export interface GrantState {
+  plan: Grant[] | null;
+  appliedAt: string | null;
+}
+
 export interface DraftBody {
   template?: string;
   fragment?: IrFragment;
@@ -58,6 +63,8 @@ export interface DraftBody {
   reviewDue?: string;
   files?: Record<string, string>;
   initiatorRoles?: string[];
+  /** 当场建按钮权限并授予角色（需要角色管理权限）；否则授权清单随草稿提交，由管理员授权 */
+  grant?: boolean;
 }
 export interface Grant {
   perms: string;
@@ -74,6 +81,11 @@ export const templateApi = {
   preview: (b: DraftBody) => data<Record<string, string>>(request({ url: '/api/pack-templates/preview', method: 'post', data: b })),
   grantPlan: (b: DraftBody) => data<Grant[]>(request({ url: '/api/pack-templates/grants/plan', method: 'post', data: b })),
   grant: (b: DraftBody) => data<Grant[]>(request({ url: '/api/pack-templates/grants', method: 'post', data: b })),
+  /** 草稿 ChangeSet 的授权清单与授权状态；管理员执行授权（需要角色管理权限） */
+  grantState: (changeSetId: number) =>
+    data<GrantState>(request({ url: `/api/pack-templates/changesets/${changeSetId}/grants`, method: 'get' })),
+  applyGrants: (changeSetId: number) =>
+    data<GrantState>(request({ url: `/api/pack-templates/changesets/${changeSetId}/grants`, method: 'post' })),
   draft: (b: DraftBody) => data<ChangeSet>(request({ url: '/api/pack-templates/draft', method: 'post', data: b, timeout: 120000 }))
 };
 export type TemplateApi = typeof templateApi;

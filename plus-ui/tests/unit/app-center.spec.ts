@@ -7,6 +7,12 @@ import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import AppCenter from '@/views/lsmom/app-center/AppCenter.vue';
 
+const grantState = vi.fn(async (_id: number): Promise<any> => ({ plan: null, appliedAt: null }));
+const applyGrants = vi.fn(async (_id: number) => ({ plan: [{ perms: 'acc:loan:flow', label: '办理', roles: ['workshop_leader'] }], appliedAt: '2026-11-11T10:00:00' }));
+vi.mock('@/api/lsmom/templates', () => ({ templateApi: { grantState: (id: number) => grantState(id), applyGrants: (id: number) => applyGrants(id) } }));
+let perms = ['system:role:edit'];
+vi.mock('@/utils/permission', () => ({ checkPermi: (v: string[]) => v.every((x) => perms.includes(x)) }));
+
 const pack = (code: string, extra: Record<string, any> = {}) => ({
   code,
   name: code.endsWith('training') ? '培训考试' : '客户扩展',
@@ -168,8 +174,9 @@ async function flush(ms = 80) {
 
 const q = (id: string) => document.querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
 
-async function mount() {
+async function mount(tweak?: (api: ReturnType<typeof makeApi>) => void) {
   const api = makeApi();
+  tweak?.(api);
   host = document.createElement('div');
   document.body.appendChild(host);
   const ac = ref<any>();
@@ -263,5 +270,34 @@ describe('协同应用中心', () => {
     expand.click();
     await flush(200);
     expect(q('table-changes')!.textContent).toContain('迁移 V2__bad.sql');
+  });
+
+  it('模板草稿：有授权清单未授权时，管理员可授权；没有角色管理权限的人看到「待管理员授权」', async () => {
+    const plan = [{ perms: 'acc:loan:flow', label: '办理', roles: ['workshop_leader'] }];
+    grantState.mockImplementation(async (id: number) => (id === 7 ? { plan, appliedAt: null } : { plan: null, appliedAt: null }));
+    const template = (api: any) => {
+      const orig = api.changeSets;
+      api.changeSets = vi.fn(async () => (await orig()).map((c: any) => (c.id === 7 ? { ...c, source: 'TEMPLATE' } : c)));
+    };
+    await mount(template);
+    (document.querySelectorAll('.el-tabs__item')[1] as HTMLElement).click();
+    await flush(200);
+    expect(grantState).toHaveBeenCalledWith(7);
+    q('btn-grant-7')!.click();
+    await flush(200);
+    (document.querySelector('.el-message-box__btns .el-button--primary') as HTMLElement).click();
+    await flush(200);
+    expect(applyGrants).toHaveBeenCalledWith(7);
+    expect(q('btn-grant-7')).toBeNull();
+
+    app?.unmount();
+    host?.remove();
+    perms = [];
+    await mount(template);
+    (document.querySelectorAll('.el-tabs__item')[1] as HTMLElement).click();
+    await flush(200);
+    expect(q('btn-grant-7')).toBeNull();
+    expect(q('cs-grant-pending-7')!.textContent).toContain('待管理员授权');
+    perms = ['system:role:edit'];
   });
 });

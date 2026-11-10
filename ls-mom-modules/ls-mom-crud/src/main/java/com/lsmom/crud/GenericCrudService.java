@@ -107,6 +107,14 @@ public class GenericCrudService {
 
     private Map<String, List<String>> partyAccess = Map.of();
 
+    private ReferenceScopes referenceScopes;
+
+    /** 选用引用时的数据范围；可选注入，未注入时与读取范围相同。 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setReferenceScopes(ReferenceScopes r) {
+        this.referenceScopes = r;
+    }
+
     /** 指定人员可见的 Concept 字段（业务 Pack 声明）；可选注入。 */
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setPartyAccess(List<com.lsmom.meta.concept.PartyAccess> list) {
@@ -732,7 +740,7 @@ public class GenericCrudService {
         if (target.isEmpty() || target.get().storage() != ConceptDef.Storage.MANAGED_TABLE) return null;
         LedgerModel rm = new LedgerModel(target.get());
         List<Object> args = new ArrayList<>(List.of(refId));
-        String sc = SafeSqlBuilder.scopeCondition("t", actor.dataScope(), args, partyColumns(rm));
+        String sc = SafeSqlBuilder.scopeCondition("t", ReferenceScopes.same(referenceScopes, actor.dataScope(), f.refConcept()), args, partyColumns(rm));
         String pv = privacySql(rm, actor, args);
         Integer n = jdbc.queryForObject("select count(*) from \"" + rm.table() + "\" t where t.id = ? and t.del_flag = '0'"
             + (sc == null ? "" : " and " + sc) + (pv == null ? "" : " and " + pv), Integer.class, args.toArray());
