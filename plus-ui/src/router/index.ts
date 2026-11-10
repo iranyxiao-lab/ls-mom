@@ -58,6 +58,19 @@ export const constantRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/error/404.vue'),
     hidden: true
   },
+  // 手机版（现场操作工、点检员、维修工）：独立的移动布局，不显示桌面管理菜单
+  {
+    path: '/m',
+    component: () => import('@/mobile/MobileLayout.vue'),
+    hidden: true,
+    children: [
+      { path: '', component: () => import('@/mobile/pages/MobileHome.vue'), meta: { title: '工作台', mobile: true } },
+      { path: 'report/:id(\\d+)', component: () => import('@/mobile/pages/MobileReport.vue'), meta: { title: '报工', mobile: true } },
+      { path: 'inspect', component: () => import('@/mobile/pages/MobileInspect.vue'), meta: { title: '点检', mobile: true } },
+      { path: 'defect', component: () => import('@/mobile/pages/MobileDefect.vue'), meta: { title: '报缺陷', mobile: true } },
+      { path: 'me', component: () => import('@/mobile/pages/MobileMe.vue'), meta: { title: '我的', mobile: true } }
+    ]
+  },
   // 出错页与断网页随主包加载（断网时取不到按需加载的页面资源）
   {
     path: '/500',

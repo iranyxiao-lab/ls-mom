@@ -110,6 +110,22 @@ class GatewayTest {
     }
 
     @Test
+    void 时间轴包含现场证据附件_按时间与动作合并() {
+        CoreFixture.Plant p = f.core.plant();
+        Party worker = f.core.employee("拍照人", p.teamA());
+        String id = f.newWork(admin, p.teamA(), "报缺陷");
+        f.core.jdbc.update("insert into core_document_link (oss_id, object_type, object_id, purpose, file_name, created_by, created_at) "
+            + "values (98765, 'ls.core.Work', ?, 'EVIDENCE', '现场.jpg', ?, current_timestamp + interval '1 second')", id, worker.id());
+        var t = new com.lsmom.action.timeline.TimelineService(f.core.jdbc).of("ls.core.Work", id);
+        var last = t.get(t.size() - 1);
+        assertThat(t.get(0).type()).isEqualTo("ls.core.Work.create");
+        assertThat(last.type()).isEqualTo(com.lsmom.action.timeline.TimelineService.DOCUMENT);
+        assertThat(last.action()).isEqualTo("上传现场证据：现场.jpg");
+        assertThat(last.actorName()).isEqualTo("拍照人");
+        assertThat(last.payload()).containsEntry("ossId", "98765").containsEntry("purpose", "EVIDENCE");
+    }
+
+    @Test
     void 缺少原因返回字段校验错误() {
         CoreFixture.Plant p = f.core.plant();
         String id = f.newWork(admin, p.teamA(), "x");

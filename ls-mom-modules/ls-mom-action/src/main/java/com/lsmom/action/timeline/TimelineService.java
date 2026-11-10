@@ -25,6 +25,8 @@ public class TimelineService {
 
     /** 操作人已隐藏的条目显示的名称。 */
     public static final String HIDDEN_ACTOR = "（匿名）";
+    /** 时间轴里的附件条目类型。 */
+    public static final String DOCUMENT = "DOCUMENT";
 
     private final JdbcTemplate jdbc;
     private List<TimelineRedactor> redactors = List.of();
@@ -51,7 +53,7 @@ public class TimelineService {
     }
 
     public List<Entry> of(String concept, String id) {
-        return jdbc.query("""
+        List<Entry> events = jdbc.query("""
             select e.occurred_at, e.type, coalesce(o.display_name, e.type) as action, e.actor_party, p.name as actor_name,
                    e.on_behalf_of, e.payload::text as payload, e.trace_id
             from core_domain_event e
@@ -64,6 +66,27 @@ public class TimelineService {
                 (Long) rs.getObject("actor_party"), rs.getString("actor_name"), (Long) rs.getObject("on_behalf_of"),
                 (String) payload.get("from"), (String) payload.get("to"), payload, rs.getString("trace_id"));
         }, concept, id);
+        // 附件与现场证据（如移动端拍照）也出现在时间轴上
+        List<Entry> docs = jdbc.query("""
+            select d.created_at, d.purpose, d.file_name, d.oss_id, d.created_by, p.name as actor_name
+            from core_document_link d
+            left join core_party p on p.id = d.created_by
+            where d.object_type = ? and d.object_id = ? and d.removed_at is null
+            order by d.created_at, d.id""", (rs, i) -> {
+            String purpose = rs.getString("purpose");
+            Map<String, Object> payload = new java.util.LinkedHashMap<>();
+            payload.put("fileName", rs.getString("file_name"));
+            payload.put("ossId", String.valueOf(rs.getLong("oss_id")));
+            payload.put("purpose", purpose);
+            return new Entry(rs.getObject("created_at", LocalDateTime.class), DOCUMENT,
+                ("EVIDENCE".equals(purpose) ? "上传现场证据：" : "上传附件：") + rs.getString("file_name"),
+                (Long) rs.getObject("created_by"), rs.getString("actor_name"), null, null, null, payload, null);
+        }, concept, id);
+        if (docs.isEmpty()) return events;
+        List<Entry> all = new java.util.ArrayList<>(events);
+        all.addAll(docs);
+        all.sort(java.util.Comparator.comparing(Entry::at, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())));
+        return all;
     }
 
     private static Map<String, Object> read(String json) {

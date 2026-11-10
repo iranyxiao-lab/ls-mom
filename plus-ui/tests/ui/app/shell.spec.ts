@@ -16,7 +16,7 @@ const NAVS = [
   { name: '顶栏', value: 'top' },
   { name: '混合', value: 'mix' }
 ] as const;
-const PAGES = ['/index', '/production/requests', '/production/board', '/asset/center', '/quality/nc', '/monitor/ui-usage'];
+const PAGES = ['/index?desktop=1', '/production/requests', '/production/board', '/asset/center', '/quality/nc', '/monitor/ui-usage'];
 
 /** 整页横向滚动，以及超出视口却没有放进自身滚动容器（被裁掉看不到）的可见元素。 */
 async function overflow(page: Page) {

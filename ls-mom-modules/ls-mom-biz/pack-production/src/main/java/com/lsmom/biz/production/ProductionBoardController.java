@@ -138,6 +138,22 @@ public class ProductionBoardController {
              where po.party_id = ? and o.unit_type = 'TEAM' and (po.valid_to is null or po.valid_to >= current_date) order by o.id""", party));
     }
 
+    /**
+     * 曾分派给我的工作的当前状态（手机版离线提交同步失败时说明原因，如"任务已取消"）。
+     * 工作取消后分派已释放、不在数据范围内，这里只返回编号、标题与状态。
+     */
+    @GetMapping("/my-work-status")
+    public R<List<Map<String, Object>>> myWorkStatus(@RequestParam List<Long> ids) {
+        Long party = actors.current().effectiveParty();
+        if (party == null || ids.isEmpty()) return R.ok(List.of());
+        Long[] limited = ids.stream().distinct().limit(100).toArray(Long[]::new);
+        return R.ok(jdbc.queryForList("""
+            select w.id, w.title, w.status from core_work_item w
+             where w.id = any(?) and exists (select 1 from core_work_assignment a
+                where a.work_item_id = w.id and a.resource_type = 'PARTY' and a.resource_ref = ?)
+             order by w.id""", limited, String.valueOf(party)));
+    }
+
     /** 某需求转出的工作（需求板展开）。 */
     @GetMapping("/requests/{id}/works")
     public R<List<Map<String, Object>>> requestWorks(@PathVariable long id) {

@@ -69,6 +69,7 @@
               <el-dropdown-item v-if="settingsStore.showSettings" command="setLayout">
                 <span>{{ proxy.$t('navbar.layoutSetting') }}</span>
               </el-dropdown-item>
+              <el-dropdown-item command="mobile" data-testid="menu-mobile">切换到手机版</el-dropdown-item>
               <el-dropdown-item divided command="logout">
                 <span>{{ proxy.$t('navbar.logout') }}</span>
               </el-dropdown-item>
@@ -92,6 +93,7 @@ import { TenantVO } from '@/api/types';
 import NotificationDrawer from './NotificationDrawer/index.vue';
 import HelpMenu from './HelpMenu/index.vue';
 import TaskCenter from './TaskCenter/index.vue';
+import { setUiMode } from '@/mobile/device';
 import router from '@/router';
 import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/message-box.type';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
@@ -188,9 +190,15 @@ const setLayout = () => {
   emits('setLayout');
 };
 // 定义Command方法对象 通过key直接调用方法
+/** 切换到手机版：记住选择（服务端偏好），之后在这台或其他设备登录都进入手机版，可在手机版「我的」切回 */
+const toMobile = async () => {
+  await setUiMode('mobile');
+  void router.push('/m');
+};
 const commandMap: { [key: string]: any } = {
   setLayout,
-  logout
+  logout,
+  mobile: toMobile
 };
 const handleCommand = (command: string) => {
   // 判断是否存在该方法

@@ -201,7 +201,8 @@ service.interceptors.response.use(
     } else if (message.includes('Request failed with status code')) {
       message = '系统接口' + message.substr(message.length - 3) + '异常';
     }
-    ElMessage({ message: withTrace(message, trace), type: 'error', duration: 5 * 1000 });
+    // silentNetwork：调用方自己处理断网（如移动端转入离线队列）
+    if (!error.config?.headers?.silentNetwork) ElMessage({ message: withTrace(message, trace), type: 'error', duration: 5 * 1000 });
     return Promise.reject(error);
   }
 );

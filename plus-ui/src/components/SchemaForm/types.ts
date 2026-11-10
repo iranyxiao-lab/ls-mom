@@ -16,6 +16,8 @@ export interface RenderCtx {
   orgId?: number;
   only?: Set<string>;
   single?: boolean;
+  /** 控件实现：mobile 用触控控件（Vant、大按钮、数字键盘与 ± 步进） */
+  platform?: 'desktop' | 'mobile';
   capture?: boolean;
   metrics?: Record<string, unknown>;
   related?: Record<string, unknown>;

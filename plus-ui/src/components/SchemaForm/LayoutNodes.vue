@@ -13,12 +13,7 @@
           {{ fieldOf(n.key)!.label ?? n.key }}
           <!-- 字段悬浮说明：鼠标移上或键盘聚焦时显示 -->
           <el-tooltip v-if="fieldOf(n.key)!.help" :content="fieldOf(n.key)!.help" placement="top">
-            <span
-              class="ls-form__help-icon"
-              tabindex="0"
-              role="img"
-              :aria-label="`说明：${fieldOf(n.key)!.help}`"
-              :data-testid="'help-' + n.key"
+            <span class="ls-form__help-icon" tabindex="0" role="img" :aria-label="`说明：${fieldOf(n.key)!.help}`" :data-testid="'help-' + n.key"
               >?</span
             >
           </el-tooltip>
@@ -26,7 +21,8 @@
             ORIGIN_LABEL[ctx.origin[n.key!]]
           }}</span>
         </template>
-        <FieldWidget
+        <component
+          :is="ctx.platform === 'mobile' ? MobileFieldWidget : FieldWidget"
           :field="fieldOf(n.key)!"
           :model-value="ctx.model[n.key!]"
           :editable="!!ctx.access[n.key!]?.editable"
@@ -89,9 +85,12 @@
 </template>
 
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue';
 import type { LayoutNode } from '@/types/lsView';
 import type { RenderCtx } from './types';
 import FieldWidget from './FieldWidget.vue';
+// 移动端控件按需加载，不进桌面首屏
+const MobileFieldWidget = defineAsyncComponent(() => import('./MobileFieldWidget.vue'));
 import { ORIGIN_LABEL } from '@/utils/lsform/smartDefaults';
 import SubTableEditor from './SubTableEditor.vue';
 

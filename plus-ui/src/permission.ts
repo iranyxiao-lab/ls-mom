@@ -1,6 +1,7 @@
 import { to as tos } from 'await-to-js';
 import router from './router';
 import { startPrefSync } from '@/utils/prefSync';
+import { loadUiMode, preferMobile, restoreOfflineUser } from '@/mobile/device';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import { getToken } from '@/utils/auth';
@@ -39,6 +40,13 @@ router.beforeEach(async (to, from, next) => {
         isRelogin.show = true;
         // 判断当前用户是否已拉取完user_info信息
         const [err] = await tos(useUserStore().getInfo());
+        // 手机版离线打开（已添加到桌面）：取不到用户信息时用上次缓存的身份显示外壳与已缓存的今日任务
+        if (err && !navigator.onLine && to.path.startsWith('/m') && restoreOfflineUser()) {
+          isRelogin.show = false;
+          next();
+          NProgress.done();
+          return;
+        }
         if (err) {
           await useUserStore().logout();
           ElMessage.error(err);
@@ -58,6 +66,15 @@ router.beforeEach(async (to, from, next) => {
           next({ path: to.path, replace: true, params: to.params, query: to.query, hash: to.hash, name: to.name as string }); // hack方法 确保addRoutes已完成
         }
       } else {
+        // 首页按设备宽度与用户类型（或手动选择）进入手机版
+        if (to.path === '/index' && !to.query.desktop) {
+          const mode = await loadUiMode();
+          if (preferMobile(mode, window.innerWidth, useUserStore().roles)) {
+            next({ path: '/m', replace: true });
+            NProgress.done();
+            return;
+          }
+        }
         next();
       }
     }

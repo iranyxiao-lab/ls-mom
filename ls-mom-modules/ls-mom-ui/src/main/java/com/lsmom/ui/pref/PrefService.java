@@ -33,6 +33,8 @@ public class PrefService {
         PREFS.put("navType", Set.of("left", "top", "mix"));
         PREFS.put("tagsView", null);
         PREFS.put("hotkeyHints", null);
+        // 界面模式：auto 按设备宽度与用户类型自动选择电脑版或手机版（/m），desktop / mobile 为用户手动选择
+        PREFS.put("uiMode", Set.of("auto", "desktop", "mobile"));
         // 新手引导：看完（done）或跳过（skipped）后不再自动出现，可从帮助菜单重看；pending 表示重新自动出现
         for (String tour : List.of("tourWorkbench", "tourDesigner", "tourMobileReport")) PREFS.put(tour, Set.of("done", "skipped", "pending"));
     }

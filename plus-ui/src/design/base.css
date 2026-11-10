@@ -38,6 +38,10 @@ html.dark .el-button.is-link.el-button--primary,
 html.dark .el-button.is-text.el-button--primary {
   --el-button-text-color: var(--ls-color-primary-text);
 }
+/* 深色主题的危险色偏亮（用于深底文字），作徽标底色配白字时对比度不足：徽标改用深一级的红色（白字 ≥4.5:1） */
+html.dark .el-badge__content--danger {
+  background-color: #c62828;
+}
 
 
 /* 撤销提示：完成说明 + 撤销按钮（5 秒内有效） */

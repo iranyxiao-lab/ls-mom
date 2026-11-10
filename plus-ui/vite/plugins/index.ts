@@ -11,6 +11,7 @@ import createSetupExtend from './setup-extend';
 import createLsTokens from './ls-tokens';
 import createEpIconNames from './ep-icon-names';
 import createElementPlusLite from './element-plus-lite';
+import createPwa from './pwa';
 import path from 'path';
 
 export default (viteEnv: any, isBuild = false): [] => {
@@ -27,5 +28,6 @@ export default (viteEnv: any, isBuild = false): [] => {
   vitePlugins.push(createIcons());
   vitePlugins.push(createSvgIconsPlugin(path));
   vitePlugins.push(createSetupExtend());
+  if (isBuild) vitePlugins.push(createPwa(viteEnv));
   return vitePlugins;
 };

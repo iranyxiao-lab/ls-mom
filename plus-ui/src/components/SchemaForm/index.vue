@@ -84,6 +84,8 @@ const props = withDefaults(
     only?: string[];
     /** 单列布局（移动端） */
     single?: boolean;
+    /** 控件实现：mobile 时用触控控件（并自动单列） */
+    platform?: 'desktop' | 'mobile';
     capture?: boolean;
     context?: FormContext;
     orgId?: number;
@@ -195,7 +197,8 @@ const ctx = computed<RenderCtx>(() => ({
   set,
   orgId: props.orgId,
   only: props.only ? new Set(props.only) : undefined,
-  single: props.single,
+  single: props.single || props.platform === 'mobile',
+  platform: props.platform,
   capture: props.capture,
   metrics: props.metrics,
   origin,
