@@ -3,6 +3,8 @@ package com.lsmom.form;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lsmom.action.rule.CelRuleEngine;
+import com.lsmom.action.state.StateMachineDefinition;
+import com.lsmom.action.state.StateMachineRegistry;
 import com.lsmom.action.rule.CelValues;
 import com.lsmom.core.error.LsBizException;
 import com.lsmom.crud.RecordValidator;
@@ -19,6 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 /**
@@ -37,11 +41,14 @@ public class FormRecordValidator implements RecordValidator {
     private final CelRuleEngine cel;
     private final JdbcTemplate jdbc;
 
-    public FormRecordValidator(FormRegistry forms, ConceptRegistry concepts, CelRuleEngine cel, JdbcTemplate jdbc) {
+    private final StateMachineRegistry stateMachines;
+
+    public FormRecordValidator(FormRegistry forms, ConceptRegistry concepts, CelRuleEngine cel, JdbcTemplate jdbc, StateMachineRegistry stateMachines) {
         this.forms = forms;
         this.concepts = concepts;
         this.cel = cel;
         this.jdbc = jdbc;
+        this.stateMachines = stateMachines;
     }
 
     @Override
@@ -79,7 +86,7 @@ public class FormRecordValidator implements RecordValidator {
                     continue;
                 }
             }
-            Problem err = checkValue(f, a, model.get(key), concept, model, context, ctx);
+            Problem err = checkValue(f, a, model.get(key), concept, model, context, ctx, unchanged(ctx.current() == null ? null : ctx.current().get(key)));
             if (err != null) put(errors, codes, fixes, key, err);
         }
         for (JsonNode st : form.path("subTables")) {
@@ -95,12 +102,13 @@ public class FormRecordValidator implements RecordValidator {
                 put(errors, codes, fixes, sk, new Problem("ROWS_MAX", name + "最多 " + st.get("maxRows").asInt() + " 行", "删除多余的行"));
             }
             ConceptDef child = concepts.find(st.path("conceptCode").asText()).orElse(null);
+            Object beforeRows = ctx.current() == null ? null : ctx.current().get(sk);
             for (int i = 0; i < list.size(); i++) {
                 Map<String, Object> row = CelValues.asMap(list.get(i));
                 for (JsonNode f : st.path("fields")) {
                     String key = f.path("key").asText();
                     FieldPolicy.Access a = access.get(sk + "." + key);
-                    Problem err = checkValue(f, a, row.get(key), child, model, context, ctx);
+                    Problem err = checkValue(f, a, row.get(key), child, model, context, ctx, unchangedInColumn(beforeRows, key));
                     if (err != null) put(errors, codes, fixes, sk + "[" + i + "]." + key, new Problem(err.code(), "第 " + (i + 1) + " 行：" + err.message(), err.fix()));
                 }
             }
@@ -198,7 +206,7 @@ public class FormRecordValidator implements RecordValidator {
     }
 
     private Problem checkValue(JsonNode f, FieldPolicy.Access a, Object v, ConceptDef concept, Map<String, Object> model,
-                               Map<String, Object> context, Context ctx) {
+                               Map<String, Object> context, Context ctx, Set<String> unchanged) {
         String label = label(f, concept);
         boolean empty = v == null || (v instanceof String s && s.isBlank()) || (v instanceof List<?> l && l.isEmpty());
         if (empty) return a != null && a.required() ? new Problem("REQUIRED", label + "必填", "填写" + label) : null;
@@ -238,10 +246,7 @@ public class FormRecordValidator implements RecordValidator {
                 if (!dict.contains(String.valueOf(x))) return new Problem("DICT", label + "的取值不在字典「" + f.get("dictType").asText() + "」中", "从下拉列表中重新选择");
             }
         }
-        if (f.has("ref")) {
-            String err = refAllowed(f.get("ref"), values, model, context);
-            if (err != null) return new Problem("REF", label + err, "重新选择" + label);
-        }
+        if (f.has("ref")) return refProblem(f.get("ref"), values, model, context, ctx, label, unchanged);
         return null;
     }
 
@@ -252,27 +257,87 @@ public class FormRecordValidator implements RecordValidator {
         }
     }
 
-    /** 引用目标必须存在且满足表单声明的过滤（如 orgId = $context.orgId）。 */
-    private String refAllowed(JsonNode ref, List<Object> ids, Map<String, Object> model, Map<String, Object> context) {
+    /** 记录里原有的引用编号：修改记录时未改动的引用不再复核（引用对象后来停用或移出范围，不妨碍修改其他字段）。 */
+    private static Set<String> unchanged(Object before) {
+        Set<String> out = new HashSet<>();
+        if (before instanceof List<?> l) l.forEach(x -> out.add(String.valueOf(x)));
+        else if (before != null) out.add(String.valueOf(before));
+        return out;
+    }
+
+    private static Set<String> unchangedInColumn(Object rows, String key) {
+        Set<String> out = new HashSet<>();
+        if (rows instanceof List<?> l) for (Object r : l) if (r instanceof Map<?, ?> m) out.addAll(unchanged(m.get(key)));
+        return out;
+    }
+
+    /**
+     * 引用目标必须存在、满足表单声明的过滤（如 orgId = $context.orgId、只可选在用设备）并在调用者的数据范围内；
+     * 默认值、记忆值、粘贴、扫码带入的值与手工选择的一样检查。不通过时说明具体原因：已删除、已停用（按状态机迁移名称）、无权使用。
+     */
+    private Problem refProblem(JsonNode ref, List<Object> ids, Map<String, Object> model, Map<String, Object> context, Context ctx,
+                               String label, Set<String> unchanged) {
+        String fix = "重新选择" + label;
         ConceptDef target = concepts.find(ref.path("concept").asText()).orElse(null);
-        if (target == null) return "的引用目标不存在";
+        if (target == null) return new Problem("REF", label + "的引用目标不存在", null);
         for (Object idv : ids) {
             long id;
             try {
                 id = Long.parseLong(String.valueOf(idv));
             } catch (NumberFormatException e) {
-                return "必须是对象编号";
+                return new Problem("REF", label + "必须是对象编号", fix);
             }
-            StringBuilder sql = new StringBuilder("select count(*) from " + RefQuery.table(target) + " t where t.id = ?");
-            List<Object> args = new ArrayList<>();
-            args.add(id);
-            if (RefQuery.managed(target)) sql.append(" and t.del_flag = '0'");
+            if (unchanged.contains(String.valueOf(id))) continue;
+            String base = "select count(*) from " + RefQuery.table(target) + " t where t.id = ?" + (RefQuery.managed(target) ? " and t.del_flag = '0'" : "");
+            if (count(base, List.of(id)) == 0) return new Problem("REF_MISSING", "所选" + label + "已删除或不存在，请重新选择", fix);
+
+            StringBuilder sql = new StringBuilder(base);
+            List<Object> args = new ArrayList<>(List.of(id));
             String err = appendFilters(target, ref.path("filter"), model, context, sql, args);
-            if (err != null) return err;
-            Integer n = jdbc.queryForObject(sql.toString(), Integer.class, args.toArray());
-            if (n == null || n == 0) return "不在允许的引用范围内";
+            if (err != null) return new Problem("REF", label + err, fix);
+            if (count(sql.toString(), args) == 0) {
+                Problem inactive = inactive(target, ref, id, base, model, context, fix);
+                return inactive != null ? inactive : new Problem("REF", label + "不在允许的引用范围内", fix);
+            }
+
+            StringBuilder scoped = new StringBuilder(base);
+            List<Object> scopeArgs = new ArrayList<>(List.of(id));
+            RefQuery.scope(ctx.actor().dataScope(), target, scoped, scopeArgs);
+            if (count(scoped.toString(), scopeArgs) == 0) return new Problem("REF_SCOPE", "你无权使用所选" + target.displayName() + "，请重新选择", fix);
         }
         return null;
+    }
+
+    /** 引用对象的状态不满足表单的状态过滤（如设备已报废）：提示"该设备已报废，请重新选择"。 */
+    private Problem inactive(ConceptDef target, JsonNode ref, long id, String base, Map<String, Object> model, Map<String, Object> context, String fix) {
+        if (!RefQuery.managed(target)) return null;
+        com.fasterxml.jackson.databind.node.ArrayNode statusFilters = JSON.createArrayNode();
+        for (JsonNode flt : ref.path("filter")) if (flt.path("field").asText().equals("status")) statusFilters.add(flt);
+        if (statusFilters.isEmpty()) return null;
+        StringBuilder sql = new StringBuilder(base);
+        List<Object> args = new ArrayList<>(List.of(id));
+        if (appendFilters(target, statusFilters, model, context, sql, args) != null || count(sql.toString(), args) > 0) return null;
+        String status = jdbc.queryForObject("select status from " + RefQuery.table(target) + " t where t.id = ?", String.class, id);
+        return new Problem("REF_INACTIVE", "该" + target.displayName() + stateText(target.code(), status) + "，请重新选择", fix);
+    }
+
+    /** 状态说明：初始状态为"尚未启用"；其他取进入该状态的迁移名称（如 SCRAPPED ← 报废 → "已报废"）；都没有时显示状态编码。 */
+    private String stateText(String concept, String status) {
+        if (stateMachines != null && status != null) {
+            try {
+                StateMachineDefinition d = stateMachines.forConcept(concept);
+                if (status.equals(d.initial())) return "尚未启用";
+                for (StateMachineDefinition.Transition t : d.transitions()) if (status.equals(t.to()) && t.name() != null) return "已" + t.name();
+            } catch (LsBizException e) {
+                // 没有状态机
+            }
+        }
+        return "当前状态（" + status + "）不可选用";
+    }
+
+    private int count(String sql, List<Object> args) {
+        Integer n = jdbc.queryForObject(sql, Integer.class, args.toArray());
+        return n == null ? 0 : n;
     }
 
     /** 追加表单声明的引用过滤；上下文变量缺失（如调用者没有组织）时拒绝，而不是退化为 is null。 */

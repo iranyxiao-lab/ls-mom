@@ -92,8 +92,7 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
     // 扫码枪：焦点不在输入框时直接扫
     await t.page.getByTestId('inspection-desk').getByRole('tab', { name: '我的点检' }).click();
     await t.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
-    await t.page.keyboard.type(asset.assetCode, { delay: 5 });
-    await t.page.keyboard.press('Enter');
+    await t.page.keyboard.type(`${asset.assetCode}\n`, { delay: 5 });
     await expect(items).toBeVisible();
     await expect(items).toContainText('扫码检查项·外观');
     // 填写并提交：扫码打开的就是可填写的点检
@@ -106,13 +105,11 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
     await expect(items).toBeHidden();
 
     // 已提交后再扫：没有待点检
-    await t.page.keyboard.type(asset.assetCode, { delay: 5 });
-    await t.page.keyboard.press('Enter');
+    await t.page.keyboard.type(`${asset.assetCode}\n`, { delay: 5 });
     await expect(t.page.locator('.el-message').filter({ hasText: '没有分给你的待点检' }).first()).toBeVisible();
 
     // 没有分给自己的设备（班长看不到车间设备台账时提示找不到或无权）、不存在的编码
-    await t.page.keyboard.type(other.assetCode, { delay: 5 });
-    await t.page.keyboard.press('Enter');
+    await t.page.keyboard.type(`${other.assetCode}\n`, { delay: 5 });
     await expect(
       t.page
         .locator('.el-message')
@@ -120,8 +117,7 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
         .first()
     ).toBeVisible();
     await expect(items).toBeHidden();
-    await t.page.keyboard.type('NO-SUCH-ASSET-9', { delay: 5 });
-    await t.page.keyboard.press('Enter');
+    await t.page.keyboard.type('NO-SUCH-ASSET-9\n', { delay: 5 });
     await expect(t.page.locator('.el-message').filter({ hasText: '没有找到编码为「NO-SUCH-ASSET-9」' }).first()).toBeVisible();
     await t.context.close();
 
@@ -133,12 +129,10 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
     await expect(dlg.getByTestId('field-asset')).toContainText(asset.name);
     await expect(dlg.getByTestId('scan-btn-ls.asset.Asset')).toBeVisible();
     await dlg.getByTestId('input-asset').click();
-    await keeper.page.keyboard.type(other.assetCode, { delay: 5 });
-    await keeper.page.keyboard.press('Enter');
+    await keeper.page.keyboard.type(`${other.assetCode}\n`, { delay: 5 });
     await expect(dlg.getByTestId('field-asset')).toContainText(other.name);
     await dlg.getByTestId('input-asset').click();
-    await keeper.page.keyboard.type('NO-SUCH-ASSET-9', { delay: 5 });
-    await keeper.page.keyboard.press('Enter');
+    await keeper.page.keyboard.type('NO-SUCH-ASSET-9\n', { delay: 5 });
     await expect(dlg.locator('[data-field-key="asset"]')).toContainText('没有找到编码为「NO-SUCH-ASSET-9」');
     await expect(dlg.getByTestId('field-asset')).toContainText(other.name);
   } finally {

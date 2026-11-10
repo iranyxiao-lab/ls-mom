@@ -99,8 +99,11 @@ class QualityPackTest {
         return (Map<String, Object>) ((LsBizException) e).getDetails().get("fields");
     }
 
+    /** 在用设备（不符合项只能关联在用状态的设备） */
     long asset(ActorContext a) {
-        return create(ASSET, a, "{\"assetCode\":\"%s\",\"name\":\"焊机\",\"assetType\":\"STATION\",\"orgId\":%d}".formatted(PackFixture.code("W"), f.plant.workshop().id()));
+        long id = create(ASSET, a, "{\"assetCode\":\"%s\",\"name\":\"焊机\",\"assetType\":\"STATION\",\"orgId\":%d}".formatted(PackFixture.code("W"), f.plant.workshop().id()));
+        f.core.jdbc.update("update " + records.table(ASSET) + " set status = 'RUNNING' where id = ?", id);
+        return id;
     }
 
     @Test

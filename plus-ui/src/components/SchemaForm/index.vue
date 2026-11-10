@@ -383,7 +383,8 @@ function onBlur(e: FocusEvent) {
   // 日期等控件在失焦时才写回取值：等取值更新后再校验
   setTimeout(() => {
     const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
-    if (r.errors[key]) errors[key] = r.errors[key];
+    // 已有更具体的原因（服务端或扫码给出的）时保留，取值改动后才清除
+    if (r.errors[key] && !errors[key]) errors[key] = r.errors[key];
   }, 0);
 }
 

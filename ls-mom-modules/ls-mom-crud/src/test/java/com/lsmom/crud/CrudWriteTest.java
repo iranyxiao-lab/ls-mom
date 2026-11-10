@@ -174,7 +174,7 @@ class CrudWriteTest {
         long toolA = ((Number) f.crud.create(loan.tool().code(), json("{\"name\":\"A 组扳手\",\"orgId\":" + plant.teamA().id() + "}"), admin, null)
             .get("id")).longValue();
         assertThatThrownBy(() -> f.crud.update(order, mine, 0, json("{\"toolRef\":" + toolA + "}"), userB, null))
-            .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.fieldErrors()).containsEntry("toolRef", "主要工器具引用的记录不存在或不在你的数据范围内"));
+            .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.fieldErrors()).containsEntry("toolRef", "你无权使用所选工器具，请重新选择"));
         // 子表只能随主表访问
         assertThatThrownBy(() -> f.crud.get(loan.line().code(), 1, admin)).extracting("code").isEqualTo("CONCEPT_NOT_LEDGER");
     }

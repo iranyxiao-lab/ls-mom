@@ -51,10 +51,14 @@ public class RefSearchService {
         StringBuilder sql = new StringBuilder("select t.id, t.\"" + label + "\"::text as label from " + RefQuery.table(target) + " t where 1 = 1");
         List<Object> args = new ArrayList<>();
         if (RefQuery.managed(target)) sql.append(" and t.del_flag = '0'");
-        String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
-        if (err != null) return List.of();
+        boolean byIds = ids != null && !ids.isEmpty();
+        // 按编号回显已有取值时不套表单过滤（如记录里的设备后来报废，仍显示名称；能否继续使用由提交校验说明），数据范围照常
+        if (!byIds) {
+            String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
+            if (err != null) return List.of();
+        }
         RefQuery.scope(actor.dataScope(), target, sql, args);
-        if (ids != null && !ids.isEmpty()) {
+        if (byIds) {
             sql.append(" and t.id in (").append(String.join(", ", Collections.nCopies(ids.size(), "?"))).append(")");
             args.addAll(ids);
         } else if (keyword != null && !keyword.isBlank()) {

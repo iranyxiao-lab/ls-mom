@@ -41,6 +41,9 @@ describe('scanCode', () => {
     // 先慢慢敲两个字再扫：只取扫码部分
     d.feed({ key: 'x', ctrlKey: false, metaKey: false, altKey: false }, 9000);
     expect(type('EQ-77', 5, 9300)).toBe('EQ-77');
+    // 快速敲完停顿后才按 Enter：按人手输入处理
+    for (const [i, c] of [...'ABCD'].entries()) d.feed({ key: c, ctrlKey: false, metaKey: false, altKey: false }, 20000 + i * 5);
+    expect(d.feed({ key: 'Enter', ctrlKey: false, metaKey: false, altKey: false }, 20600)).toBeNull();
     d.feed({ key: 'v', ctrlKey: true, metaKey: false, altKey: false }, 10000);
     expect(d.feed({ key: 'Enter', ctrlKey: false, metaKey: false, altKey: false }, 10001)).toBeNull();
   });

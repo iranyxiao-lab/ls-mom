@@ -41,6 +41,20 @@ async function loginOnPage(page: Page, user: string) {
   }
 }
 
+async function tokenValid(page: Page) {
+  return page
+    .evaluate(
+      async ([clientId, prefix]) => {
+        const r = await fetch(prefix + '/system/user/getInfo', {
+          headers: { clientid: clientId, Authorization: 'Bearer ' + localStorage.getItem('Admin-Token') }
+        });
+        return (await r.json()).code === 200;
+      },
+      [CLIENT_ID, API] as const
+    )
+    .catch(() => false);
+}
+
 /** 以种子账号登录的新上下文（同一用户 30 分钟内复用登录态）。 */
 export async function loggedIn(browser: Browser, user = 'admin', opts: BrowserContextOptions = {}): Promise<{ context: BrowserContext; page: Page }> {
   fs.mkdirSync(STATE_DIR, { recursive: true });
@@ -51,7 +65,8 @@ export async function loggedIn(browser: Browser, user = 'admin', opts: BrowserCo
   const page = await context.newPage();
   if (fresh) {
     await page.goto('/index');
-    if (!page.url().includes('login')) return { context, page };
+    // 同一账号在别处重新登录会让缓存的令牌失效；页面会原地弹登录框而不是跳转，所以用接口确认令牌仍有效
+    if (!page.url().includes('login') && (await tokenValid(page))) return { context, page };
   }
   await loginOnPage(page, user);
   await context.storageState({ path: file });

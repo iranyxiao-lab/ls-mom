@@ -229,7 +229,9 @@ try {
     `按期完成率钻取：分母 ${rateRows} 条、分子 ${num} 条，与指标值 ${q.value} 一致`
   );
   const rateCard = (await a.getByTestId('widget-value-1').textContent()).replace(/\s/g, '');
-  check(rateCard.includes((Number(q.value) * 100).toFixed(0)), `看板显示 ${rateCard}`);
+  // 看板按一位小数显示（62.5%），整数时不带小数
+  const pct = Number(q.value) * 100;
+  check([pct.toFixed(1), pct.toFixed(0), String(Math.round(pct * 10) / 10)].some((t) => rateCard.includes(t)), `看板显示 ${rateCard}`);
   for (const s of [admin, leader, team, worker]) check(s.errors.length === 0, '页面无脚本错误：' + s.errors.join('；'));
 } finally {
   await admin.browser.close();

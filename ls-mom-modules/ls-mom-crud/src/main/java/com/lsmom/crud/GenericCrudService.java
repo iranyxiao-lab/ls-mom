@@ -725,7 +725,7 @@ public class GenericCrudService {
         return null;
     }
 
-    /** 引用的台账记录必须存在且在调用者数据域内（防止借引用越权）。 */
+    /** 引用的台账记录必须存在且在调用者数据域内（防止借引用越权）；不通过时说明是已删除还是无权使用。 */
     private String refVisible(FieldDef f, long refId, ActorContext actor) {
         Optional<ConceptDef> target = concepts.find(f.refConcept());
         if (target.isEmpty() || target.get().storage() != ConceptDef.Storage.MANAGED_TABLE) return null;
@@ -735,7 +735,11 @@ public class GenericCrudService {
         String pv = privacySql(rm, actor, args);
         Integer n = jdbc.queryForObject("select count(*) from \"" + rm.table() + "\" t where t.id = ? and t.del_flag = '0'"
             + (sc == null ? "" : " and " + sc) + (pv == null ? "" : " and " + pv), Integer.class, args.toArray());
-        return n != null && n > 0 ? null : f.displayName() + "引用的记录不存在或不在你的数据范围内";
+        if (n != null && n > 0) return null;
+        // 区分已删除与无权使用，提示用户该怎么办（扫码、记忆值、粘贴带入的引用同样经过这里）
+        Integer exists = jdbc.queryForObject("select count(*) from \"" + rm.table() + "\" t where t.id = ? and t.del_flag = '0'", Integer.class, refId);
+        return exists == null || exists == 0 ? "所选" + f.displayName() + "已删除或不存在，请重新选择"
+            : "你无权使用所选" + target.get().displayName() + "，请重新选择";
     }
 
     private static Object convert(FieldDef f, JsonNode v) {

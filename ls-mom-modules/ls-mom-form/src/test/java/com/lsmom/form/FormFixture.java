@@ -24,7 +24,7 @@ public class FormFixture {
         components);
     public final FormRegistry forms = new FormRegistry(crud.action.core.jdbc, validator, crud.action.concepts, crud.action.operations, usages,
         crud.action.txm);
-    public final FormRecordValidator records = new FormRecordValidator(forms, crud.action.concepts, new CelRuleEngine(), crud.action.core.jdbc);
+    public final FormRecordValidator records = new FormRecordValidator(forms, crud.action.concepts, new CelRuleEngine(), crud.action.core.jdbc, crud.action.machines);
 
     public FormFixture() {
         crud.crud.setRecordValidators(List.of(records));

@@ -43,13 +43,18 @@ export function createWedgeDetector(opts: WedgeOptions = {}) {
     last = 0;
   };
   return {
-    feed(e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'altKey'>, now = performance.now()): string | null {
+    /** now 默认取按键事件的产生时间（页面繁忙时事件排队处理，用处理时间会把扫码枪误判为人手输入） */
+    feed(
+      e: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'altKey'> & { timeStamp?: number },
+      now = e.timeStamp || performance.now()
+    ): string | null {
       if (e.ctrlKey || e.metaKey || e.altKey) {
         reset();
         return null;
       }
       if (e.key === 'Enter') {
-        const code = buf.length >= min && fast ? buf : null;
+        // 扫码枪在最后一个字符后立即发 Enter；停顿后才按的 Enter 按人手输入处理
+        const code = buf.length >= min && fast && now - last <= gap * 4 ? buf : null;
         reset();
         return code;
       }
@@ -64,8 +69,8 @@ export function createWedgeDetector(opts: WedgeOptions = {}) {
       return null;
     },
     /** 当前输入看起来像扫码枪（已有足够多的快速字符），用于让外层的 Enter 跳字段先让行 */
-    pending(now = performance.now()) {
-      return buf.length >= min && fast && !!last && now - last <= gap * 4;
+    pending() {
+      return buf.length >= min && fast && !!last;
     },
     reset
   };

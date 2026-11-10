@@ -1,7 +1,7 @@
 {
   "viewType": "FORM",
   "formCode": "ls.quality.ncForm",
-  "version": 1,
+  "version": 2,
   "conceptCode": "ls.quality.NonConformance",
   "title": "不符合项",
   "layout": [
@@ -70,7 +70,25 @@
     {
       "key": "asset",
       "label": "相关设备",
-      "widget": "assetRef"
+      "widget": "assetRef",
+      "remember": true,
+      "ref": {
+        "concept": "ls.asset.Asset",
+        "labelField": "name",
+        "filter": [
+          {
+            "field": "status",
+            "op": "in",
+            "value": [
+              "RUNNING",
+              "STANDBY",
+              "MAINTENANCE",
+              "STOPPED"
+            ]
+          }
+        ]
+      },
+      "help": "只能选在用的设备（已报废或未投用的不可选）；默认带出你上次选的设备"
     },
     {
       "key": "workItem",

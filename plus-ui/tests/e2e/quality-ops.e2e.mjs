@@ -53,6 +53,8 @@ try {
   const asset = (
     await admin.api('POST', '/api/crud/ls.asset.Asset', { assetCode: `WM-${ts}`, name: `焊机 ${ts}`, assetType: 'STATION', orgId: workshop.id })
   ).data;
+  // 不符合项只能关联在用设备：先投用
+  await exec(admin, 'ls.asset.Asset.commission', asset.id, asset.version ?? 0);
   check(work?.id && asset?.id, '准备工作与设备');
 
   // —— DOM-04：无关联、同时关联工作与设备 ——

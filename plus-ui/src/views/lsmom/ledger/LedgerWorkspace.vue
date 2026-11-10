@@ -32,6 +32,7 @@
         :api="forms"
         :show-actions="false"
         :draft-key="`${concept}:${editor.id ?? 'new'}`"
+        smart
         hotkeys
         autofocus
         @save="save()"
@@ -205,6 +206,8 @@ async function save(action?: FormAction) {
     const saved = editor.id
       ? await props.crud.update(props.concept, editor.id, editor.version, body, idempotencyKey())
       : await props.crud.create(props.concept, body, idempotencyKey());
+    // 记住标了"记住上次填写"的字段（只在保存成功后）
+    if (!editor.id) await form.commitRemembered().catch(() => undefined);
     editor.id = saved.id;
     editor.version = saved.version;
     if (action) {
