@@ -34,7 +34,7 @@
         </el-tooltip>
         <!-- 消息 -->
         <el-tooltip :content="proxy.$t('navbar.message')" effect="dark" placement="bottom">
-          <div style="display:flex;align-items:center">
+          <div style="display: flex; align-items: center">
             <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
               <template #reference>
                 <el-badge :value="newNotice > 0 ? newNotice : ''" :max="99">
@@ -47,14 +47,6 @@
             </el-popover>
           </div>
         </el-tooltip>
-        <el-tooltip content="Github" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <el-tooltip :content="proxy.$t('navbar.document')" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
         <el-tooltip :content="proxy.$t('navbar.full')" effect="dark" placement="bottom">
           <screenfull id="screenfull" class="right-menu-item hover-effect" />
         </el-tooltip>
@@ -105,8 +97,8 @@ import notice from './notice/index.vue';
 import router from '@/router';
 import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/message-box.type';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
-import Logo from "@/layout/components/Sidebar/Logo.vue";
-import TopBar from './TopBar'
+import Logo from '@/layout/components/Sidebar/Logo.vue';
+import TopBar from './TopBar';
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -154,6 +146,8 @@ const dynamicClearEvent = async () => {
 
 /** 租户列表 */
 const initTenantList = async () => {
+  // 租户切换只对超级管理员显示，其他用户不必请求
+  if (userId.value !== 1) return;
   // 租户列表接口按 IP 限流（同一出口多人同时打开页面时可能被拒），失败时保留默认，不影响页面
   const { data } = await getTenantList(true).catch(() => ({ data: { tenantEnabled: false, voList: [] } as any }));
   tenantEnabled.value = data.tenantEnabled === undefined ? true : data.tenantEnabled;
@@ -167,6 +161,12 @@ defineExpose({
 });
 
 const toggleSideBar = () => {
+  // 手机、平板上的展开／收起是临时的，不改写桌面端记住的展开偏好
+  if (document.documentElement.dataset.breakpoint && document.documentElement.dataset.breakpoint !== 'desktop') {
+    appStore.sidebar.opened = !appStore.sidebar.opened;
+    appStore.sidebar.withoutAnimation = false;
+    return;
+  }
   appStore.toggleSideBar(false);
 };
 
@@ -283,7 +283,6 @@ watch(
     margin-left: 8px;
   }
 
-
   .errLog-container {
     display: inline-block;
     vertical-align: top;
@@ -311,7 +310,9 @@ watch(
 
       &.hover-effect {
         cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
 
         &:hover {
           background: var(--el-fill-color-light);

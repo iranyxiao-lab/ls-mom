@@ -38,3 +38,4 @@ html.dark .el-button.is-link.el-button--primary,
 html.dark .el-button.is-text.el-button--primary {
   --el-button-text-color: var(--ls-color-primary-text);
 }
+

@@ -44,6 +44,11 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 27 | `plus-ui/src/utils/theme.ts` | `handleThemeStyle` 只设置品牌主色令牌 `--ls-color-primary`（RuoYi 默认色视为未设置），`--el-color-primary-*` 改由映射层派生 | 品牌换色统一走令牌 | UI 1.2 |
 | 28 | `plus-ui/src/layout/components/Settings/index.vue` | 深色开关改为「明暗主题」（跟随系统／浅色／深色）与「界面密度」选择；预设色加入令牌默认主色 | 主题与密度由设计系统管理 | UI 1.4 |
 | 29 | `plus-ui/src/views/index.vue`、`plus-ui/src/views/error/*.vue` | 样式中的十六进制颜色与裸 px 间距替换为设计令牌 | 业务页面只用令牌（stylelint 门禁） | UI 1.1 |
+| 30 | `plus-ui/src/layout/components/{Breadcrumb,Navbar,TagsView}`、`Sidebar/{Logo,SidebarItem}.vue`、`plus-ui/src/components/{LangSelect,SizeSelect}`、`plus-ui/src/permission.ts`、`plus-ui/src/views/login.vue`、`plus-ui/index.html` | 无障碍：页面语言、菜单项角色（菜单项自身导航，不再包 `AppLink`）、头像与 Logo 替代文本、图标按钮名称、进度条名称、颜色改用令牌 | WCAG 2.1 AA 门禁（axe） | UI 2.2 |
+| 31 | `plus-ui/src/main.ts`、`plus-ui/src/plugins/svgicon.ts`、`plus-ui/src/components/{UserSelect,RoleSelect}`、`plus-ui/src/views/tool/gen/index.vue`、`plus-ui/vite/plugins/index.ts` | 去掉全局注册的 vxe-table 与 highlight.js（改为用到的页面局部引入）；图标改为异步组件；Element Plus 经精简入口加载 | 首屏 JS gzip ≤400KB | UI 2.4 |
+| 32 | `deploy/docker/nginx.conf` | 开启 `gzip_static`／`gzip`，带哈希资源长期缓存、入口页不缓存 | 上游部署模板未压缩静态资源 | UI 2.4 |
+| 33 | `plus-ui/src/utils/auth.ts`、`plus-ui/src/api/login.ts` | `useStorage` 显式引入（单测不依赖自动引入）；租户列表同一会话缓存 5 分钟 | 租户列表按 IP 限流，刷新页面会触发「访问过于频繁」 | UI 2.5、3.1 |
+| 34 | `plus-ui/src/layout/index.vue`、`Navbar.vue`、`Sidebar/index.vue`、`.env.*` | 三档断点（手机抽屉／平板收起／桌面按偏好），小屏上的展开不改写桌面偏好；侧栏与顶栏颜色由令牌驱动；去掉顶栏上游仓库与文档链接；非超级管理员不请求租户列表；产品名改为 LS-MOM | 应用外壳 | UI 3.1 |
 
 ## 生产前必须替换的上游密钥
 

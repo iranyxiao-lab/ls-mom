@@ -116,6 +116,12 @@
 | `--ls-color-chart-4` | `#d93838` | `#f06464` |
 | `--ls-color-chart-5` | `#7c5cdb` | `#9b82f0` |
 | `--ls-color-chart-6` | `#0f9fb3` | `#2ec4d6` |
+| `--ls-color-sidebar-bg` | `#171b22` | `#171b22` |
+| `--ls-color-sidebar-text` | `#c9cfd8` | `#c9cfd8` |
+| `--ls-color-sidebar-text-active` | `#ffffff` | `#ffffff` |
+| `--ls-color-sidebar-hover` | `#2a303b` | `#1f242d` |
+| `--ls-color-sidebar-active-bg` | 主色 85% 混黑 | 主色 |
+| `--ls-color-header-bg` | `#ffffff` | `#171b22` |
 
 ### 阴影（随明暗主题切换）
 

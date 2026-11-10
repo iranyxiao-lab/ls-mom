@@ -9,7 +9,7 @@
           :background-color="bgColor"
           :text-color="textColor"
           :unique-opened="true"
-          :active-text-color="'var(--ls-color-primary)'"
+          :active-text-color="activeTextColor"
           :collapse-transition="false"
           :popper-offset="12"
           mode="vertical"
@@ -24,7 +24,6 @@
 <script setup lang="ts">
 import Logo from './Logo.vue';
 import SidebarItem from './SidebarItem.vue';
-import variables from '@/assets/styles/variables.module.scss';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';
 import { usePermissionStore } from '@/store/modules/permission';
@@ -51,6 +50,10 @@ const activeMenu = computed(() => {
   return path;
 });
 
-const bgColor = computed(() => (sideTheme.value === 'theme-dark' ? variables.menuBackground : variables.menuLightBackground));
-const textColor = computed(() => (sideTheme.value === 'theme-dark' ? variables.menuColor : variables.menuLightColor));
+// 颜色全部来自设计令牌（明暗主题自动切换）
+const dark = computed(() => sideTheme.value === 'theme-dark');
+const bgColor = computed(() => (dark.value ? 'var(--ls-color-sidebar-bg)' : 'var(--ls-color-bg)'));
+const textColor = computed(() => (dark.value ? 'var(--ls-color-sidebar-text)' : 'var(--ls-color-text-regular)'));
+// 上游样式把「激活文字色」用作当前菜单的底色（文字固定白色），所以这里给的是底色令牌
+const activeTextColor = computed(() => (dark.value ? 'var(--ls-color-sidebar-active-bg)' : 'var(--ls-color-primary)'));
 </script>

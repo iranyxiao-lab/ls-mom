@@ -102,12 +102,29 @@ export function getInfo(): AxiosPromise<UserInfo> {
 }
 
 // 获取租户列表
+// 租户列表是公开数据，后端按 IP 限流（同一工厂出口的多人共享额度）：同一会话内缓存 5 分钟，避免刷新页面就被限流
+const TENANT_CACHE = 'ls-tenant-list';
 export function getTenantList(isToken: boolean): AxiosPromise<TenantInfo> {
-  return request({
-    url: '/auth/tenant/list',
-    headers: {
-      isToken: isToken
-    },
-    method: 'get'
+  try {
+    const hit = JSON.parse(sessionStorage.getItem(TENANT_CACHE) ?? 'null');
+    if (hit && Date.now() - hit.at < 5 * 60_000) return Promise.resolve(hit.res);
+  } catch {
+    /* 缓存不可用时直接请求 */
+  }
+  return (
+    request({
+      url: '/auth/tenant/list',
+      headers: {
+        isToken: isToken
+      },
+      method: 'get'
+    }) as AxiosPromise<TenantInfo>
+  ).then((res: any) => {
+    try {
+      sessionStorage.setItem(TENANT_CACHE, JSON.stringify({ at: Date.now(), res: { code: res.code, msg: res.msg, data: res.data } }));
+    } catch {
+      /* 忽略 */
+    }
+    return res;
   });
 }

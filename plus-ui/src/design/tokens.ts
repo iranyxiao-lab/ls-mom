@@ -76,7 +76,14 @@ export const semanticColor: Record<ThemeMode, Record<string, string>> = {
     'chart-3': c.orange[500],
     'chart-4': c.red[500],
     'chart-5': '#7c5cdb',
-    'chart-6': '#0f9fb3'
+    'chart-6': '#0f9fb3',
+    /** 应用外壳：深色侧栏（浅色主题下也保持深色，与内容区区分） */
+    'sidebar-bg': c.gray[900],
+    'sidebar-text': c.gray[300],
+    'sidebar-text-active': '#ffffff',
+    'sidebar-hover': c.gray[800],
+    'sidebar-active-bg': 'color-mix(in srgb, var(--ls-color-primary) 85%, #000000)',
+    'header-bg': c.gray[0]
   },
   dark: {
     // 白字压在主色上 ≥4.5:1；作文字时用 primary-text（深底 ≥4.5:1）
@@ -116,7 +123,13 @@ export const semanticColor: Record<ThemeMode, Record<string, string>> = {
     'chart-3': '#f0a33a',
     'chart-4': '#f06464',
     'chart-5': '#9b82f0',
-    'chart-6': '#2ec4d6'
+    'chart-6': '#2ec4d6',
+    'sidebar-bg': c.gray[900],
+    'sidebar-text': c.gray[300],
+    'sidebar-text-active': '#ffffff',
+    'sidebar-hover': c.gray[850],
+    'sidebar-active-bg': 'var(--ls-color-primary)',
+    'header-bg': c.gray[900]
   }
 };
 

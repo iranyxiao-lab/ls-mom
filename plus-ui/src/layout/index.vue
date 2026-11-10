@@ -29,6 +29,8 @@ import { useSettingsStore } from '@/store/modules/settings';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
 import { initWebSocket } from '@/utils/websocket';
 import { initSSE } from '@/utils/sse';
+import { breakpoints } from '@/design/tokens';
+import { useStorage, useWindowSize } from '@vueuse/core';
 
 const settingsStore = useSettingsStore();
 const theme = computed(() => settingsStore.theme);
@@ -51,20 +53,33 @@ const classObj = computed(() => ({
   mobile: device.value === 'mobile'
 }));
 
+// 三档断点（与设计令牌一致）：手机 <768 侧栏为抽屉；平板 768～1279 侧栏收起为图标栏；桌面 ≥1280 按用户上次的展开状态
 const { width } = useWindowSize();
-const WIDTH = 992; // refer to Bootstrap's responsive design
+const sidebarPref = useStorage('sidebarStatus', '1');
+const bp = computed(() => (width.value < breakpoints.tablet ? 'mobile' : width.value < breakpoints.desktop ? 'tablet' : 'desktop'));
 
-watchEffect(() => {
-  if (device.value === 'mobile') {
-    useAppStore().closeSideBar({ withoutAnimation: false });
-  }
-  if (width.value - 1 < WIDTH) {
-    useAppStore().toggleDevice('mobile');
-    useAppStore().closeSideBar({ withoutAnimation: true });
-  } else {
-    useAppStore().toggleDevice('desktop');
-  }
-});
+watch(
+  bp,
+  (b, prev) => {
+    const app = useAppStore();
+    document.documentElement.dataset.breakpoint = b;
+    if (b === 'mobile') {
+      app.toggleDevice('mobile');
+      app.sidebar.opened = false;
+      app.sidebar.withoutAnimation = true;
+      return;
+    }
+    app.toggleDevice('desktop');
+    if (b === 'tablet') {
+      // 只收起，不改写用户的展开偏好；回到桌面宽度时恢复
+      app.sidebar.opened = false;
+      app.sidebar.withoutAnimation = prev === undefined;
+    } else {
+      app.sidebar.opened = sidebarPref.value !== '0';
+    }
+  },
+  { immediate: true }
+);
 
 const navbarRef = ref<InstanceType<typeof Navbar>>();
 const settingRef = ref<InstanceType<typeof Settings>>();
@@ -85,7 +100,9 @@ onMounted(() => {
 });
 
 const handleClickOutside = () => {
-  useAppStore().closeSideBar({ withoutAnimation: false });
+  const app = useAppStore();
+  app.sidebar.opened = false;
+  app.sidebar.withoutAnimation = false;
 };
 
 const setLayout = () => {
@@ -127,7 +144,7 @@ const setLayout = () => {
   width: calc(100% - #{$base-sidebar-width});
   transition: width 0.28s;
   background: $fixed-header-bg;
-  box-shadow: 0 2px 8px rgba(0, 21, 41, 0.10);
+  box-shadow: 0 2px 8px rgba(0, 21, 41, 0.1);
 }
 
 .hideSidebar .fixed-header {

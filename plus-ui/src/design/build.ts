@@ -136,6 +136,21 @@ export function vantVars(): Record<string, string> {
   };
 }
 
+/** 上游外壳（RuoYi 侧栏、顶栏）读取的变量，统一由令牌驱动。 */
+export function shellVars(): Record<string, string> {
+  return {
+    '--menuBg': 'var(--ls-color-sidebar-bg)',
+    '--menuColor': 'var(--ls-color-sidebar-text)',
+    '--menuActiveText': 'var(--ls-color-sidebar-text-active)',
+    '--menuHover': 'var(--ls-color-sidebar-hover)',
+    '--subMenuBg': 'var(--ls-color-sidebar-bg)',
+    '--subMenuActiveText': 'var(--ls-color-sidebar-text-active)',
+    '--subMenuHover': 'var(--ls-color-sidebar-hover)',
+    '--subMenuTitleHover': 'var(--ls-color-sidebar-hover)',
+    '--fixedHeaderBg': 'var(--ls-color-header-bg)'
+  };
+}
+
 /** 完整样式表。 */
 export function cssVariables(): string {
   const reduced: Record<string, string> = {
@@ -147,7 +162,7 @@ export function cssVariables(): string {
     '/* 由 src/design/tokens.ts 生成，请勿手改 */\n',
     block('html:root', { ...baseVars(), ...colorVars('light'), ...componentVars('comfortable') }),
     // 组件库映射层：Element Plus 暗色变量写在 html.dark 上（优先级 0,1,1），这里用 0,2,1 确保不受样式加载顺序影响
-    block('html:root:root', { ...elementPlusVars(), ...vantVars() }),
+    block('html:root:root', { ...elementPlusVars(), ...vantVars(), ...shellVars() }),
     block('html.dark:root', colorVars('dark')),
     block('html:root[data-density="compact"], [data-density="compact"]', componentVars('compact')),
     // 局部区域可单独指定密度（例如紧凑列表页里的舒适表单）
