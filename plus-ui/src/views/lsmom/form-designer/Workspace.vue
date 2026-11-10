@@ -10,6 +10,9 @@
       <div class="ls-designer__ops">
         <el-button :disabled="!canUndo" data-testid="undo" @click="undo">撤销</el-button>
         <el-button :disabled="!canRedo" data-testid="redo" @click="redo">重做</el-button>
+        <el-button :type="live ? 'primary' : 'default'" plain data-testid="live-toggle" @click="live = !live">{{
+          live ? '关闭实时预览' : '实时预览'
+        }}</el-button>
         <el-button :loading="busy" data-testid="save" @click="save">保存草稿</el-button>
         <el-button :loading="busy" data-testid="check" data-tour="fd-check" @click="check">校验</el-button>
         <el-button type="primary" :loading="busy" data-testid="publish" data-tour="fd-publish" @click="publish">发布</el-button>
@@ -79,7 +82,7 @@
                     </el-select>
                   </el-form-item>
                   <el-form-item label="只读 / 隐藏">
-                    <el-checkbox v-model="ext.readonly" @change="touch">只读</el-checkbox>
+                    <el-checkbox v-model="ext.readonly" data-testid="ext-readonly" @change="touch">只读</el-checkbox>
                     <el-checkbox v-model="ext.hidden" @change="touch">隐藏</el-checkbox>
                   </el-form-item>
                   <el-form-item label="长度 / 范围">
@@ -190,7 +193,7 @@
               </el-tab-pane>
               <el-tab-pane label="节点策略" name="policies">
                 <div v-for="(p, node) in meta.nodePolicies" :key="node" class="ls-designer__card" :data-testid="'policy-' + node">
-                  <strong>{{ node }}</strong>
+                  <strong>{{ nodeNames[node] ? `${nodeNames[node]}（${node}）` : node }}</strong>
                   <template v-for="kind in POLICY_KINDS" :key="kind">
                     <el-select v-model="p[kind]" multiple size="small" filterable allow-create :placeholder="kind" @change="touch">
                       <el-option value="*" label="全部（*）" />
@@ -227,6 +230,14 @@
               </el-tab-pane>
             </el-tabs>
           </aside>
+          <section v-if="live" class="ls-designer__live" data-testid="live-preview">
+            <div class="ls-designer__live-bar">
+              <PerspectiveSwitch v-model="perspective" :nodes="nodeOptions" />
+            </div>
+            <div class="ls-designer__preview" data-testid="live-canvas">
+              <PerspectiveView :perspective="perspective" />
+            </div>
+          </section>
         </div>
       </el-tab-pane>
 
@@ -301,29 +312,9 @@
       </el-tab-pane>
 
       <el-tab-pane label="预览" name="preview">
-        <el-radio-group v-model="device" size="small" class="ls-designer__alert" data-testid="preview-device">
-          <el-radio-button value="desktop">桌面</el-radio-button><el-radio-button value="mobile">移动</el-radio-button>
-          <el-radio-button value="detail">只读详情</el-radio-button><el-radio-button value="print">打印</el-radio-button>
-        </el-radio-group>
+        <div class="ls-designer__alert"><PerspectiveSwitch v-model="perspective" :nodes="nodeOptions" /></div>
         <div v-if="tab === 'preview'" class="ls-designer__preview" data-testid="preview">
-          <SchemaForm
-            v-if="device === 'desktop'"
-            v-model="previewModel"
-            :schema="current"
-            :api="rendererApi"
-            :context="{ orgId: previewOrg }"
-            :org-id="previewOrg"
-          />
-          <SchemaMobile
-            v-else-if="device === 'mobile'"
-            v-model="previewModel"
-            :schema="mobileSchema"
-            :form="current"
-            :api="rendererApi"
-            :org-id="previewOrg"
-          />
-          <SchemaDetail v-else-if="device === 'detail'" :schema="current" :record="previewModel" :api="rendererApi" />
-          <SchemaPrint v-else :schema="printSchema" :record="previewModel" :labels="labels" />
+          <PerspectiveView :perspective="perspective" />
         </div>
       </el-tab-pane>
 
@@ -345,8 +336,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import { ElMessage } from 'element-plus';
+import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { ElMessage, ElOption, ElRadioButton, ElRadioGroup, ElSelect } from 'element-plus';
 import { FcDesigner } from '@/vendor/form-create';
 import SchemaForm from '@/components/SchemaForm/index.vue';
 import { formAssistApi, type AssistProposal } from '@/api/lsmom/formAssist';
@@ -379,6 +370,8 @@ const props = withDefaults(
     height?: string;
     /** 轮询间隔（毫秒）：捕获属性面板中的修改，记入撤销历史 */
     pollMs?: number;
+    /** 流程节点名：节点策略键 → 名称（来自绑定该表单的流程） */
+    nodeNames?: Record<string, string>;
   }>(),
   {
     status: 'DRAFT',
@@ -387,7 +380,9 @@ const props = withDefaults(
     operations: () => [],
     components: () => [],
     height: 'calc(100vh - 260px)',
-    pollMs: 600
+    // 设计器内部属性面板的修改没有事件，靠轮询读取；150ms 保证属性修改后 300ms 内更新预览
+    pollMs: 150,
+    nodeNames: () => ({})
   }
 );
 const emit = defineEmits<{ (e: 'published', r: PublishResult): void; (e: 'change', s: FormSchema): void }>();
@@ -401,7 +396,84 @@ const issues = ref<ViewIssue[]>([]);
 const adapterError = ref('');
 const publishResult = ref<PublishResult | null>(null);
 const status = ref(props.status);
-const device = ref<'desktop' | 'mobile' | 'detail' | 'print'>('desktop');
+/** 预览视角：桌面 / 移动 / 只读详情 / 打印 / 流程节点（node:<策略键>，按节点策略显示只读、可编辑、必填） */
+const perspective = ref<string>('desktop');
+const live = ref(false);
+const nodeOptions = computed(() => {
+  // 按流程中的节点顺序，其后是只在表单里配置了策略的节点
+  const keys = new Set([...Object.keys(props.nodeNames), ...Object.keys(meta.nodePolicies ?? {})]);
+  return [...keys].map((k) => ({ key: k, name: props.nodeNames[k] ?? (k === 'initiator' ? '发起人（退回修改）' : k) }));
+});
+/** 预览内容（设计页与预览页共用，跟随 current 实时更新） */
+const PerspectiveView = defineComponent({
+  props: { perspective: { type: String, required: true } },
+  setup(p) {
+    return () => {
+      const v = p.perspective;
+      if (v === 'mobile')
+        return h(SchemaMobile, {
+          modelValue: previewModel.value,
+          'onUpdate:modelValue': (x: any) => (previewModel.value = x),
+          schema: mobileSchema.value,
+          form: current.value,
+          api: props.rendererApi,
+          orgId: previewOrg.value
+        });
+      if (v === 'detail') return h(SchemaDetail, { schema: current.value, record: previewModel.value, api: props.rendererApi });
+      if (v === 'print') return h(SchemaPrint, { schema: printSchema.value, record: previewModel.value, labels: labels.value });
+      const node = v.startsWith('node:') ? v.slice(5) : undefined;
+      return h(SchemaForm, {
+        key: node ?? 'entry',
+        modelValue: previewModel.value,
+        'onUpdate:modelValue': (x: any) => (previewModel.value = x),
+        schema: current.value,
+        api: props.rendererApi,
+        context: { orgId: previewOrg.value },
+        orgId: previewOrg.value,
+        node,
+        showActions: !node
+      });
+    };
+  }
+});
+const PerspectiveSwitch = defineComponent({
+  props: { modelValue: { type: String, required: true }, nodes: { type: Array as () => { key: string; name: string }[], required: true } },
+  emits: ['update:modelValue'],
+  setup(p, { emit: e }) {
+    return () =>
+      h('div', { class: 'ls-designer__persp', 'data-testid': 'perspective' }, [
+        h(
+          ElRadioGroup,
+          {
+            modelValue: p.modelValue.startsWith('node:') ? 'node' : p.modelValue,
+            size: 'small',
+            'data-testid': 'preview-device',
+            'onUpdate:modelValue': (v: any) => e('update:modelValue', v === 'node' ? `node:${p.nodes[0]?.key ?? ''}` : v)
+          },
+          () => [
+            h(ElRadioButton, { value: 'desktop' }, () => '桌面'),
+            h(ElRadioButton, { value: 'mobile' }, () => '移动'),
+            h(ElRadioButton, { value: 'detail' }, () => '只读详情'),
+            h(ElRadioButton, { value: 'print' }, () => '打印'),
+            h(ElRadioButton, { value: 'node', disabled: !p.nodes.length, 'data-testid': 'persp-node' }, () => '流程节点')
+          ]
+        ),
+        p.modelValue.startsWith('node:')
+          ? h(
+              ElSelect,
+              {
+                modelValue: p.modelValue.slice(5),
+                size: 'small',
+                style: 'width: 180px',
+                'data-testid': 'persp-node-select',
+                'onUpdate:modelValue': (v: any) => e('update:modelValue', `node:${v}`)
+              },
+              () => p.nodes.map((n) => h(ElOption, { key: n.key, value: n.key, label: n.name }))
+            )
+          : null
+      ]);
+  }
+});
 const previewModel = ref<Record<string, any>>({});
 const previewOrg = ref<number | undefined>(undefined);
 const simNode = ref<string>('');
@@ -973,5 +1045,30 @@ defineExpose({ designer, current, history, undo, redo, snap, load, save, publish
 .ls-designer__sub {
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+.ls-designer__live {
+  width: 400px;
+  flex: none;
+  border-left: 1px solid var(--el-border-color-lighter);
+  padding-left: 12px;
+  overflow: auto;
+}
+.ls-designer__live-bar {
+  margin-bottom: 8px;
+}
+.ls-designer__persp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* 节点视角：只读字段显示为文字底色，与可编辑字段区分（与运行时一致的渲染，外加设计期提示） */
+.ls-designer__preview :deep(.is-readonly .ls-field__text) {
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 4px;
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-regular);
+  line-height: 32px;
 }
 </style>

@@ -8,6 +8,8 @@
         :error="ctx.errors[n.key!]"
         :data-testid="'field-' + n.key"
         :data-field-key="n.key"
+        :data-access="ctx.access[n.key!]?.editable ? (ctx.access[n.key!]?.required ? 'required' : 'editable') : 'readonly'"
+        :class="{ 'is-readonly': !ctx.access[n.key!]?.editable }"
       >
         <template v-if="ctx.origin?.[n.key!] || fieldOf(n.key)!.help" #label>
           {{ fieldOf(n.key)!.label ?? n.key }}

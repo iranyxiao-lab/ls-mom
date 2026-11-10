@@ -12,6 +12,7 @@
         :child-concepts="childConcepts"
         :operations="operations"
         :components="components"
+        :node-names="nodeNames"
         :api="designerApi"
         :renderer-api="formApi"
         @published="onPublished"
@@ -25,6 +26,7 @@ import { getCurrentInstance, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { formApi } from '@/api/lsmom/form';
 import { crudApi } from '@/api/lsmom/crud';
+import { flowApi } from '@/api/lsmom/flow';
 import type { FormSchema } from '@/types/lsView';
 import type { PublishResult } from '@/api/lsmom/form';
 import Workspace from './Workspace.vue';
@@ -47,6 +49,8 @@ const conceptFields = ref<ConceptFieldInfo[]>([]);
 const childConcepts = ref<{ key: string; concept: string; displayName: string }[]>([]);
 const operations = ref<{ operation: string; name: string }[]>([]);
 const components = ref<{ code: string; version: string; displayName: string }[]>([]);
+/** 绑定该表单的流程节点名（节点视角预览、节点策略显示"车间审核"而不是键） */
+const nodeNames = ref<Record<string, string>>({});
 
 const designerApi: DesignerApi = { saveDraft: (s) => formApi.saveDraft(s), check: formApi.check, publish: formApi.publish };
 
@@ -133,6 +137,8 @@ onMounted(async () => {
         ls
       );
     }
+    const nodes = await flowApi.formNodes(schema.value!.formCode).catch(() => []);
+    nodeNames.value = Object.fromEntries(nodes.map((n) => [n.key, n.name]));
     ready.value = true;
   } catch (e: any) {
     error.value = e?.message ?? String(e);

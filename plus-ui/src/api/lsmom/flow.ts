@@ -48,6 +48,9 @@ export const flowApi = {
       request({ url: '/api/flow/parties', method: 'get', params: { keyword } })
     ),
   roles: () => data<{ roleKey: string; roleName: string }[]>(request({ url: '/api/flow/roles', method: 'get' })),
+  /** 绑定该表单的流程节点（节点策略键、节点名） */
+  formNodes: (formCode: string) =>
+    data<{ key: string; name: string; flow: string }[]>(request({ url: '/api/flow/form-nodes', method: 'get', params: { formCode } })),
   orgs: () =>
     data<{ id: number; code: string; name: string; unitType: string; parentId?: number }[]>(request({ url: '/api/flow/orgs', method: 'get' })),
   conceptFields: (concept: string) =>

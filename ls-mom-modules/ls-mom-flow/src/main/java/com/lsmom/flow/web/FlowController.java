@@ -62,6 +62,28 @@ public class FlowController {
         return R.ok(registry.list().stream().map(FlowController::summary).toList());
     }
 
+    /** 绑定某表单的流程节点（表单设计器按节点视角预览、给节点策略起名）：节点策略键、节点名、所属流程。 */
+    @SaCheckPermission("lsmom:form:design")
+    @GetMapping("/form-nodes")
+    public R<List<Map<String, Object>>> formNodes(@RequestParam String formCode) {
+        List<Map<String, Object>> out = new java.util.ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (FlowRegistry.Version v : registry.list()) {
+            var d = v.definition();
+            if (d == null || d.form() == null || !formCode.equals(d.form().code())) continue;
+            for (var n : d.nodes()) {
+                if (n.type() == null || !java.util.Set.of("FILL", "AUDIT", "CONFIRM").contains(n.type().name())) continue;
+                if (!seen.add(n.policyKey())) continue;
+                Map<String, Object> m = new LinkedHashMap<>();
+                m.put("key", n.policyKey());
+                m.put("name", n.name());
+                m.put("flow", v.name());
+                out.add(m);
+            }
+        }
+        return R.ok(out);
+    }
+
     @SaCheckPermission("lsmom:flow:design")
     @GetMapping("/definitions/{code}/history")
     public R<List<Map<String, Object>>> history(@PathVariable String code) {
