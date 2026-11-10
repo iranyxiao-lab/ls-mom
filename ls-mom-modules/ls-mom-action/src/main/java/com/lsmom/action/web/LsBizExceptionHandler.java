@@ -47,7 +47,8 @@ public class LsBizExceptionHandler {
     public Map<String, Object> handle(LsBizException e, HttpServletRequest request) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("errorCode", e.getCode());
-        data.put("details", e.getDetails());
+        // 校验失败统一带 details.errors：{field, table, rowIndex, code, message, fix}
+        data.put("details", "VALIDATION_FAILED".equals(e.getCode()) ? com.lsmom.core.error.FieldErrors.complete(e.getDetails()) : e.getDetails());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", status(e.getCode()));
         body.put("msg", e.getMessage());

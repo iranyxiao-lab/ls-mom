@@ -179,7 +179,9 @@ service.interceptors.response.use(
     } else if (code !== HttpStatus.SUCCESS) {
       // 无权限等错误：附上追踪编号，便于反馈给管理员
       ElNotification.error({ title: msg, message: trace ? `追踪编号 ${trace}` : undefined });
-      return Promise.reject('error');
+      // 带上业务错误编码与细节（如校验失败的字段错误 details.errors），调用方可定位到字段
+      const payload = (res.data.data ?? {}) as { errorCode?: string; details?: Record<string, unknown> };
+      return Promise.reject(Object.assign(new Error(msg), { code, errorCode: payload.errorCode, details: payload.details, trace }));
     } else {
       return Promise.resolve(res.data);
     }

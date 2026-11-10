@@ -310,6 +310,8 @@ async function reportDefect() {
     }
     defectVisible.value = false;
     await openDetail(c.id);
+  } catch (e) {
+    if (!form.setServerErrors(e)) throw e;
   } finally {
     defectBusy.value = false;
   }

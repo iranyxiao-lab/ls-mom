@@ -7,6 +7,7 @@
         :required="!!ctx.access[n.key!]?.required"
         :error="ctx.errors[n.key!]"
         :data-testid="'field-' + n.key"
+        :data-field-key="n.key"
       >
         <template v-if="ctx.origin?.[n.key!]" #label>
           {{ fieldOf(n.key)!.label ?? n.key }}

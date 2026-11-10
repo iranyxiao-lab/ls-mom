@@ -53,6 +53,8 @@ public class FormRecordValidator implements RecordValidator {
         Map<String, Object> model = merged(ctx, form);
         Map<String, Object> context = context(ctx);
         Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, String> codes = new LinkedHashMap<>();
+        Map<String, String> fixes = new LinkedHashMap<>();
         Map<String, JsonNode> overrides = new LinkedHashMap<>();
         JsonNode body = ctx.body();
         ConceptDef concept = concepts.get(ctx.concept());
@@ -73,12 +75,12 @@ public class FormRecordValidator implements RecordValidator {
                 Object submitted = CelValues.fromJson(body.get(key));
                 Object before = ctx.current() == null ? CelValues.fromJson(f.get("default")) : CelValues.fromJava(ctx.current().get(key));
                 if (!same(submitted, before)) {
-                    errors.put(key, label(f, concept) + "为只读，不能修改");
+                    put(errors, codes, fixes, key, new Problem("READONLY", label(f, concept) + "为只读，不能修改", "刷新后重新填写"));
                     continue;
                 }
             }
-            String err = checkValue(f, a, model.get(key), concept, model, context, ctx);
-            if (err != null) errors.put(key, err);
+            Problem err = checkValue(f, a, model.get(key), concept, model, context, ctx);
+            if (err != null) put(errors, codes, fixes, key, err);
         }
         for (JsonNode st : form.path("subTables")) {
             String sk = st.path("key").asText();
@@ -86,16 +88,20 @@ public class FormRecordValidator implements RecordValidator {
             List<?> list = rows instanceof List<?> l ? l : List.of();
             String name = st.path("label").asText(sk);
             boolean imported = body != null && body.path(RecordValidator.IMPORT_FLAG).asBoolean(false);
-            if (!imported && st.has("minRows") && list.size() < st.get("minRows").asInt()) errors.put(sk, name + "至少 " + st.get("minRows").asInt() + " 行");
-            if (st.has("maxRows") && list.size() > st.get("maxRows").asInt()) errors.put(sk, name + "最多 " + st.get("maxRows").asInt() + " 行");
+            if (!imported && st.has("minRows") && list.size() < st.get("minRows").asInt()) {
+                put(errors, codes, fixes, sk, new Problem("ROWS_MIN", name + "至少 " + st.get("minRows").asInt() + " 行", "添加一行"));
+            }
+            if (st.has("maxRows") && list.size() > st.get("maxRows").asInt()) {
+                put(errors, codes, fixes, sk, new Problem("ROWS_MAX", name + "最多 " + st.get("maxRows").asInt() + " 行", "删除多余的行"));
+            }
             ConceptDef child = concepts.find(st.path("conceptCode").asText()).orElse(null);
             for (int i = 0; i < list.size(); i++) {
                 Map<String, Object> row = CelValues.asMap(list.get(i));
                 for (JsonNode f : st.path("fields")) {
                     String key = f.path("key").asText();
                     FieldPolicy.Access a = access.get(sk + "." + key);
-                    String err = checkValue(f, a, row.get(key), child, model, context, ctx);
-                    if (err != null) errors.put(sk + "[" + i + "]." + key, "第 " + (i + 1) + " 行：" + err);
+                    Problem err = checkValue(f, a, row.get(key), child, model, context, ctx);
+                    if (err != null) put(errors, codes, fixes, sk + "[" + i + "]." + key, new Problem(err.code(), "第 " + (i + 1) + " 行：" + err.message(), err.fix()));
                 }
             }
         }
@@ -105,11 +111,13 @@ public class FormRecordValidator implements RecordValidator {
                 if (level.equals("L0")) continue;
                 if (r.has("when") && !applies(r.get("when").asText(), model, context)) continue;
                 try {
-                    if (!cel.test(cel.compileCondition(r.path("assert").asText()), model, context)) {
-                        errors.putIfAbsent(r.has("field") ? r.get("field").asText() : "_form", r.path("message").asText());
+                    String rk = r.has("field") ? r.get("field").asText() : "_form";
+                    if (!cel.test(cel.compileCondition(r.path("assert").asText()), model, context) && !errors.containsKey(rk)) {
+                        put(errors, codes, fixes, rk, new Problem("RULE", r.path("message").asText(), null));
                     }
                 } catch (LsBizException e) {
-                    errors.putIfAbsent(r.has("field") ? r.get("field").asText() : "_form", r.path("message").asText() + "（" + e.getMessage() + "）");
+                    String rk = r.has("field") ? r.get("field").asText() : "_form";
+                    if (!errors.containsKey(rk)) put(errors, codes, fixes, rk, new Problem("RULE", r.path("message").asText() + "（" + e.getMessage() + "）", null));
                 }
             }
         }
@@ -117,6 +125,8 @@ public class FormRecordValidator implements RecordValidator {
             String first = errors.values().iterator().next();
             Map<String, Object> details = new LinkedHashMap<>();
             details.put("fields", errors);
+            details.put("codes", codes);
+            details.put("fixes", fixes);
             details.put("form", view.code());
             details.put("formVersion", view.version());
             throw new LsBizException("VALIDATION_FAILED", "输入校验失败：" + first, details);
@@ -177,22 +187,32 @@ public class FormRecordValidator implements RecordValidator {
 
     // ---------- 字段校验 ----------
 
-    private String checkValue(JsonNode f, FieldPolicy.Access a, Object v, ConceptDef concept, Map<String, Object> model,
-                              Map<String, Object> context, Context ctx) {
+    /** 一条字段问题：编码、文字、修复提示（可为空）。 */
+    record Problem(String code, String message, String fix) {
+    }
+
+    private static void put(Map<String, String> errors, Map<String, String> codes, Map<String, String> fixes, String key, Problem p) {
+        errors.put(key, p.message());
+        codes.put(key, p.code());
+        if (p.fix() != null) fixes.put(key, p.fix());
+    }
+
+    private Problem checkValue(JsonNode f, FieldPolicy.Access a, Object v, ConceptDef concept, Map<String, Object> model,
+                               Map<String, Object> context, Context ctx) {
         String label = label(f, concept);
         boolean empty = v == null || (v instanceof String s && s.isBlank()) || (v instanceof List<?> l && l.isEmpty());
-        if (empty) return a != null && a.required() ? label + "必填" : null;
+        if (empty) return a != null && a.required() ? new Problem("REQUIRED", label + "必填", "填写" + label) : null;
         if (v instanceof String s) {
             int len = s.codePointCount(0, s.length());
-            if (f.has("minLength") && len < f.get("minLength").asInt()) return label + "至少 " + f.get("minLength").asInt() + " 个字符";
-            if (f.has("maxLength") && len > f.get("maxLength").asInt()) return label + "最多 " + f.get("maxLength").asInt() + " 个字符";
+            if (f.has("minLength") && len < f.get("minLength").asInt()) return new Problem("MIN_LENGTH", label + "至少 " + f.get("minLength").asInt() + " 个字符", null);
+            if (f.has("maxLength") && len > f.get("maxLength").asInt()) return new Problem("MAX_LENGTH", label + "最多 " + f.get("maxLength").asInt() + " 个字符", null);
             if (f.has("pattern")) {
                 try {
                     if (!Pattern.compile(f.get("pattern").asText()).matcher(s).matches()) {
-                        return f.has("patternMessage") ? f.get("patternMessage").asText() : label + "格式不正确";
+                        return new Problem("PATTERN", f.has("patternMessage") ? f.get("patternMessage").asText() : label + "格式不正确", null);
                     }
                 } catch (RuntimeException e) {
-                    return label + "格式规则无效";
+                    return new Problem("PATTERN", label + "格式规则无效", null);
                 }
             }
         }
@@ -201,24 +221,26 @@ public class FormRecordValidator implements RecordValidator {
             try {
                 d = new BigDecimal(v.toString());
             } catch (NumberFormatException e) {
-                return label + "必须是数字";
+                return new Problem("NOT_NUMBER", label + "必须是数字", null);
             }
-            if (f.has("min") && d.compareTo(f.get("min").decimalValue()) < 0) return label + "不能小于 " + f.get("min").asText();
-            if (f.has("max") && d.compareTo(f.get("max").decimalValue()) > 0) return label + "不能大于 " + f.get("max").asText();
+            if (f.has("min") && d.compareTo(f.get("min").decimalValue()) < 0) return new Problem("MIN", label + "不能小于 " + f.get("min").asText(), null);
+            if (f.has("max") && d.compareTo(f.get("max").decimalValue()) > 0) return new Problem("MAX", label + "不能大于 " + f.get("max").asText(), null);
         }
         List<Object> values = v instanceof List<?> l ? new ArrayList<>(l) : List.of(v);
         if (f.has("options") && f.get("options").size() > 0) {
             List<String> allowed = new ArrayList<>();
             collectOptions(f.get("options"), allowed);
-            for (Object x : values) if (!allowed.contains(String.valueOf(x))) return label + "的取值不在可选范围内";
+            for (Object x : values) if (!allowed.contains(String.valueOf(x))) return new Problem("OPTION", label + "的取值不在可选范围内", "从下拉列表中重新选择");
         }
         if (f.has("dictType")) {
             List<String> dict = jdbc.queryForList("select dict_value from sys_dict_data where dict_type = ?", String.class, f.get("dictType").asText());
-            for (Object x : values) if (!dict.contains(String.valueOf(x))) return label + "的取值不在字典「" + f.get("dictType").asText() + "」中";
+            for (Object x : values) {
+                if (!dict.contains(String.valueOf(x))) return new Problem("DICT", label + "的取值不在字典「" + f.get("dictType").asText() + "」中", "从下拉列表中重新选择");
+            }
         }
         if (f.has("ref")) {
             String err = refAllowed(f.get("ref"), values, model, context);
-            if (err != null) return label + err;
+            if (err != null) return new Problem("REF", label + err, "重新选择" + label);
         }
         return null;
     }

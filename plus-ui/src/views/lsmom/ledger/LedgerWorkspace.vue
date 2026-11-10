@@ -210,6 +210,9 @@ async function save(action?: FormAction) {
     await form.clearDraft();
     editor.visible = false;
     await table.value?.load();
+  } catch (e) {
+    // 字段校验失败：错误显示到对应字段与子表单元格，并定位到第一个错误
+    if (!form.setServerErrors(e)) throw e;
   } finally {
     busy.value = false;
   }

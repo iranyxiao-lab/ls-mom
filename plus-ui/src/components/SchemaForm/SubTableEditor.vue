@@ -11,15 +11,21 @@
       <template v-for="f in columns" :key="f.key">
         <el-table-column :label="(f.label ?? f.key) + (access[table.key + '.' + f.key]?.required ? ' *' : '')" min-width="140">
           <template #default="{ row, $index }">
-            <FieldWidget
-              :field="f"
-              :model-value="row[f.key]"
-              :editable="!!access[table.key + '.' + f.key]?.editable"
-              :api="api"
-              :org-id="orgId"
-              @update:model-value="(v: unknown) => setCell($index, f.key, v)"
-            />
-            <div v-if="errors[table.key + '[' + $index + '].' + f.key]" class="ls-subtable__err">{{ errors[table.key + '[' + $index + '].' + f.key] }}</div>
+            <div
+              :class="['ls-subtable__cell', { 'is-error': !!errors[cellKey($index, f.key)] }]"
+              :data-field-key="cellKey($index, f.key)"
+              :data-testid="`cell-${table.key}-${$index}-${f.key}`"
+            >
+              <FieldWidget
+                :field="f"
+                :model-value="row[f.key]"
+                :editable="!!access[table.key + '.' + f.key]?.editable"
+                :api="api"
+                :org-id="orgId"
+                @update:model-value="(v: unknown) => setCell($index, f.key, v)"
+              />
+              <div v-if="errors[cellKey($index, f.key)]" class="ls-subtable__err" role="alert">{{ errors[cellKey($index, f.key)] }}</div>
+            </div>
           </template>
         </el-table-column>
       </template>
@@ -57,6 +63,7 @@ const rows = computed<Record<string, any>[]>(() => {
   return list;
 });
 const tableAccess = computed(() => props.access[props.table.key] ?? { visible: true, editable: true, required: false });
+const cellKey = (i: number, f: string) => `${props.table.key}[${i}].${f}`;
 const columns = computed(() => props.table.fields.filter((f) => props.access[props.table.key + '.' + f.key]?.visible !== false));
 
 function add() {
@@ -90,8 +97,16 @@ function setCell(i: number, key: string, v: unknown) {
 .ls-subtable__title {
   font-weight: 600;
 }
+.ls-subtable__cell.is-error :deep(.el-input__wrapper),
+.ls-subtable__cell.is-error :deep(.el-select__wrapper),
+.ls-subtable__cell.is-error :deep(.el-textarea__inner) {
+  box-shadow: 0 0 0 1px var(--el-color-danger) inset;
+}
+.ls-subtable__cell.is-error {
+  background: var(--el-color-danger-light-9);
+}
 .ls-subtable__err {
-  color: var(--el-color-danger);
+  color: var(--el-color-danger-dark-2);
   font-size: 12px;
   line-height: 1.4;
 }

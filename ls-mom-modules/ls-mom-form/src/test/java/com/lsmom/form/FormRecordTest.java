@@ -72,7 +72,13 @@ class FormRecordTest {
         assertThatThrownBy(() -> f.crud.crud.create(order, json(body(org, toolA, "").toString().replace("\"L-1\"", "\"X-1\"")), admin, null))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.fieldErrors()).containsEntry("loanNo", "单号须以 L- 开头"));
         assertThatThrownBy(() -> f.crud.crud.create(order, json(body(org, toolA, "").toString().replace("\"qty\":2", "\"qty\":120")), admin, null))
-            .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.fieldErrors()).containsEntry("loanLine[0].qty", "第 1 行：数量不能大于 99"));
+            .isInstanceOfSatisfying(LsBizException.class, e -> {
+                assertThat(e.fieldErrors()).containsEntry("loanLine[0].qty", "第 1 行：数量不能大于 99");
+                // 统一结构：子表单元格拆成 table / rowIndex / field，带稳定编码
+                java.util.List<Map<String, Object>> errs = (java.util.List<Map<String, Object>>) com.lsmom.core.error.FieldErrors.complete(e.getDetails()).get("errors");
+                assertThat(errs).anySatisfy(x -> assertThat(x).containsEntry("field", "loanLine.qty").containsEntry("table", "loanLine")
+                    .containsEntry("rowIndex", 0).containsEntry("code", "MAX").containsEntry("message", "数量不能大于 99"));
+            });
         assertThatThrownBy(() -> f.crud.crud.create(order, json(body(org, toolA, "").toString()
                 .replace("[{\"tool\":\"扳手\",\"qty\":2},{\"tool\":\"万用表\",\"qty\":1}]", "[]")), admin, null))
             .isInstanceOfSatisfying(LsBizException.class, e -> assertThat(e.fieldErrors()).containsEntry("loanLine", "借出明细至少 1 行"));

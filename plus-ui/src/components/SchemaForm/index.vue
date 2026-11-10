@@ -1,11 +1,13 @@
 <template>
   <el-form
+    ref="rootRef"
     class="schema-form"
     :class="{ 'schema-form--single': single }"
     :label-width="single ? 'auto' : (schema.labelWidth ?? 100) + 'px'"
     :label-position="single ? 'top' : 'right'"
     data-testid="schema-form"
     @submit.prevent
+    @focusout="onBlur"
   >
     <div v-if="draftState.found.value" class="schema-form__draft" role="status" data-testid="draft-found">
       <span>发现未提交的草稿（{{ draftTime(draftState.found.value.savedAt) }}）</span>
@@ -13,6 +15,16 @@
       <el-button size="small" data-testid="draft-discard" @click="discardDraft">丢弃</el-button>
     </div>
     <div v-else-if="draftState.savedAt.value" class="schema-form__draft-saved" data-testid="draft-saved">草稿已自动保存 {{ draftTime(draftState.savedAt.value) }}</div>
+    <div v-if="showSummary && summary.length" class="schema-form__summary" role="alert" data-testid="error-summary">
+      <div class="schema-form__summary-title">有 {{ summary.length }} 处需要修改，点击定位：</div>
+      <ul>
+        <li v-for="item in summary" :key="item.key">
+          <button type="button" class="schema-form__summary-item" data-testid="error-summary-item" :data-key="item.key" @click="locate(item.key)">
+            <b>{{ item.label }}</b>：{{ item.message }}<span v-if="item.fix" class="schema-form__fix">（{{ item.fix }}）</span>
+          </button>
+        </li>
+      </ul>
+    </div>
     <el-alert v-if="formError" type="error" :title="formError" :closable="false" class="schema-form__alert" />
     <el-alert v-for="w in warnings" :key="w" type="warning" :title="w" :closable="false" class="schema-form__alert" />
     <LayoutNodes :nodes="nodes" :ctx="ctx" />
@@ -32,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import type { FormAction, FormSchema, LayoutNode } from '@/types/lsView';
 import type { RendererApi } from '@/api/lsmom/form';
@@ -41,6 +53,7 @@ import { resolveFieldPolicy, type Access } from '@/utils/lsform/fieldPolicy';
 import { computeFields, validateForm, type FormCheck, type FormContext } from '@/utils/lsform/validate';
 import { rememberValues, smartDefaults, usesSmartDefaults, type FillOrigin } from '@/utils/lsform/smartDefaults';
 import { useDraft } from '@/utils/lsform/useDraft';
+import { mapServerErrors, summaryItems } from '@/utils/lsform/serverErrors';
 import { draftTime } from '@/utils/lsform/draftModel';
 import { currentUserId } from '@/utils/currentUser';
 import LayoutNodes from './LayoutNodes.vue';
@@ -83,6 +96,11 @@ const emit = defineEmits<{
 }>();
 
 const errors = reactive<Record<string, string>>({});
+/** 服务端给出的修复提示（键同 errors） */
+const fixes = reactive<Record<string, string>>({});
+/** 提交失败后显示顶部错误汇总 */
+const showSummary = ref(false);
+const rootRef = ref<{ $el: HTMLElement }>();
 /** 预填字段的来源（用户改动后清除），用于在标签旁区分"上次填写"与"自动带入" */
 const origin = reactive<Record<string, FillOrigin>>({});
 /** 用户是否动过表单（只有预填值时不保存草稿） */
@@ -130,9 +148,23 @@ const formError = computed(() => errors._form);
 const context = computed<FormContext>(() => ({ orgId: props.orgId, deptId: props.orgId, ...props.context }));
 
 function set(key: string, v: unknown) {
+  const prev = props.modelValue[key];
   const next = { ...props.modelValue, [key]: v };
   computeFields(props.schema, next, context.value);
   delete errors[key];
+  delete fixes[key];
+  // 子表：改动过的单元格清掉错误
+  if (tables.value.has(key) && Array.isArray(v)) {
+    const before = Array.isArray(prev) ? prev : [];
+    v.forEach((row: any, i: number) => {
+      for (const f of tables.value.get(key)!.fields) {
+        if (before[i]?.[f.key] !== row?.[f.key]) {
+          delete errors[`${key}[${i}].${f.key}`];
+          delete fixes[`${key}[${i}].${f.key}`];
+        }
+      }
+    });
+  }
   delete origin[key];
   touched.value = true;
   emit('update:modelValue', next);
@@ -214,18 +246,59 @@ async function commitRemembered() {
   await props.api.remember(props.schema.formCode, values).catch(() => undefined);
 }
 
-function validate(): FormCheck {
+const summary = computed(() => summaryItems(props.schema, errors, fixes));
+
+/** 定位到字段或子表单元格：滚动到可见位置并聚焦其中的输入框。 */
+function locate(key: string) {
+  const root = rootRef.value?.$el;
+  if (!root) return;
+  const el = root.querySelector<HTMLElement>(`[data-field-key="${CSS.escape(key)}"]`);
+  if (!el) return;
+  el.scrollIntoView({ block: 'center' });
+  const input = el.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+  input?.focus({ preventScroll: true });
+}
+
+function showErrors() {
+  showSummary.value = summary.value.length > 0;
+  if (showSummary.value) void nextTick(() => locate(summary.value[0].key));
+}
+
+/** 整单校验；有错误时显示顶部汇总并滚动到第一个错误（focus: false 时只校验）。 */
+function validate(opts: { focus?: boolean } = {}): FormCheck {
   const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
   Object.keys(errors).forEach((k) => delete errors[k]);
+  Object.keys(fixes).forEach((k) => delete fixes[k]);
   Object.assign(errors, r.errors);
   warnings.value = r.warnings;
+  if (opts.focus !== false) showErrors();
   return r;
 }
 
-/** 服务端返回的字段错误（VALIDATION_FAILED details.fields）回填到字段。 */
-function setServerErrors(fieldErrors: Record<string, string>) {
+/** 失焦校验：离开字段或单元格时就近显示该处的错误。 */
+function onBlur(e: FocusEvent) {
+  const host = (e.target as HTMLElement | null)?.closest?.('[data-field-key]') as HTMLElement | null;
+  const key = host?.dataset.fieldKey;
+  if (!key || props.readonly) return;
+  // 焦点仍在同一字段内（如下拉框）时不校验
+  if (e.relatedTarget && host!.contains(e.relatedTarget as Node)) return;
+  const r = validateForm(props.schema, { ...props.modelValue }, access.value, context.value);
+  if (r.errors[key]) errors[key] = r.errors[key];
+}
+
+/**
+ * 服务端字段错误回填到字段与子表单元格（接受请求错误对象、details 或 键 → 文字），显示汇总并定位到第一个错误。
+ * 返回是否识别为字段错误。
+ */
+function setServerErrors(input: unknown): boolean {
+  const mapped = mapServerErrors(input);
+  if (!mapped) return false;
   Object.keys(errors).forEach((k) => delete errors[k]);
-  Object.assign(errors, fieldErrors);
+  Object.keys(fixes).forEach((k) => delete fixes[k]);
+  Object.assign(errors, mapped.errors);
+  Object.assign(fixes, mapped.fixes);
+  showErrors();
+  return true;
 }
 
 /** 提交报文：去掉不可编辑字段（服务端同样拒绝修改它们），附带表单编码与版本。 */
@@ -256,7 +329,7 @@ async function onAction(a: FormAction) {
 /** 提交成功后调用：删除本机与服务端草稿。 */
 const clearDraft = () => draftState.clear();
 
-defineExpose({ validate, setServerErrors, payload, access, errors, origin, commitRemembered, clearDraft, flushDraft: draftState.flush });
+defineExpose({ validate, setServerErrors, locate, payload, access, errors, origin, commitRemembered, clearDraft, flushDraft: draftState.flush });
 </script>
 
 <style scoped>
@@ -279,6 +352,34 @@ defineExpose({ validate, setServerErrors, payload, access, errors, origin, commi
   text-align: right;
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+.schema-form__summary {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--el-color-danger-light-5);
+  border-radius: 4px;
+  background: var(--el-color-danger-light-9);
+  color: var(--el-text-color-primary);
+}
+.schema-form__summary ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.schema-form__summary-item {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.schema-form__summary-item:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+}
+.schema-form__fix {
+  color: var(--el-text-color-regular);
 }
 .schema-form__alert {
   margin-bottom: 12px;
