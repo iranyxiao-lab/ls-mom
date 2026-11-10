@@ -21,6 +21,8 @@ const op = (code: string, targetId: string | number | undefined, version: number
 export const assetApi = {
   timeline: (id: number) => data<TimelineItem[]>(request({ url: `/api/asset/assets/${id}/timeline`, method: 'get' })),
   myInspections: (status = 'DRAFT') => data<MyInspection[]>(request({ url: '/api/asset/inspections/mine', method: 'get', params: { status } })),
+  /** 扫设备码：按设备编码找到设备（无权查看或找不到时报错） */
+  scanAsset: (code: string) => formApi.refScan({ ref: { concept: 'ls.asset.Asset' }, code }),
   orgs: () => data<OrgOption[]>(request({ url: '/api/asset/orgs', method: 'get' })),
   parties: (keyword?: string) => workbenchApi.parties(keyword),
   query: (concept: string, spec: QuerySpec) => crudApi.query(concept, spec) as Promise<Page>,

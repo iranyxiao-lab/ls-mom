@@ -4,6 +4,7 @@ import com.lsmom.meta.concept.ConceptDef;
 import com.lsmom.meta.concept.FieldDef;
 import com.lsmom.meta.concept.MetaNames;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -107,5 +108,22 @@ final class RefQuery {
 
     static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    /** 调用者数据范围：受控表按记录组织或本人创建，核心表按 orgUnitId；搜索、扫码与提交校验共用。 */
+    static void scope(com.lsmom.core.org.DataScope scope, ConceptDef target, StringBuilder sql, List<Object> args) {
+        if (scope == null || scope.all()) return;
+        String orgCol = RefQuery.managed(target) ? "org_id" : target.field("orgUnitId") != null ? "org_unit_id" : null;
+        if (orgCol == null) return;
+        List<String> or = new ArrayList<>();
+        if (scope.level() != com.lsmom.core.org.DataScopeLevel.SELF && !scope.orgUnitIds().isEmpty()) {
+            or.add("t.\"" + orgCol + "\" in (" + String.join(", ", Collections.nCopies(scope.orgUnitIds().size(), "?")) + ")");
+            args.addAll(scope.orgUnitIds());
+        }
+        if (scope.partyId() != null && RefQuery.managed(target)) {
+            or.add("t.created_by = ?");
+            args.add(scope.partyId());
+        }
+        sql.append(" and ").append(or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")");
     }
 }

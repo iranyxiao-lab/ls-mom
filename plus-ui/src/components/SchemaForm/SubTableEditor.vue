@@ -52,6 +52,7 @@
               :api="api"
               :org-id="orgId"
               @update:model-value="(v: unknown) => setCell(rowIndex, f.key, v)"
+              @scan-error="(m: string | null) => emit('cell-errors', { [cellKey(rowIndex, f.key)]: m })"
             />
             <div v-if="errors[cellKey(rowIndex, f.key)]" class="ls-subtable__err" role="alert">{{ errors[cellKey(rowIndex, f.key)] }}</div>
             <div v-if="cands[cellKey(rowIndex, f.key)]?.length" class="ls-subtable__cands" :data-testid="`cands-${table.key}-${rowIndex}-${f.key}`">

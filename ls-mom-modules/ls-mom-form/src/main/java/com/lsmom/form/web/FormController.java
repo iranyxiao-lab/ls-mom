@@ -100,6 +100,16 @@ public class FormController {
             b.model() == null ? Map.of() : CelValues.asMap(b.model())));
     }
 
+    public record RefScan(JsonNode ref, String code, Long orgId, JsonNode model) {
+    }
+
+    /** 扫码选中引用对象：编码精确匹配，过滤、权限与数据域同搜索。 */
+    @PostMapping("/ref/scan")
+    public R<RefSearchService.Option> refScan(@RequestBody RefScan b) {
+        if (b.ref() == null || !b.ref().hasNonNull("concept")) throw LsBizException.validation(Map.of("ref", "缺少引用目标"));
+        return R.ok(refs.scan(actors.current(), b.ref(), b.code(), b.orgId(), b.model() == null ? Map.of() : CelValues.asMap(b.model())));
+    }
+
     @GetMapping("/components")
     public R<List<Map<String, Object>>> components() {
         return R.ok(components.list());

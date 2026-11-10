@@ -24,6 +24,7 @@
           :model="ctx.model"
           :capture="ctx.capture"
           @update:model-value="(v: unknown) => ctx.set(n.key!, v)"
+          @scan-error="(m: string | null) => ctx.setCellErrors?.({ [n.key!]: m })"
         />
         <div v-if="fieldOf(n.key)!.help" class="ls-form__help">{{ fieldOf(n.key)!.help }}</div>
       </el-form-item>

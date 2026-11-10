@@ -324,6 +324,8 @@ async function onKeydown(e: KeyboardEvent) {
   if (!host || !root) return;
   // 日期控件离开时会按输入确认取值，Enter 直接跳到下一项
   if (!t.closest('.el-date-editor') && selectOpen(t)) return;
+  // 扫码枪正在输入：Enter 留给引用字段识别编码
+  if (t.closest('[data-ls-scanning]')) return;
   e.preventDefault();
   e.stopPropagation();
   const hosts = fieldHosts(root);

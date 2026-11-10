@@ -39,6 +39,8 @@
     "@logicflow/core": "2.2.5",
     "@vueup/vue-quill": "1.2.0",
     "@vueuse/core": "14.2.1",
+    "@zxing/browser": "0.2.1",
+    "@zxing/library": "0.23.0",
     "animate.css": "4.1.1",
     "await-to-js": "3.0.0",
     "axios": "1.13.6",

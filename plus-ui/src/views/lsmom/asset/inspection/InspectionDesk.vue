@@ -7,6 +7,8 @@
             <el-radio-button value="DRAFT" data-testid="ins-filter-draft">待点检</el-radio-button>
             <el-radio-button value="SUBMITTED" data-testid="ins-filter-done">已提交</el-radio-button>
           </el-radio-group>
+          <span class="grow" />
+          <el-button type="primary" :icon="FullScreen" data-testid="btn-scan-inspect" @click="scanVisible = true">扫码点检</el-button>
         </div>
         <el-empty v-if="!mine.length" description="没有分给你的点检" :image-size="60" />
         <div v-for="m in mine" :key="m.id" class="ins-card" :data-testid="`ins-${m.id}`" @click="openRecord(m.id)">
@@ -58,7 +60,9 @@
       </el-tab-pane>
     </el-tabs>
 
-    <el-drawer v-model="recordVisible" size="640px" :title="record ? `点检：${refLabel(record.asset)}` : ''" append-to-body>
+    <ScanDialog v-if="scanVisible" v-model="scanVisible" title="扫设备码开始点检" @scanned="onScanned" />
+
+    <el-drawer v-model="recordVisible" size="640px" :title="record ? `点检：${recordTitle || refLabel(record.asset)}` : ''" append-to-body>
       <template v-if="record">
         <div class="sub">应检 {{ record.dueDate }} · {{ record.status === 'DRAFT' ? '待点检' : '已提交' }}</div>
         <el-table :data="items" size="small" data-testid="ins-items">
@@ -78,10 +82,11 @@
                   :controls="false"
                   style="width: 110px"
                   :class="{ bad: outOfRange(row.valueNum, row.lowerLimit, row.upperLimit) }"
+                  :aria-label="`${row.name} 读数`"
                   :data-testid="`ins-value-${row.itemCode}`"
                 />
                 <span v-if="row.valueType === 'NUMBER'" class="sub"> {{ row.unit }}</span>
-                <el-radio-group v-else v-model="row.outcome" size="small">
+                <el-radio-group v-else v-model="row.outcome" size="small" :aria-label="`${row.name} 结果`">
                   <el-radio-button value="OK" :data-testid="`ins-ok-${row.itemCode}`">正常</el-radio-button>
                   <el-radio-button value="ABNORMAL" :data-testid="`ins-bad-${row.itemCode}`">异常</el-radio-button>
                 </el-radio-group>
@@ -97,7 +102,7 @@
           </el-table-column>
           <el-table-column label="说明" min-width="140">
             <template #default="{ row }">
-              <el-input v-if="editable" v-model="row.note" size="small" :data-testid="`ins-note-${row.itemCode}`" />
+              <el-input v-if="editable" v-model="row.note" size="small" :aria-label="`${row.name} 说明`" :data-testid="`ins-note-${row.itemCode}`" />
               <span v-else>{{ row.note }}</span>
             </template>
           </el-table-column>
@@ -177,12 +182,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, defineAsyncComponent, onActivated, onBeforeUnmount, onDeactivated, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { FullScreen } from '@element-plus/icons-vue';
+import { createWedgeDetector, normalizeCode } from '@/utils/scan/scanCode';
 import type { AssetApi } from '@/api/lsmom/asset';
 import { ASSET, CYCLES, PLAN, PLAN_STATUS, RECORD, outOfRange, refLabel, type MyInspection } from '@/api/lsmom/assetModel';
 
-/** 点检：我的点检（逐项填写、超限自动判异常、异常项一键生成缺陷草稿）与点检计划（周期、检查项、责任人）。 */
+const ScanDialog = defineAsyncComponent(() => import('@/components/SchemaForm/ScanDialog.vue'));
+
+/**
+ * 点检：我的点检（逐项填写、超限自动判异常、异常项一键生成缺陷草稿）与点检计划（周期、检查项、责任人）。
+ * 扫码点检：用摄像头或扫码枪扫设备上的码，直接打开分给自己的该设备待点检清单。
+ */
 const props = defineProps<{ api: AssetApi; initialTab?: string }>();
 
 const tab = ref(props.initialTab ?? 'mine');
@@ -202,6 +214,59 @@ const canRaise = computed(() => record.value?.status === 'SUBMITTED' && items.va
 const planVisible = ref(false);
 const blankItem = () => ({ itemCode: '', name: '', valueType: 'CHECK', unit: '', upperLimit: undefined as number | undefined, standard: '' });
 const plan = reactive<Record<string, any>>({ name: '', asset: undefined, cycle: 'DAILY', responsible: undefined, nextDue: '', items: [blankItem()] });
+
+const scanVisible = ref(false);
+
+/**
+ * 扫到设备码：先在分给自己的待点检里按设备编码找（点检人不一定有设备台账的查看权限）；
+ * 没有时再按编码查设备，区分「设备存在但没有分给你」与「找不到或无权使用」。
+ */
+async function onScanned(text: string) {
+  const code = normalizeCode(text);
+  if (!code) return;
+  const drafts = await props.api.myInspections('DRAFT').catch(() => [] as MyInspection[]);
+  if (mineStatus.value === 'DRAFT') mine.value = drafts;
+  const todo = drafts.filter((m) => m.asset_code === code).sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
+  if (todo.length) {
+    await openRecord(todo[0].id, todo[0]);
+    return;
+  }
+  // 自己点检过的设备（已提交）：不必有台账权限也能说明情况
+  const done = (await props.api.myInspections('SUBMITTED').catch(() => [] as MyInspection[])).find((m) => m.asset_code === code);
+  if (done) {
+    ElMessage.warning(`「${done.asset_code} ${done.asset_name}」没有分给你的待点检`);
+    return;
+  }
+  try {
+    const asset = await props.api.scanAsset(code);
+    ElMessage.warning(`「${asset.label}」没有分给你的待点检`);
+  } catch (e: any) {
+    ElMessage.warning(e?.message ?? `没有找到编码为「${code}」的设备`);
+  }
+}
+
+/** 扫码枪：焦点不在输入框时直接扫设备码（快速连续输入以 Enter 结束） */
+const wedge = createWedgeDetector();
+function onWedge(e: KeyboardEvent) {
+  const t = e.target as HTMLElement | null;
+  if (tab.value !== 'mine' || recordVisible.value || scanVisible.value || planVisible.value) return;
+  if (t && (t.closest('input, textarea, [contenteditable="true"], .el-select') || t.isContentEditable)) return;
+  const code = wedge.feed(e);
+  if (code) {
+    e.preventDefault();
+    void onScanned(code);
+  }
+}
+// 页签缓存（keep-alive）切走后不再监听，避免在其他页面扫码时打开点检
+const listen = () => document.addEventListener('keydown', onWedge);
+const unlisten = () => document.removeEventListener('keydown', onWedge);
+onMounted(listen);
+onActivated(() => {
+  unlisten();
+  listen();
+});
+onDeactivated(unlisten);
+onBeforeUnmount(unlisten);
 
 async function loadMine() {
   mine.value = await props.api.myInspections(mineStatus.value).catch(() => []);
@@ -223,7 +288,11 @@ function onTab(name: string | number) {
   else loadMine();
 }
 
-async function openRecord(id: number) {
+const recordTitle = ref('');
+/** 打开点检记录；标题用设备编码与名称（记录里的设备只有编号） */
+async function openRecord(id: number, from?: MyInspection) {
+  const m = from ?? mine.value.find((x) => x.id === id);
+  recordTitle.value = m ? `${m.asset_code} ${m.asset_name}` : '';
   const r = await props.api.get(RECORD, id);
   record.value = r;
   items.value = ((r.inspectionRecordItem ?? []) as Record<string, any>[]).map((i) => ({

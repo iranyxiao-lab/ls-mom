@@ -44,6 +44,9 @@ export const formApi = {
     ),
   refSearch: (body: { ref: RefSpec; keyword?: string; ids?: number[]; orgId?: number; model?: Record<string, unknown> }) =>
     data<RefOption[]>(request({ url: '/api/form/ref/search', method: 'post', data: body })),
+  /** 扫码：按编码精确找到引用对象（与搜索同一套过滤与数据权限），找不到、不唯一或无权时报错。 */
+  refScan: (body: { ref: RefSpec; code: string; orgId?: number; model?: Record<string, unknown> }) =>
+    data<RefOption>(request({ url: '/api/form/ref/scan', method: 'post', data: body, headers: { silentError: true } })),
   components: () => data<any[]>(request({ url: '/api/form/components', method: 'get' })),
   saveDraft: (schema: AnyViewSchema, note?: string) =>
     data<CheckResult>(request({ url: '/api/form/drafts', method: 'post', data: { schema, note } })),
@@ -83,4 +86,4 @@ export type FormApi = typeof formApi;
 
 /** 组件只依赖这一小部分接口，测试中可直接替换。 */
 export type RendererApi = Pick<FormApi, 'refSearch' | 'upload' | 'dict'> &
-  Partial<Pick<FormApi, 'formContext' | 'remember' | 'draftGet' | 'draftSave' | 'draftDelete'>>;
+  Partial<Pick<FormApi, 'refScan' | 'formContext' | 'remember' | 'draftGet' | 'draftSave' | 'draftDelete'>>;

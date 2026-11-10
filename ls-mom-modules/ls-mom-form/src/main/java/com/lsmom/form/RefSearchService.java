@@ -3,8 +3,6 @@ package com.lsmom.form;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.lsmom.action.api.ActorContext;
 import com.lsmom.core.error.LsBizException;
-import com.lsmom.core.org.DataScope;
-import com.lsmom.core.org.DataScopeLevel;
 import com.lsmom.core.party.PartyService;
 import com.lsmom.crud.GenericCrudService;
 import com.lsmom.meta.concept.ConceptDef;
@@ -55,7 +53,7 @@ public class RefSearchService {
         if (RefQuery.managed(target)) sql.append(" and t.del_flag = '0'");
         String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
         if (err != null) return List.of();
-        scope(actor.dataScope(), target, sql, args);
+        RefQuery.scope(actor.dataScope(), target, sql, args);
         if (ids != null && !ids.isEmpty()) {
             sql.append(" and t.id in (").append(String.join(", ", Collections.nCopies(ids.size(), "?"))).append(")");
             args.addAll(ids);
@@ -67,19 +65,43 @@ public class RefSearchService {
         return jdbc.query(sql.toString(), (rs, i) -> new Option(rs.getLong(1), rs.getString(2)), args.toArray());
     }
 
-    private static void scope(DataScope scope, ConceptDef target, StringBuilder sql, List<Object> args) {
-        if (scope == null || scope.all()) return;
-        String orgCol = RefQuery.managed(target) ? "org_id" : target.field("orgUnitId") != null ? "org_unit_id" : null;
-        if (orgCol == null) return;
-        List<String> or = new ArrayList<>();
-        if (scope.level() != DataScopeLevel.SELF && !scope.orgUnitIds().isEmpty()) {
-            or.add("t.\"" + orgCol + "\" in (" + String.join(", ", Collections.nCopies(scope.orgUnitIds().size(), "?")) + ")");
-            args.addAll(scope.orgUnitIds());
+    /**
+     * 扫码选中对象：按编码精确匹配目标 Concept 的唯一文本字段（如设备编码）或显示字段，过滤与数据域同搜索一致。
+     * 找不到（不存在或无权使用）、匹配到多个时拒绝。
+     */
+    public Option scan(ActorContext actor, JsonNode ref, String code, Long orgId, Map<String, Object> model) {
+        if (code == null || code.isBlank() || code.length() > 200) throw LsBizException.validation(Map.of("code", "编码不能为空"));
+        ConceptDef target = concepts.get(ref.path("concept").asText());
+        if (RefQuery.managed(target) && !actor.hasPermission(GenericCrudService.permission(target.code(), "list"))) {
+            throw new LsBizException("ACCESS_DENIED", "没有查看「" + target.displayName() + "」的权限");
         }
-        if (scope.partyId() != null && RefQuery.managed(target)) {
-            or.add("t.created_by = ?");
-            args.add(scope.partyId());
+        Map<String, Object> context = new LinkedHashMap<>();
+        Long org = orgId != null ? orgId : actor.effectiveParty() == null ? null : parties.primaryOrgUnitId(actor.effectiveParty()).orElse(null);
+        context.put("orgId", org);
+        context.put("deptId", org);
+        context.put("userId", actor.userId());
+        context.put("partyId", actor.effectiveParty());
+        String label = RefQuery.labelColumn(target, ref.path("labelField").asText(null));
+        List<String> cols = new ArrayList<>();
+        for (com.lsmom.meta.concept.FieldDef f : target.fields()) {
+            if (!f.ext() && f.flag("unique") && f.dataType() == com.lsmom.meta.concept.DataType.STRING) cols.add(com.lsmom.meta.concept.MetaNames.requireIdentifier(f.columnName()));
         }
-        sql.append(" and ").append(or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")");
+        if (!cols.contains(label)) cols.add(label);
+        StringBuilder sql = new StringBuilder("select t.id, t.\"" + label + "\"::text as label from " + RefQuery.table(target) + " t where 1 = 1");
+        List<Object> args = new ArrayList<>();
+        if (RefQuery.managed(target)) sql.append(" and t.del_flag = '0'");
+        String err = FormRecordValidator.appendFilters(target, ref.path("filter"), model == null ? Map.of() : model, context, sql, args);
+        if (err == null) {
+            RefQuery.scope(actor.dataScope(), target, sql, args);
+            sql.append(" and (").append(String.join(" or ", cols.stream().map(c -> "t.\"" + c + "\"::text = ?").toList())).append(")");
+            for (int i = 0; i < cols.size(); i++) args.add(code.trim());
+            sql.append(" limit 2");
+        }
+        List<Option> found = err != null ? List.of() : jdbc.query(sql.toString(), (rs, i) -> new Option(rs.getLong(1), rs.getString(2)), args.toArray());
+        if (found.isEmpty()) {
+            throw new LsBizException("NOT_FOUND", "没有找到编码为「" + code.trim() + "」的" + target.displayName() + "，或你无权使用", Map.of("code", code.trim()));
+        }
+        if (found.size() > 1) throw new LsBizException("SCAN_AMBIGUOUS", "编码「" + code.trim() + "」对应多个" + target.displayName() + "，请手动选择");
+        return found.get(0);
     }
 }

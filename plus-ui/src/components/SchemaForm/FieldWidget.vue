@@ -132,8 +132,11 @@
     :org-id="orgId"
     :model="model"
     :placeholder="field.placeholder"
+    :label="field.label"
     :data-testid="'input-' + field.key"
     @update:model-value="set"
+    @scanned="emit('scan-error', null)"
+    @scan-error="(m: string) => emit('scan-error', m)"
   />
   <UploadField
     v-else-if="isFile"
@@ -181,7 +184,7 @@ const props = defineProps<{
   /** 注册组件在只读时仍以组件自身渲染 */
   alwaysInteractive?: boolean;
 }>();
-const emit = defineEmits<{ (e: 'update:modelValue', v: unknown): void }>();
+const emit = defineEmits<{ (e: 'update:modelValue', v: unknown): void; (e: 'scan-error', message: string | null): void }>();
 
 const set = (v: unknown) => emit('update:modelValue', v === '' ? null : v);
 const refSpec = computed(() => (REF_WIDGETS.has(props.field.widget) ? refOf(props.field) : undefined));

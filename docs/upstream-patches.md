@@ -58,6 +58,7 @@ LS-MOM 以未修改的上游快照为起点（提交 `80a0038`），之后对上
 | 41 | `plus-ui/src/views/index.vue`、`plus-ui/src/views/lsmom/workbench/WorkCenter.vue` | 上游演示首页改为注册式卡片首页（角色默认布局、个人调整与恢复默认）；工作中心支持 `?task=` 直接打开任务 | 首页卡片 | UI 3.9 |
 | 42 | `plus-ui/src/utils/request.ts`、`plus-ui/src/layout/index.vue`、`plus-ui/src/store/modules/user.ts` | 会话过期（401）时先弹原地登录框，登录成功后按原样重发请求（保留加密前请求体，带 `silentAuth` 的后台请求不弹框）；布局挂载登录框；用户 store 导出账号名并写入 `currentUserId`，退出时清理本机草稿 | 草稿与会话过期 | UI 4.3 |
 | 43 | `plus-ui/src/utils/request.ts` | 业务错误不再只拒绝字符串 `error`，改为带 `code`、`errorCode`、`details`、`trace` 的 Error，调用方可把字段错误定位到表单 | 字段错误定位 | UI 4.4 |
+| 44 | `plus-ui/src/utils/request.ts` | 业务错误优先显示服务端给的具体原因（上游按错误码换成通用文案，如 404 一律显示「访问资源不存在」）；请求带 `silentError` 时不弹全局通知，由调用方就近显示（如扫码失败显示在字段下） | 扫码 | UI 4.7 |
 
 ## 生产前必须替换的上游密钥
 
