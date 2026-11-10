@@ -34,3 +34,22 @@
 
 接口：`GET /api/pack-templates`、`POST /api/pack-templates/preview`、`/grants/plan`、`/grants`（需 `system:role:edit`）、`/draft`。
 验证：`TemplateGeneratorTest`（四个模板安装后黄金场景与越权测试通过）、`tests/e2e/template-library.e2e.mjs`。
+
+## 从 Excel 生成
+
+向导第一步选「从 Excel 生成」，上传 .xlsx / .xls / .csv。浏览器里读第一个工作表的表头（第一行）与前 50 行（SheetJS 按需加载），
+后端逐列推断，结果在「核对字段」一步逐项可改（名称、编码、类型、引用对象、选项、必填，也可删除列），每个字段旁显示推断依据：
+
+| 推断 | 依据 |
+|---|---|
+| 日期 / 日期时间 | 全部是日期（含时间时为日期时间） |
+| 二值字典 | 只有两种取值且是常见成对词：是/否、正常/异常、合格/不合格、有/无、Y/N、OK/NG… |
+| 整数 / 小数 | 全部是数字 |
+| 设备 / 人员 / 组织引用 | 不同取值中至少 80% 能在现有设备（编码或名称）、人员（姓名）、组织（名称）中找到 |
+| 选项字典 | 取值重复且不超过 6 种 |
+| 必填 | 样例行全部有值 |
+
+常见表头（日期、设备编号、点检人、结果、温度、备注…）自动给出英文编码，其他列为 `f<列号>`，核对时可改。
+生成的 Pack 带 `provenance.json`：协同应用中心「来源」页显示 Excel 文件、工作表，以及每个字段对应的列与推断依据；ChangeSet 来源记为 EXCEL。
+
+验证：`ExcelInferenceTest`（点检表样例推断出日期、设备引用、二值字典）、`tests/unit/excel-sample.spec.ts`、`tests/e2e/excel-ledger.e2e.mjs`。

@@ -12,6 +12,9 @@ export interface IrField {
   props?: Record<string, unknown>;
   help?: string;
   readonly?: boolean;
+  /** Excel 推断：列序号与推断依据 */
+  column?: number;
+  evidence?: string;
 }
 export interface IrNode {
   key: string;
@@ -66,6 +69,8 @@ const data = <T>(p: Promise<any>) => p.then((r) => r.data as T);
 export const templateApi = {
   list: () => data<TemplateSummary[]>(request({ url: '/api/pack-templates', method: 'get' })),
   get: (code: string) => data<IrFragment>(request({ url: `/api/pack-templates/${encodeURIComponent(code)}`, method: 'get' })),
+  infer: (b: { fileName: string; sheet: string; headers: string[]; rows: string[][] }) =>
+    data<IrFragment>(request({ url: '/api/pack-templates/infer', method: 'post', data: b })),
   preview: (b: DraftBody) => data<Record<string, string>>(request({ url: '/api/pack-templates/preview', method: 'post', data: b })),
   grantPlan: (b: DraftBody) => data<Grant[]>(request({ url: '/api/pack-templates/grants/plan', method: 'post', data: b })),
   grant: (b: DraftBody) => data<Grant[]>(request({ url: '/api/pack-templates/grants', method: 'post', data: b })),

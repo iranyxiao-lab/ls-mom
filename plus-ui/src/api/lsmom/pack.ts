@@ -145,7 +145,7 @@ export interface Provenance {
   pack: string;
   version: string;
   provenance?: null;
-  sourceType?: 'REQUIREMENT' | 'FRAPPE' | 'LEGACY_SCHEMA' | 'MANUAL';
+  sourceType?: 'REQUIREMENT' | 'FRAPPE' | 'LEGACY_SCHEMA' | 'MANUAL' | 'EXCEL' | 'TEMPLATE';
   source?: { app: string; version?: string; path?: string; ref?: string };
   license?: string;
   converter?: { name: string; version: string };

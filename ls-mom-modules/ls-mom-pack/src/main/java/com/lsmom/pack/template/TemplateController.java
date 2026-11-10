@@ -82,7 +82,19 @@ public class TemplateController {
         } else {
             files = generate(b);
         }
-        return R.ok(pipeline.submit(PackSource.of(files), actors.current().effectiveParty(), "TEMPLATE", null));
+        String source = b.fragment() != null && "EXCEL".equals(b.fragment().path("provenance").path("source").asText()) ? "EXCEL" : "TEMPLATE";
+        return R.ok(pipeline.submit(PackSource.of(files), actors.current().effectiveParty(), source, null));
+    }
+
+    /** Excel 表头与前 50 行（单元格文本） */
+    public record InferBody(String fileName, String sheet, List<String> headers, List<List<String>> rows) {
+    }
+
+    /** 由 Excel 推断台账字段（类型、二值字典、设备 / 人员 / 组织引用、必填），输出可在向导里修改的 LS-IR 片段。 */
+    @SaCheckPermission("lsmom:pack:install")
+    @PostMapping("/infer")
+    public R<JsonNode> infer(@RequestBody InferBody b) {
+        return R.ok(new ExcelInference(new JdbcRefMatcher(jdbc)).infer(b.fileName(), b.sheet(), b.headers(), b.rows()));
     }
 
     /** 生成的台账需要授予哪些权限（发起角色、各审批节点角色）。 */

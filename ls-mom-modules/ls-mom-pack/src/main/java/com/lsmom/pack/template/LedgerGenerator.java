@@ -290,10 +290,34 @@ public final class LedgerGenerator {
         contents.set("views", array(formCode, listCode));
         contents.set("flows", array(flowCode));
         m.putArray("entries").addObject().put("name", title).put("path", "/lsmom/ledger/" + concept);
-        if (fragment.hasNonNull("provenance")) files.put("provenance.json", json(fragment.path("provenance")));
+        if (fragment.hasNonNull("provenance")) files.put("provenance.json", json(provenance(fragment, concept)));
         Map<String, byte[]> out = new LinkedHashMap<>();
         out.put("pack.yaml", yaml(m));
         out.putAll(files);
+        return out;
+    }
+
+    /** 来源记录（协同应用中心"来源"页）：Excel 文件与工作表、每个字段对应的列与推断依据 */
+    private static ObjectNode provenance(JsonNode fragment, String concept) {
+        JsonNode p = fragment.path("provenance");
+        ObjectNode out = PackJson.JSON.createObjectNode();
+        out.put("sourceType", p.path("source").asText("TEMPLATE"));
+        out.putObject("source").put("app", p.path("file").asText("")).put("path", p.path("sheet").asText(""));
+        out.putObject("converter").put("name", "ls-mom 台账生成").put("version", "1");
+        out.put("generatedAt", java.time.LocalDateTime.now().withNano(0).toString());
+        out.putArray("manualEdits");
+        out.putArray("manualRequired");
+        ObjectNode el = out.putObject("elements").putObject(concept);
+        el.put("kind", "CONCEPT");
+        el.putObject("source").put("type", "EXCEL_SHEET").put("name", p.path("file").asText("")).put("path", p.path("sheet").asText(""));
+        ObjectNode fs = el.putObject("fields");
+        for (JsonNode f : fragment.path("fields")) {
+            ObjectNode src = fs.putObject(f.path("code").asText());
+            src.put("type", "EXCEL_COLUMN");
+            src.put("name", f.path("displayName").asText());
+            if (f.has("column")) src.put("path", "第 " + (f.path("column").asInt() + 1) + " 列");
+            if (f.hasNonNull("evidence")) src.put("field", f.path("evidence").asText());
+        }
         return out;
     }
 
