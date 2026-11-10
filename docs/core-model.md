@@ -240,6 +240,29 @@ DRAFT → READY → ASSIGNED → IN_PROGRESS → PENDING_CONFIRM → DONE
 | `created_by` | bigint | 上传人 |
 | `created_at` / `removed_at` | timestamp | 关联、移除时间 |
 
+### `core_summary`
+
+带引用的摘要（ls.core.Summary）。由 Agent 或人员按上下文草拟，每个要点至少引用一条上下文中的记录；有确认权限的真人发布或作废（发布永不暴露给 Agent）。摘要不回写被摘要的对象。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | bigserial | 主键 |
+| `kind` | varchar(32) | 摘要类型（ISSUE、SHIFT_HANDOVER、DCS_ALARM…，由上下文提供者注册） |
+| `subject_concept` / `subject_id` | varchar | 被摘要的对象 |
+| `title` | varchar(200) | 标题 |
+| `content` | text | 正文 |
+| `points` | jsonb | 要点：`[{text, refs:[{type, id, label}]}]` |
+| `citations` | jsonb | 全部引用（去重） |
+| `status` | varchar(16) | DRAFT / PUBLISHED / DISCARDED |
+| `org_unit_id` | bigint | 数据域（取被摘要对象的组织） |
+| `source` | varchar(16) | HUMAN / AGENT |
+| `model` | varchar(120) | 草拟所用模型 |
+| `created_by_party` / `on_behalf_of` | bigint | 草拟主体；Agent 草拟时为 Agent 主体与被代理的人 |
+| `published_by` / `published_at` | bigint / timestamp | 发布人与时间 |
+| `discard_reason` | varchar(500) | 作废原因 |
+| `created_at` / `updated_at` | timestamp | 创建、修改时间 |
+| `version` | int | 乐观锁 |
+
 ### `core_access_audit`
 
 受控访问审计，只允许追加（数据库触发器禁止修改与删除）。

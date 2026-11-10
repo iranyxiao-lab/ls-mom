@@ -38,7 +38,7 @@ public final class CoreStateMachines {
     private static Transition t(String op, String name, List<String> from, String to, String perm, String schema, List<String> guards) {
         String last = op.substring(op.lastIndexOf('.') + 1);
         String exposure = switch (last) {
-            case "confirm", "rejectConfirm", "verifyPass", "verifyFail", "reject" -> "DENY";
+            case "confirm", "rejectConfirm", "verifyPass", "verifyFail", "reject", "publish" -> "DENY";
             case "cancel" -> "APPROVAL_REQUIRED";
             default -> "SIMULATE";
         };
@@ -80,5 +80,14 @@ public final class CoreStateMachines {
             t(i + "verifyFail", "验证不通过", List.of("PENDING_VERIFY"), "IN_RECTIFICATION", "lsmom:issue:verify", CONCLUSION, List.of()),
             t(i + "reject", "驳回", List.of("OPEN"), "REJECTED", "lsmom:issue:handle", REASON_REQUIRED, List.of()),
             t(i + "cancel", "取消", List.of("DRAFT", "OPEN"), "CANCELLED", "lsmom:issue:raise", REASON_REQUIRED, List.of())));
+    }
+
+    /** 摘要：草稿须真人确认后发布（Agent 不可发布）；作废需说明原因。 */
+    public static StateMachineDefinition summary() {
+        String s = "ls.core.Summary.";
+        return new StateMachineDefinition("ls.core.Summary.lifecycle", "ls.core.Summary", "摘要确认",
+            List.of("DRAFT", "PUBLISHED", "DISCARDED"), "DRAFT", List.of(
+            t(s + "publish", "确认发布", List.of("DRAFT"), "PUBLISHED", "lsmom:summary:confirm", NONE, List.of()),
+            t(s + "discard", "作废", List.of("DRAFT"), "DISCARDED", "lsmom:summary:confirm", REASON_REQUIRED, List.of())));
     }
 }

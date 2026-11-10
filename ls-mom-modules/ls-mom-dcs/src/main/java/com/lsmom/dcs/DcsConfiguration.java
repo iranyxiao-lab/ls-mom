@@ -44,6 +44,11 @@ public class DcsConfiguration {
     }
 
     @Bean
+    public DcsAlarmSummaryContext dcsAlarmSummaryContext(AlarmService alarms, SnapshotService snapshots) {
+        return new DcsAlarmSummaryContext(alarms, snapshots);
+    }
+
+    @Bean
     public SnapshotService dcsSnapshotService(JdbcTemplate jdbc, ObjectProvider<HistorianReader> reader, DcsProperties props) {
         return new SnapshotService(jdbc, reader.getIfAvailable(), props);
     }

@@ -213,4 +213,33 @@ class AlarmServiceTest {
         assertThat(jdbc.queryForObject("select count(*) from core_issue where source_key = ?", Long.class, "DCS:" + a.get("dedup_key"))).isZero();
         assertThatThrownBy(() -> alarms.link(alarmId, manual.id())).hasMessageContaining("已关联");
     }
+
+    /** AI-09：报警上下文摘要——要点引用报警与原始事件；引用不在上下文中被拒绝；草稿待真人确认。 */
+    @Test
+    void 报警上下文摘要_带引用草稿() {
+        String p = point("NOTIFY", null);
+        Instant t = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        alarms.ingest(List.of(ev(p, p + "-1", t, t, "GOOD"), ev(p, p + "-2", t.plusSeconds(20), t.plusSeconds(20), "GOOD")));
+        long alarmId = ((Number) alarmOf(p).get("id")).longValue();
+        f.summaries.register(new DcsAlarmSummaryContext(alarms, new SnapshotService(jdbc, null, DcsProperties.defaults())));
+        com.lsmom.action.api.ActorContext boss = new com.lsmom.action.api.ActorContext(com.lsmom.action.api.ActorContext.ActorType.HUMAN, null, 1L, null,
+            false, java.util.Set.of("lsmom:summary:draft"), new com.lsmom.core.org.DataScope(false, java.util.Set.of(workshop), null,
+            com.lsmom.core.org.DataScopeLevel.WORKSHOP), "车间主任");
+        // 其他车间看不到该报警
+        com.lsmom.action.api.ActorContext outsider = f.human(owner, com.lsmom.core.org.DataScopeLevel.WORKSHOP, "lsmom:summary:draft");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> f.summaries.context(AlarmService.ALARM_OBJECT, String.valueOf(alarmId), outsider))
+            .hasMessageContaining("不存在");
+        var ctx = f.summaries.context(AlarmService.ALARM_OBJECT, String.valueOf(alarmId), boss);
+        assertThat(ctx.facts()).extracting(x -> x.ref().type()).contains("ls.dcs.Alarm", "ls.dcs.AlarmEvent");
+        assertThat(ctx.facts().get(0).text()).contains("累计 2 次").contains("HI");
+        String ev = ctx.facts().stream().filter(x -> x.ref().type().equals("ls.dcs.AlarmEvent")).findFirst().orElseThrow().ref().id();
+        String id = f.op("ls.core.Summary.draft", boss, "{\"kind\":\"DCS_ALARM\",\"subjectId\":\"" + alarmId + "\",\"content\":\"振动越限两次\","
+            + "\"points\":[{\"text\":\"振动越上限\",\"refs\":[{\"type\":\"ls.dcs.Alarm\",\"id\":\"" + alarmId + "\"},{\"type\":\"ls.dcs.AlarmEvent\",\"id\":\"" + ev + "\"}]}]}").targetId();
+        assertThat(f.summaries.find(Long.parseLong(id)).orElseThrow()).containsEntry("status", "DRAFT").containsEntry("subjectConcept", "ls.dcs.Alarm")
+            .containsEntry("orgUnitId", workshop);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> f.op("ls.core.Summary.draft", boss, "{\"kind\":\"DCS_ALARM\",\"subjectId\":\"" + alarmId
+            + "\",\"content\":\"x\",\"points\":[{\"text\":\"x\",\"refs\":[{\"type\":\"ls.dcs.AlarmEvent\",\"id\":\"DCS-T:fake\"}]}]}"))
+            .hasMessageContaining("不在该对象的上下文中");
+        assertThat(alarmOf(p).get("status")).isEqualTo("NOTIFIED");
+    }
 }

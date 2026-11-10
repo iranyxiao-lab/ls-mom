@@ -32,6 +32,7 @@ public class CoreActionBootstrap implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         machines.publish(CoreStateMachines.work());
         machines.publish(CoreStateMachines.issue());
+        machines.publish(CoreStateMachines.summary());
         operations.reconcile(handlers);
     }
 }

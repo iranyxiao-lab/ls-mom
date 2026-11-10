@@ -66,6 +66,7 @@ public class ActionFixture {
     public final com.lsmom.action.rule.RulePublisher rulePublisher;
     public final GuardRegistry guardRegistry;
     public final StateStores stores;
+    public final com.lsmom.action.summary.SummaryService summaries;
 
     public ActionFixture() {
         this(List.of());
@@ -87,8 +88,11 @@ public class ActionFixture {
         CoreEffects e = new CoreEffects();
         List<TransitionEffect> effects = List.of(e.workAssignEffect(core.assignments), e.workStartEffect(core.clock), e.workBlockEffect(),
             e.workUnblockEffect(), e.workConfirmEffect(core.clock), e.workReasonEffects(), e.workCancelEffect(core.assignments),
-            e.issueStartRectificationEffect(), e.issueVerifyPassEffect(core.clock), e.issueVerifyFailEffect(issues), e.issueRejectEffect());
-        stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues)));
+            e.issueStartRectificationEffect(), e.issueVerifyPassEffect(core.clock), e.issueVerifyFailEffect(issues), e.issueRejectEffect(),
+            new com.lsmom.action.summary.SummaryOperations.Effects().summaryPublishEffect(),
+            new com.lsmom.action.summary.SummaryOperations.Effects().summaryDiscardEffect());
+        summaries = new com.lsmom.action.summary.SummaryService(core.jdbc, List.of(new com.lsmom.action.summary.IssueSummaryContext(issues, core.jdbc)));
+        stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues), summaries));
         rules = new com.lsmom.action.rule.RuleService(core.jdbc, new com.lsmom.action.rule.CelRuleEngine(), core.clock);
         var ruleGuards = new com.lsmom.action.rule.RuleGuardProvider(rules, stores, facts, core.clock);
         guardRegistry = new GuardRegistry(guards, List.of(ruleGuards), List.of(ruleGuards));
@@ -99,6 +103,7 @@ public class ActionFixture {
 
         machines.publish(CoreStateMachines.work());
         machines.publish(CoreStateMachines.issue());
+        machines.publish(CoreStateMachines.summary());
         operations.reconcile(handlers());
         new com.lsmom.action.rule.CoreRules(rules, rulePublisher).installAll();
     }
@@ -110,7 +115,8 @@ public class ActionFixture {
         List<OperationHandler> list = new ArrayList<>(List.of(new CoreOperations.CreateWork(core.works), new CoreOperations.SplitWork(core.relations),
             new CoreOperations.LinkWork(core.relations), new CoreOperations.SaveReport(core.reports), new CoreOperations.SubmitReport(core.reports),
             new CoreOperations.RaiseIssue(issues), new CoreOperations.CreateRectification(issues), new CoreOperations.AttachDocument(docs), new com.lsmom.action.core.ReprioritizeWork(core.works),
-            new CoreOperations.FindWork(core.works)));
+            new CoreOperations.FindWork(core.works), new com.lsmom.action.summary.SummaryOperations.Context(summaries),
+            new com.lsmom.action.summary.SummaryOperations.Draft(summaries)));
         list.addAll(TestOperations.all(core));
         list.addAll(extraHandlers.apply(this));
         return list;

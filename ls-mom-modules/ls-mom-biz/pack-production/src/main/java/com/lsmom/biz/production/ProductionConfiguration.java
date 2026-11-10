@@ -25,6 +25,11 @@ public class ProductionConfiguration {
     }
 
     @Bean
+    public HandoverSummaryContext handoverSummaryContext(ManagedRecords records) {
+        return new HandoverSummaryContext(records);
+    }
+
+    @Bean
     public ProductionEffects productionEffects(JdbcTemplate jdbc, ManagedRecords records, WorkItemService works,
                                                AssignmentService assignments, HandoverSummarizer summarizer, Clock clock) {
         return new ProductionEffects(jdbc, records, works, assignments, summarizer, clock);

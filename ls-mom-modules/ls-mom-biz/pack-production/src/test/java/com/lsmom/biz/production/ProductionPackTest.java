@@ -261,6 +261,17 @@ class ProductionPackTest {
         assertThat((String) draft.get("summary")).contains("完成 1 项，未完成 1 项").contains("没做完的组装");
         assertThat(records.children(ProductionPack.HANDOVER_ITEM, h)).extracting(i -> i.get("kind")).contains("UNFINISHED", "DONE");
 
+        // AI-09 交接班摘要：上下文只对交班人可见（草稿），要点须引用交接事项中的工作
+        var summaries = f.action.summaries;
+        summaries.register(new HandoverSummaryContext(records));
+        var hctx = summaries.context("SHIFT_HANDOVER", String.valueOf(h), a);
+        assertThat(hctx.facts()).extracting(x -> x.ref().type() + ":" + x.ref().id()).contains("ls.core.Work:" + openWork, "ls.core.Work:" + doneWork);
+        assertThatThrownBy(() -> summaries.context("SHIFT_HANDOVER", String.valueOf(h), b)).extracting(ProductionPackTest::code).isEqualTo("NOT_FOUND");
+        long sid = summaries.draft("SHIFT_HANDOVER", String.valueOf(h), "组装未完成，移交乙班",
+            List.of(new com.lsmom.action.summary.SummaryService.Point("组装未完成", List.of(new com.lsmom.action.api.SummaryContextProvider.Ref(
+                "ls.core.Work", String.valueOf(openWork), null)))), null, a);
+        assertThat(summaries.find(sid).orElseThrow()).containsEntry("status", "DRAFT").containsEntry("subjectConcept", HANDOVER);
+
         // 草稿未确认：接班人在列表与详情里都看不到；交班人自己能看到
         QuerySpec all = new QuerySpec(List.of(), List.of(), 1, 50, List.of(), List.of(), List.of());
         assertThat(f.crud.crud.list(HANDOVER, all, b).rows()).noneMatch(r -> ((Number) r.get("id")).longValue() == h);
