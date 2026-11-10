@@ -187,4 +187,34 @@ describe('协同工作中心', () => {
     expect(state.todo).not.toContain('t2');
     expect(q('table-todo')!.textContent).not.toContain('L-t2');
   });
+
+  it('原地连续办理：通过后自动加载下一条并提示"还剩 N 条"，全部办完后关闭', async () => {
+    const { api, actions } = await mount();
+    (q('table-todo')!.querySelectorAll('.el-table__body tr')[0] as HTMLElement).click();
+    await flush(300);
+    expect(api.context).toHaveBeenLastCalledWith('t1');
+    expect(q('task-remaining')!.textContent).toContain('本条之后还剩 2 条');
+    const approve = async () => {
+      const note = [...q('task-form')!.querySelectorAll('textarea')].find((e) => !(e as HTMLTextAreaElement).readOnly) as HTMLTextAreaElement;
+      note.value = '同意';
+      note.dispatchEvent(new Event('input'));
+      await flush();
+      q('btn-approve')!.click();
+      await flush(350);
+    };
+    await approve();
+    expect(actions.complete).toHaveBeenLastCalledWith('t1', expect.anything());
+    expect([...document.querySelectorAll('.el-message')].map((m) => m.textContent).join('|')).toContain('已通过，还剩 2 条');
+    expect(api.context).toHaveBeenLastCalledWith('t2');
+    expect(q('task-panel')!.closest('.el-drawer')).not.toBeNull();
+    await approve();
+    expect([...document.querySelectorAll('.el-message')].map((m) => m.textContent).join('|')).toContain('已通过，还剩 1 条');
+    expect(api.context).toHaveBeenLastCalledWith('t3');
+    expect(q('task-remaining')!.textContent).toContain('这是最后一条待办');
+    await approve();
+    expect([...document.querySelectorAll('.el-message')].map((m) => m.textContent).join('|')).toContain('已通过，待办已全部处理');
+    await flush(400);
+    const drawer = document.querySelector('[data-testid="task-panel"]')?.closest('.el-overlay') as HTMLElement | null;
+    expect(!drawer || drawer.style.display === 'none').toBe(true);
+  });
 });

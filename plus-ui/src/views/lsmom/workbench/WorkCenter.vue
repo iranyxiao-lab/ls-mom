@@ -162,7 +162,7 @@
       </el-table>
     </template>
 
-    <TaskPanel ref="panel" :api="api" :actions="actions" @done="load" />
+    <TaskPanel ref="panel" :api="api" :actions="actions" :queue="todoQueue" @done="load" />
   </div>
 </template>
 
@@ -208,6 +208,8 @@ const messages = ref<Record<string, any>[]>([]);
 const knownBiz = ref(new Set<string>());
 const bizTypes = computed(() => [...knownBiz.value].sort());
 const panel = ref<InstanceType<typeof TaskPanel>>();
+/** 连续办理：按待办列表顺序（超时、即将到期在前） */
+const todoQueue = async () => (await props.api.todo({})).filter((i) => i.task.kind !== 'CC').map((i) => i.task.taskId);
 
 const fmt = (s?: string) => (s ? s.replace('T', ' ').substring(0, 16) : '');
 const rowClass = ({ row }: { row: WorkItem }) => (row.urgency === 'OVERDUE' ? 'row-overdue' : row.urgency === 'DUE_SOON' ? 'row-soon' : '');

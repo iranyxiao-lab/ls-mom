@@ -18,6 +18,14 @@
 
 头部下方的步骤条按流程配置顺序列出"发起"和各人工节点（含分支里的节点）：已完成、进行中、已退回 / 已驳回（红色）、未开始。点击节点名查看该节点每次办理的人、时间、结果和意见；进行中的节点显示当前办理人。
 
+## 原地办理与连续处理
+
+首页"待我审核"卡片和工作台待办列表点击一条待办时，不跳转页面，直接在右侧抽屉（`TaskPanel`）里办理。抽屉顶部显示"本条之后还剩 N 条"（最后一条时显示"这是最后一条待办"）。
+
+办理完成后：还有其他待办时提示"已通过，还剩 N 条"，抽屉自动打开下一条（意见框清空）；没有了就提示"已通过，待办已全部处理"并关闭抽屉。抄送不计入"还剩"。按住 Ctrl/⌘ 或中键点击首页待办仍在新标签页打开工作台。
+
+首页完成一次审核（点待办 → 点意见框填写 → 通过）不超过 3 次点击，由 `tests/ui/app/home-todo.spec.ts` 用 `countClicks` 验证。
+
 ## 接口
 
 `GET /api/workbench/biz/{concept}/{id}/progress` 返回最近一次流程的 `flow`（无流程时为 null）、`steps`、`current`（办理人姓名与第一个角色名、`dueAt`、`remainingMinutes`、`mine`）、`myTask`、`canUrge`、`returned`。
@@ -26,4 +34,4 @@
 
 ## 测试选择器
 
-`flow-header`、`flow-status`、`flow-waiting`、`flow-urge`、`flow-my-turn`、`flow-act`、`flow-field-<字段>`、`flow-comment`、`flow-main-action`、`flow-return`、`flow-reject`、`flow-open-task`、`flow-returned`、`flow-ended`、`flow-steps`、`flow-step-<节点>`、`flow-step-btn-<节点>`、`flow-step-detail-<节点>`。
+`flow-header`、`flow-status`、`flow-waiting`、`flow-urge`、`flow-my-turn`、`flow-act`、`flow-field-<字段>`、`flow-comment`、`flow-main-action`、`flow-return`、`flow-reject`、`flow-open-task`、`flow-returned`、`flow-ended`、`flow-steps`、`flow-step-<节点>`、`flow-step-btn-<节点>`、`flow-step-detail-<节点>`；待办抽屉：`task-panel`、`task-form`、`task-remaining`、`home-row`。

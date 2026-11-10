@@ -10,6 +10,9 @@
     <el-result v-else-if="error" icon="error" :title="error" />
     <template v-else-if="ctx">
       <div class="meta">
+        <span v-if="queue && remaining !== null" class="remaining" data-testid="task-remaining">{{
+          remaining ? `本条之后还剩 ${remaining} 条` : '这是最后一条待办'
+        }}</span>
         <el-tag v-if="ctx.urgency === 'OVERDUE'" type="danger" size="small">已超时</el-tag>
         <el-tag v-else-if="ctx.urgency === 'DUE_SOON'" type="warning" size="small">即将到期</el-tag>
         <span>发起人：{{ ctx.instance.initiatorName }}</span>
@@ -117,7 +120,12 @@ export interface TaskActionsApi {
 }
 
 /** 在待办中办理：按冻结版本表单与节点策略渲染，提交意见与可编辑字段；转办、退回、催办都经流程接口并写入时间轴。 */
-const props = defineProps<{ api: Pick<WorkbenchApi, 'context'>; actions: TaskActionsApi }>();
+const props = defineProps<{
+  api: Pick<WorkbenchApi, 'context'>;
+  actions: TaskActionsApi;
+  /** 连续办理：返回本人当前待办（按待办列表顺序）的 taskId；办理完自动打开下一条 */
+  queue?: () => Promise<string[]>;
+}>();
 const emit = defineEmits<{ (e: 'done', kind: string): void }>();
 
 const visible = ref(false);
@@ -156,6 +164,7 @@ async function open(taskId: string) {
     ctx.value = await props.api.context(taskId);
     model.value = { ...ctx.value.record };
     returnTarget.value = ctx.value.returnTargets[0]?.key ?? 'initiator';
+    if (props.queue) void others(taskId).then((r) => (remaining.value = r.length));
   } catch (e: any) {
     error.value = e?.message ?? '加载失败';
   } finally {
@@ -176,13 +185,33 @@ function editableInput(): Record<string, unknown> | null {
   return Object.keys(out).length ? out : null;
 }
 
+const remaining = ref<number | null>(null);
+
+/** 本条之外还剩的待办 */
+async function others(current: string): Promise<string[]> {
+  if (!props.queue) return [];
+  try {
+    return (await props.queue()).filter((id) => id !== current);
+  } catch {
+    return [];
+  }
+}
+
 async function run(kind: string, fn: () => Promise<any>, ok: string) {
   busy.value = kind;
+  const current = ctx.value!.task.taskId;
   try {
     await fn();
-    ElMessage.success(ok);
-    visible.value = false;
     emit('done', kind);
+    // 原地连续办理：自动加载下一条待办
+    const rest = props.queue ? await others(current) : [];
+    if (rest.length) {
+      ElMessage.success(`${ok}，还剩 ${rest.length} 条`);
+      await open(rest[0]);
+      return;
+    }
+    ElMessage.success(props.queue ? `${ok}，待办已全部处理` : ok);
+    visible.value = false;
   } finally {
     busy.value = '';
   }
@@ -220,6 +249,10 @@ defineExpose({ open, ctx, model });
   margin-bottom: var(--ls-space-3);
   color: var(--el-text-color-regular);
   font-size: 13px;
+}
+.remaining {
+  color: var(--el-color-primary);
+  font-weight: 600;
 }
 .sub {
   color: var(--el-text-color-secondary);

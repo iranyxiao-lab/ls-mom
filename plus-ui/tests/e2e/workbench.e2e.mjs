@@ -74,6 +74,11 @@ try {
   await page.locator('[data-testid="btn-approve"]').click();
   await page.locator('.el-message--success', { hasText: '已通过' }).waitFor({ timeout: 10000 });
   await page.waitForTimeout(800);
+  // 办理后若还有待办，抽屉会自动打开下一条；关掉它再看列表
+  if (await page.locator('.el-overlay.is-drawer:visible').count()) {
+    await page.keyboard.press('Escape');
+    await page.locator('.el-overlay.is-drawer:visible').waitFor({ state: 'hidden', timeout: 5000 });
+  }
   check((await page.locator('[data-testid="table-todo"] .el-table__body tr').filter({ hasText: title }).count()) === 0, '办理后待办消失');
   await tab(/^已办$/).click();
   await page.waitForTimeout(800);
