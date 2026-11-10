@@ -39,7 +39,8 @@ public class OperationAudit {
     }
 
     public void writeIndependently(Entry e) {
-        newTx.executeWithoutResult(s -> write(e));
+        if (com.lsmom.core.sandbox.Sandbox.active()) write(e);
+        else newTx.executeWithoutResult(s -> write(e));
     }
 
     private static String truncate(String s, int n) {

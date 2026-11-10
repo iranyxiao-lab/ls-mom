@@ -12,6 +12,7 @@ import com.lsmom.action.gateway.OperationGateway;
 import com.lsmom.action.rule.CelRuleEngine;
 import com.lsmom.action.state.StateStores;
 import com.lsmom.core.error.LsBizException;
+import com.lsmom.core.sandbox.Sandbox;
 import com.lsmom.core.event.EventPublisher;
 import com.lsmom.core.org.LeaderKind;
 import com.lsmom.core.org.LeaderResolution;
@@ -219,7 +220,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
     /** 启动（或重试启动）流程实例；失败记录同步状态，不抛出。 */
     public boolean start(long instanceId) {
         try {
-            requiresNew.executeWithoutResult(st -> {
+            Sandbox.independent(tx, requiresNew).executeWithoutResult(st -> {
                 FlowInstances.Instance inst = instances.get(instanceId);
                 if ("SYNCED".equals(inst.syncStatus()) || !"RUNNING".equals(inst.status())) return;
                 startInterceptor.accept(inst);
@@ -245,6 +246,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
             });
             return true;
         } catch (RuntimeException e) {
+            if (Sandbox.active()) throw e;
             FlowInstances.Instance inst = instances.get(instanceId);
             int attempts = inst.attempts() + 1;
             String msg = e instanceof LsBizException b ? b.getCode() + "：" + b.getMessage() : e.getClass().getSimpleName() + "：" + e.getMessage();
@@ -725,7 +727,7 @@ public class FlowRuntime implements FlowHooks, OperationListener {
     }
 
     static void afterCommit(Runnable r) {
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+        if (!Sandbox.active() && TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {

@@ -121,6 +121,14 @@ public class FlowConfiguration {
     }
 
     @Bean
+    public com.lsmom.flow.runtime.TrialRunner trialRunner(JdbcTemplate jdbc, FlowRegistry registry, FlowRuntime runtime, FlowInstances instances,
+                                                          FlowCallbacks callbacks, com.lsmom.crud.GenericCrudService crud, OperationGateway gateway,
+                                                          ConceptRegistry concepts, FormRegistry forms, com.lsmom.action.web.ActorResolver actors,
+                                                          PlatformTransactionManager txm) {
+        return new com.lsmom.flow.runtime.TrialRunner(jdbc, registry, runtime, instances, callbacks, crud, gateway, concepts, forms, actors, txm);
+    }
+
+    @Bean
     public FlowReconciler flowReconciler(JdbcTemplate jdbc, ProcessEngine engine, FlowRuntime runtime, PlatformTransactionManager txm) {
         return new FlowReconciler(jdbc, engine, runtime, txm);
     }

@@ -24,10 +24,41 @@ public class ActorResolver {
 
     private final PartyService parties;
     private final DataScopeService scopes;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
-    public ActorResolver(PartyService parties, DataScopeService scopes) {
+    public ActorResolver(PartyService parties, DataScopeService scopes, org.springframework.jdbc.core.JdbcTemplate jdbc) {
         this.parties = parties;
         this.scopes = scopes;
+        this.jdbc = jdbc;
+    }
+
+    /**
+     * 模拟某人办理（设计器沙箱试运行用）：按该人账号当前的角色、菜单权限与数据范围构造调用主体，不需要登录会话。
+     * 显示名标"模拟"，便于在试运行轨迹中区分。
+     */
+    public ActorContext simulate(long partyId) {
+        Party party = parties.get(partyId);
+        if (party.userId() == null) throw new com.lsmom.core.error.LsBizException("PARTY_NO_ACCOUNT", party.name() + " 没有登录账号，不能模拟办理");
+        long userId = party.userId();
+        boolean admin = LoginHelper.isSuperAdmin(userId);
+        List<RoleDTO> roles = jdbc.query("""
+            select r.role_id, r.role_key, r.role_name, r.data_scope from sys_user_role ur join sys_role r on r.role_id = ur.role_id
+            where ur.user_id = ? and r.status = '0' and r.del_flag = '0' order by r.role_sort""", (rs, i) -> {
+            RoleDTO d = new RoleDTO();
+            d.setRoleId(rs.getLong("role_id"));
+            d.setRoleKey(rs.getString("role_key"));
+            d.setRoleName(rs.getString("role_name"));
+            d.setDataScope(rs.getString("data_scope"));
+            return d;
+        }, userId);
+        Set<String> perms = new HashSet<>(jdbc.queryForList("""
+            select distinct m.perms from sys_user_role ur join sys_role r on r.role_id = ur.role_id and r.status = '0' and r.del_flag = '0'
+              join sys_role_menu rm on rm.role_id = r.role_id join sys_menu m on m.menu_id = rm.menu_id
+            where ur.user_id = ? and m.status = '0' and m.perms is not null and m.perms <> ''""", String.class, userId));
+        DataScope scope = admin ? DataScope.unrestricted() : scopeOf(party.id(), roles);
+        String roleNames = String.join("、", roles.stream().map(RoleDTO::getRoleName).toList());
+        return new ActorContext(ActorContext.ActorType.HUMAN, userId, party.id(), null, admin, Set.copyOf(perms), scope,
+            "模拟·" + party.name() + (roleNames.isEmpty() ? "" : "（" + roleNames + "）"));
     }
 
     public ActorContext current() {

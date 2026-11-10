@@ -318,6 +318,10 @@
         </div>
       </el-tab-pane>
 
+      <el-tab-pane label="试运行" name="trial">
+        <TrialRun v-if="tab === 'trial'" :schema="current" :api="rendererApi" />
+      </el-tab-pane>
+
       <el-tab-pane label="权限模拟" name="simulate">
         <div class="ls-designer__sim">
           <el-select v-model="simNode" clearable placeholder="流程节点（不选为录入）" size="small" data-testid="sim-node">
@@ -343,6 +347,7 @@ import SchemaForm from '@/components/SchemaForm/index.vue';
 import { formAssistApi, type AssistProposal } from '@/api/lsmom/formAssist';
 import { applyAssistOps, describeOp } from './assistPatch';
 import SchemaMobile from '@/components/SchemaMobile/index.vue';
+import TrialRun from './TrialRun.vue';
 import SchemaDetail from '@/components/SchemaDetail/index.vue';
 import SchemaPrint from '@/components/SchemaPrint/index.vue';
 import type { FormAction, FormSchema, MobileSchema, NodePolicy, PrintSchema, ViewIssue } from '@/types/lsView';

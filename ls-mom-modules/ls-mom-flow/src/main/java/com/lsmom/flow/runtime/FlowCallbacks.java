@@ -1,5 +1,6 @@
 package com.lsmom.flow.runtime;
 
+import com.lsmom.core.sandbox.Sandbox;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.lsmom.action.api.ActorContext;
 import com.lsmom.action.api.OperationRequest;
@@ -34,6 +35,7 @@ public class FlowCallbacks {
     private final OperationGateway gateway;
     private final StateStores stores;
     private final TransactionTemplate requiresNew;
+    private final TransactionTemplate joined;
     private final Clock clock;
 
     public FlowCallbacks(JdbcTemplate jdbc, OperationGateway gateway, StateStores stores, PlatformTransactionManager txm, Clock clock) {
@@ -42,6 +44,7 @@ public class FlowCallbacks {
         this.stores = stores;
         this.requiresNew = new TransactionTemplate(txm);
         this.requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.joined = new TransactionTemplate(txm);
         this.clock = clock;
     }
 
@@ -67,7 +70,7 @@ public class FlowCallbacks {
         Callback c = find(key);
         if (c == null || "DONE".equals(c.status()) || "FAILED".equals(c.status())) return c != null && "DONE".equals(c.status());
         try {
-            requiresNew.executeWithoutResult(st -> {
+            Sandbox.independent(joined, requiresNew).executeWithoutResult(st -> {
                 int version = stores.has(c.bizType()) ? stores.of(c.bizType()).load(c.bizId()).version() : 0;
                 FlowCallbackGuard.viaFlow(() -> gateway.execute(c.operation(), new OperationRequest(input(c), c.bizId(), version, c.key(), false),
                     actor(c.onBehalfOf())));
@@ -75,6 +78,7 @@ public class FlowCallbacks {
             });
             return true;
         } catch (RuntimeException e) {
+            if (Sandbox.active()) throw e;
             int attempts = c.attempts() + 1;
             boolean giveUp = attempts >= MAX_ATTEMPTS;
             String msg = e instanceof LsBizException b ? b.getCode() + "：" + b.getMessage() : e.getClass().getSimpleName() + "：" + e.getMessage();
