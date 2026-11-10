@@ -4,7 +4,7 @@ description: 按周期（日 / 周 / 月）为设备生成点检工作与点检�
 fields:
   - { code: name, displayName: 计划名称, dataType: STRING, required: true, props: { queryable: true, maxLength: 128 } }
   - { code: asset, displayName: 设备, dataType: REF, refConcept: ls.asset.Asset, required: true, props: { queryable: true } }
-  - { code: cycle, displayName: 周期, dataType: ENUM, required: true, options: [DAILY, WEEKLY, MONTHLY], props: { queryable: true } }
+  - { code: cycle, displayName: 周期, dataType: ENUM, required: true, options: [DAILY, WEEKLY, MONTHLY], props: { optionLabels: { DAILY: 每日, WEEKLY: 每周, MONTHLY: 每月 }, queryable: true } }
   - { code: responsible, displayName: 责任人, dataType: REF, refConcept: ls.core.Party, required: true, props: { queryable: true } }
   - { code: nextDue, displayName: 下次点检日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
   - { code: lastGeneratedAt, displayName: 最近生成时间, dataType: DATETIME }
@@ -16,7 +16,7 @@ children:
       - { code: name, displayName: 检查项, dataType: STRING, required: true, props: { maxLength: 128 } }
       - { code: method, displayName: 检查方法, dataType: STRING, props: { maxLength: 200 } }
       - { code: standard, displayName: 判定标准, dataType: STRING, props: { maxLength: 200 } }
-      - { code: valueType, displayName: 结果类型, dataType: ENUM, required: true, options: [CHECK, NUMBER] }
+      - { code: valueType, displayName: 结果类型, dataType: ENUM, required: true, options: [CHECK, NUMBER], props: { optionLabels: { CHECK: 勾选, NUMBER: 数值 } } }
       - { code: unit, displayName: 单位, dataType: STRING, props: { maxLength: 16 } }
       - { code: lowerLimit, displayName: 下限, dataType: DECIMAL }
       - { code: upperLimit, displayName: 上限, dataType: DECIMAL }

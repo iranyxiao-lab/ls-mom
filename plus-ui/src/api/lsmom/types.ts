@@ -48,6 +48,8 @@ export interface QuerySpec {
   page: number;
   size: number;
   expand?: string[];
+  groupBy?: string[];
+  aggregates?: { fn: 'count' | 'sum' | 'avg' | 'min' | 'max'; field: string; alias: string }[];
 }
 
 export interface Page<T = Record<string, unknown>> {

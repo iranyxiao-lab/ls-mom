@@ -4,7 +4,7 @@ description: 设备 / 工位台账。所属车间即记录的组织；状态只�
 fields:
   - { code: assetCode, displayName: 设备编码, dataType: STRING, required: true, props: { unique: true, queryable: true, sortable: true, maxLength: 64 } }
   - { code: name, displayName: 名称, dataType: STRING, required: true, props: { queryable: true, maxLength: 128 } }
-  - { code: assetType, displayName: 类型, dataType: ENUM, required: true, options: [PUMP, MOTOR, VALVE, VESSEL, INSTRUMENT, STATION, OTHER], props: { queryable: true } }
+  - { code: assetType, displayName: 类型, dataType: ENUM, required: true, options: [PUMP, MOTOR, VALVE, VESSEL, INSTRUMENT, STATION, OTHER], props: { optionLabels: { PUMP: 泵, MOTOR: 电机, VALVE: 阀门, VESSEL: 容器, INSTRUMENT: 仪表, STATION: 工位, OTHER: 其他 }, queryable: true } }
   - { code: location, displayName: 位置, dataType: STRING, props: { queryable: true, maxLength: 128 } }
   - { code: owner, displayName: 负责人, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
   - { code: model, displayName: 型号, dataType: STRING, props: { maxLength: 128 } }

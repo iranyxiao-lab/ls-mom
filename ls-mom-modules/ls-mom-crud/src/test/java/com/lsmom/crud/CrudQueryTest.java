@@ -69,6 +69,19 @@ class CrudQueryTest {
     }
 
     @Test
+    void 跨字段关键字_任一可查询文本字段命中_遵守数据域_通配符按字面() {
+        java.util.function.Function<QuerySpec.Filter, List<Object>> nos = flt -> f.crud.list(order, filters(flt), admin).rows().stream().map(r -> r.get("loanNo")).toList();
+        assertThat(nos.apply(new Filter("_keyword", "like", "李四"))).containsExactly("L-A2");
+        assertThat(nos.apply(new Filter("_keyword", "like", "L-B"))).containsExactly("L-B1");
+        assertThat(nos.apply(new Filter("_keyword", "like", "%"))).isEmpty();
+        assertThat(nos.apply(new Filter("_keyword", "like", " "))).hasSize(3);
+        // 甲班用户只能搜到本班组的
+        assertThat(f.crud.list(order, filters(new Filter("_keyword", "like", "L-")), userA).rows()).extracting(r -> r.get("loanNo"))
+            .containsExactlyInAnyOrder("L-A1", "L-A2");
+        rejected(admin, filters(new Filter("_keyword", "eq", "x")), "_keyword");
+    }
+
+    @Test
     void 排序注入被拒绝为非法排序字段() {
         rejected(admin, sort("name; drop table x", "asc"), "sort");
         rejected(admin, sort("loanNo", "asc; drop table x"), "sort");

@@ -1,7 +1,15 @@
 <template>
   <div class="p-2">
     <el-card shadow="never">
-      <LedgerWorkspace v-if="concept" ref="ws" :key="concept" :concept="concept" :crud="lazyCrudApi" :forms="lazyFormApi" />
+      <LedgerWorkspace
+        v-if="concept"
+        ref="ws"
+        :key="concept"
+        :concept="concept"
+        :crud="lazyCrudApi"
+        :forms="lazyFormApi"
+        :flow="lazyFlowProgressApi"
+      />
     </el-card>
   </div>
 </template>
@@ -11,6 +19,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { lazyCrudApi } from '@/api/lsmom/lazyCrud';
 import { lazyFormApi } from '@/api/lsmom/lazyForm';
+import { lazyFlowProgressApi } from '@/api/lsmom/flowProgress';
 import LedgerWorkspace from './LedgerWorkspace.vue';
 
 /** 通用台账页：/lsmom/ledger/<Concept 编码>，菜单可直接指向该路径。 */

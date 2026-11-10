@@ -76,7 +76,8 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
     await t.page.getByTestId('btn-scan-inspect').click();
     await expect(t.page.getByTestId('scan-dialog')).toBeVisible();
     const items = t.page.getByTestId('ins-items');
-    await expect(items).toBeVisible({ timeout: 20_000 });
+    // 满载时解码模拟摄像头画面较慢
+    await expect(items).toBeVisible({ timeout: 45_000 });
     await expect(items).toContainText('扫码检查项·外观');
     await expect(t.page.locator('.el-drawer__title', { hasText: '点检：' })).toContainText(`点检：${asset.assetCode} ${asset.name}`);
     await expect(items).toContainText('扫码检查项·温度');

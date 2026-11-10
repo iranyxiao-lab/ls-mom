@@ -23,7 +23,10 @@ const query = (s, concept, filters, size = 20) =>
 const one = async (s, concept, filters) => (await query(s, concept, filters, 1)).data.rows[0];
 const toast = async (page, text) => {
   const m = page.locator('.el-message', { hasText: text }).first();
-  await m.waitFor({ timeout: 15000 });
+  await m.waitFor({ timeout: 15000 }).catch(async (e) => {
+    const shown = await page.locator('.el-message, .el-notification').allTextContents();
+    throw new Error(`没有出现「${text}」，当前提示：${shown.join(' | ') || '无'}`, { cause: e });
+  });
   await m.waitFor({ state: 'detached', timeout: 15000 }).catch(() => undefined);
 };
 const pickOption = async (page, testId, text) => {

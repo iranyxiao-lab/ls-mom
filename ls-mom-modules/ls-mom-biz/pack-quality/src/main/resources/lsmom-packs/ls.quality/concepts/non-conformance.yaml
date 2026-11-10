@@ -4,7 +4,7 @@ description: 质量不符合项，外壳是 Issue（类型 NONCONFORMITY）。�
 fields:
   - { code: title, displayName: 问题, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
   - { code: description, displayName: 问题描述, dataType: TEXT, required: true }
-  - { code: severity, displayName: 严重程度, dataType: ENUM, required: true, options: [LOW, MEDIUM, HIGH], props: { queryable: true } }
+  - { code: severity, displayName: 严重程度, dataType: ENUM, required: true, options: [LOW, MEDIUM, HIGH], props: { optionLabels: { LOW: 低, MEDIUM: 中, HIGH: 高 }, queryable: true } }
   - { code: asset, displayName: 相关设备, dataType: REF, refConcept: ls.asset.Asset, props: { queryable: true } }
   - { code: workItem, displayName: 相关工作, dataType: REF, refConcept: ls.core.Work }
   - { code: qualityRecord, displayName: 来源质量记录, dataType: REF, refConcept: ls.quality.QualityRecord, props: { queryable: true } }

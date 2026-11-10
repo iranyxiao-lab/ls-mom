@@ -4,12 +4,13 @@
       ref="table"
       :concept="concept"
       :api="crud"
+      :view-api="savedViewApi"
       @create="openCreate"
       @edit="(row) => openEdit(row.id)"
       @row-click="(row) => openDetail(row.id)"
+      @row-action="(p) => openDetail(p.row.id, p.operation)"
       @import="openImport"
       @exported="watchExport"
-      @action-done="onDone"
     />
 
     <div v-if="exportJob" class="ledger__export" data-testid="export-job">
@@ -55,19 +56,38 @@
       </template>
     </el-drawer>
 
-    <!-- 详情：按记录冻结的表单版本只读渲染 -->
-    <el-drawer v-model="detail.visible" title="详情" size="60%" append-to-body data-testid="ledger-detail">
-      <div v-if="detail.record" class="ledger__meta">
-        <el-tag size="small" data-testid="detail-status">{{ detail.record.status }}</el-tag>
-        <span data-testid="detail-form-version">表单 v{{ detail.view?.version ?? '—' }}</span>
-      </div>
-      <SchemaDetail
-        v-if="detail.view && detail.record"
-        :schema="detail.view.schema"
-        :record="detail.record"
-        :frozen-version="detail.view.version"
-        :latest-version="detail.latest"
-        :api="forms"
+    <!-- 详情：抽屉宽度可拖拽并记住；上一条/下一条在当前页内切换，列表不刷新 -->
+    <el-drawer
+      v-model="detail.visible"
+      :size="detail.width"
+      resizable
+      append-to-body
+      data-testid="ledger-detail"
+      @resize-end="onDetailResize"
+      @closed="onDetailClosed"
+    >
+      <template #header>
+        <div class="ledger__dhead">
+          <span class="ledger__dtitle" data-testid="detail-title">{{ detailTitle }}</span>
+          <span v-if="detailPos >= 0" class="ledger__dpos" data-testid="detail-pos">{{ detailPos + 1 }} / {{ detail.ids.length }}</span>
+          <el-button size="small" :disabled="detailPos <= 0" data-testid="detail-prev" @click="step(-1)">上一条</el-button>
+          <el-button size="small" :disabled="detailPos < 0 || detailPos >= detail.ids.length - 1" data-testid="detail-next" @click="step(1)">
+            下一条
+          </el-button>
+          <el-button size="small" link type="primary" data-testid="detail-newtab" @click="openInTab">在新页签打开</el-button>
+        </div>
+      </template>
+      <RecordView
+        v-if="detail.id"
+        :concept="concept"
+        :id="detail.id"
+        :crud="crud"
+        :forms="forms"
+        :schema="table?.schema() ?? null"
+        :start-op="detail.startOp"
+        :flow="flow"
+        @loaded="(r) => (detail.record = r)"
+        @changed="onDetailChanged"
       />
     </el-drawer>
 
@@ -102,22 +122,25 @@
 
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SchemaTable from '@/components/SchemaTable/index.vue';
 import SchemaForm from '@/components/SchemaForm/index.vue';
-import SchemaDetail from '@/components/SchemaDetail/index.vue';
+import RecordView from './RecordView.vue';
+import type { FlowProgressApi } from '@/api/lsmom/flowProgress';
 import type { CrudApi } from '@/api/lsmom/crud';
+import { lazySavedViewApi as savedViewApi } from '@/api/lsmom/lazySavedViews';
 import type { FormApi } from '@/api/lsmom/form';
 import type { ExportJob, ImportReport } from '@/api/lsmom/types';
-import type { FormAction, FormSchema, ViewVersion } from '@/types/lsView';
-import { EXPORT_STATUS, idempotencyKey, saveBlob } from './ledgerModel';
+import type { FormAction, FormSchema } from '@/types/lsView';
+import { EXPORT_STATUS, idempotencyKey, recordLabel, saveBlob } from './ledgerModel';
 import { useUnsavedGuard } from '@/utils/pageState';
 
 /**
  * 通用台账工作区：列表（筛选、导出、行动作）＋ 默认表单录入编辑 ＋ 冻结版本只读详情 ＋ 导入预检。
  * 只用 Concept、表单、列表视图与 Operation 配置驱动，不需要为单个台账写页面。
  */
-const props = defineProps<{ concept: string; crud: CrudApi; forms: FormApi }>();
+const props = defineProps<{ concept: string; crud: CrudApi; forms: FormApi; flow?: FlowProgressApi | null }>();
 
 const table = ref<InstanceType<typeof SchemaTable>>();
 const formRef = ref<InstanceType<typeof SchemaForm>>();
@@ -131,7 +154,24 @@ const editor = reactive({
   model: {} as Record<string, any>,
   hint: ''
 });
-const detail = reactive({ visible: false, record: null as Record<string, any> | null, view: null as ViewVersion<FormSchema> | null, latest: 0 });
+const WIDTH_KEY = 'ls:ledger-detail-width';
+function savedWidth(): string | number {
+  try {
+    const w = Number(localStorage.getItem(WIDTH_KEY));
+    return w >= 320 ? Math.min(w, window.innerWidth - 40) : '60%';
+  } catch {
+    return '60%';
+  }
+}
+const detail = reactive({
+  visible: false,
+  id: 0,
+  ids: [] as number[],
+  record: null as Record<string, any> | null,
+  width: savedWidth(),
+  stale: false,
+  startOp: null as string | null
+});
 const imp = reactive({ visible: false, report: null as ImportReport | null, inputKey: 0 });
 const exportJob = ref<ExportJob>();
 
@@ -228,14 +268,53 @@ async function save(action?: FormAction) {
   }
 }
 
-async function openDetail(id: number) {
-  Object.assign(detail, { visible: true, record: null, view: null, latest: 0 });
-  const [rec, latest] = await Promise.all([props.crud.get(props.concept, id), props.forms.defaultFor(props.concept)]);
-  detail.record = rec;
-  if (!latest) return;
-  detail.latest = latest.version;
-  const frozen = Number(rec.schemaVersion ?? latest.version);
-  detail.view = frozen === latest.version ? latest : await props.forms.get<FormSchema>(latest.code, frozen);
+/** 打开详情：记下当前页的行顺序，上一条/下一条在其中切换 */
+function openDetail(id: number, startOp: string | null = null) {
+  const ids = (table.value?.rows() ?? []).map((r) => Number(r.id));
+  Object.assign(detail, { visible: true, id, ids: ids.includes(id) ? ids : [id], record: null, startOp });
+  table.value?.setCurrent(id);
+}
+
+const router = useRouter();
+const detailPos = computed(() => detail.ids.indexOf(detail.id));
+const detailTitle = computed(() => {
+  const r = detail.record;
+  const label = r && recordLabel(r, table.value?.schema() ?? null);
+  return label ? `详情 · ${label}` : '详情';
+});
+
+function step(d: number) {
+  const next = detail.ids[detailPos.value + d];
+  if (next === undefined) return;
+  detail.id = next;
+  detail.record = null;
+  detail.startOp = null;
+  table.value?.setCurrent(next);
+}
+
+function onDetailResize(_e: MouseEvent, size: number) {
+  detail.width = size;
+  try {
+    localStorage.setItem(WIDTH_KEY, String(Math.round(size)));
+  } catch {
+    /* 浏览器禁用存储时只在本次生效 */
+  }
+}
+
+function openInTab() {
+  window.open(router.resolve(`/lsmom/record/${encodeURIComponent(props.concept)}/${detail.id}`).href, '_blank');
+}
+
+/** 抽屉里办理过动作：关闭时再刷新列表，审阅过程中列表保持不动 */
+function onDetailChanged(r: Record<string, any>) {
+  detail.record = r;
+  detail.stale = true;
+}
+async function onDetailClosed() {
+  if (detail.stale) {
+    detail.stale = false;
+    await table.value?.load();
+  }
 }
 
 function openImport() {
@@ -280,10 +359,6 @@ async function downloadExport() {
   if (exportJob.value) saveBlob(await props.crud.exportFile(exportJob.value.id), `${props.concept}-${exportJob.value.id}.xlsx`);
 }
 
-function onDone(p: { operation: string; ok: number; failed: { id: unknown; message: string }[] }) {
-  if (p.failed.length) ElMessage.error(p.failed.map((f) => `#${f.id}：${f.message}`).join('；'));
-}
-
 defineExpose({ openCreate, openEdit, openDetail, openImport });
 </script>
 
@@ -306,6 +381,25 @@ defineExpose({ openCreate, openEdit, openDetail, openImport });
 .ledger__error {
   color: var(--el-color-danger);
   margin-left: var(--ls-space-2);
+}
+.ledger__dhead {
+  display: flex;
+  gap: var(--ls-space-2);
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.ledger__dtitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.ledger__dpos {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 .ledger__import {
   display: flex;

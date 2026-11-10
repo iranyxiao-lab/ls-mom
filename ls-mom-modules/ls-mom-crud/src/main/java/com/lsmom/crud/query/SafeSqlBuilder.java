@@ -134,8 +134,27 @@ public final class SafeSqlBuilder {
         return or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")";
     }
 
+    /** 跨字段关键字：{@code {field:"_keyword", op:"like", value}}，在所有开放查询且可读的文本字段中任一包含即命中。 */
+    public static final String KEYWORD = "_keyword";
+
+    private String keyword(String alias, QuerySpec.Filter f, List<Object> args) {
+        if (!"like".equals(f.op())) throw reject(KEYWORD, "关键字搜索只支持 like");
+        String v = f.value() == null ? "" : String.valueOf(f.value()).trim();
+        if (v.isEmpty()) return "1 = 1";
+        if (v.length() > 100) throw reject(KEYWORD, "关键字最多 100 个字符");
+        List<String> or = new ArrayList<>();
+        for (FieldDef fd : model.fields().values()) {
+            if (fd.ext() || !(fd.dataType() == DataType.STRING || fd.dataType() == DataType.TEXT)) continue;
+            if (!model.queryable(fd.code()) || !readable.test(fd.code())) continue;
+            or.add(alias + "." + q(fd.columnName()) + "::text ilike ? escape '\\'");
+            args.add("%" + v.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%");
+        }
+        return or.isEmpty() ? "1 = 0" : "(" + String.join(" or ", or) + ")";
+    }
+
     private String condition(String alias, QuerySpec.Filter f, List<Object> args) {
         if (f.field() == null) throw reject("filters", "筛选字段不能为空");
+        if (KEYWORD.equals(f.field())) return keyword(alias, f, args);
         if (f.op() == null || !OPERATORS.contains(f.op())) throw reject(f.field(), "不支持的操作符：" + f.op());
         int dot = f.field().indexOf('.');
         if (dot > 0) return refCondition(alias, f, dot, args);

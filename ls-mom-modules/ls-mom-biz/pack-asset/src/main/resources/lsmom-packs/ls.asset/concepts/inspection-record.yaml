@@ -8,7 +8,7 @@ fields:
   - { code: inspector, displayName: 点检人, dataType: REF, refConcept: ls.core.Party, props: { queryable: true } }
   - { code: dueDate, displayName: 应检日期, dataType: DATE, props: { queryable: true, sortable: true } }
   - { code: inspectedAt, displayName: 点检时间, dataType: DATETIME, props: { sortable: true } }
-  - { code: result, displayName: 结论, dataType: ENUM, options: [NORMAL, ABNORMAL], props: { queryable: true } }
+  - { code: result, displayName: 结论, dataType: ENUM, options: [NORMAL, ABNORMAL], props: { optionLabels: { NORMAL: 正常, ABNORMAL: 异常 }, queryable: true } }
   - { code: abnormalCount, displayName: 异常项数, dataType: INTEGER }
   - { code: defectCount, displayName: 已生成缺陷数, dataType: INTEGER }
 children:
@@ -18,11 +18,11 @@ children:
       - { code: itemCode, displayName: 检查项编码, dataType: STRING, required: true, props: { maxLength: 64 } }
       - { code: name, displayName: 检查项, dataType: STRING, required: true, props: { maxLength: 128 } }
       - { code: standard, displayName: 判定标准, dataType: STRING, props: { maxLength: 200 } }
-      - { code: valueType, displayName: 结果类型, dataType: ENUM, required: true, options: [CHECK, NUMBER] }
+      - { code: valueType, displayName: 结果类型, dataType: ENUM, required: true, options: [CHECK, NUMBER], props: { optionLabels: { CHECK: 勾选, NUMBER: 数值 } } }
       - { code: unit, displayName: 单位, dataType: STRING, props: { maxLength: 16 } }
       - { code: lowerLimit, displayName: 下限, dataType: DECIMAL }
       - { code: upperLimit, displayName: 上限, dataType: DECIMAL }
       - { code: valueNum, displayName: 读数, dataType: DECIMAL }
-      - { code: outcome, displayName: 判定, dataType: ENUM, options: [OK, ABNORMAL] }
+      - { code: outcome, displayName: 判定, dataType: ENUM, options: [OK, ABNORMAL], props: { optionLabels: { OK: 正常, ABNORMAL: 异常 } } }
       - { code: note, displayName: 说明, dataType: STRING, props: { maxLength: 500 } }
       - { code: defect, displayName: 缺陷, dataType: INTEGER }

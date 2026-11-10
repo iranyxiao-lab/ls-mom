@@ -183,6 +183,7 @@
 </template>
 
 <script setup lang="ts">
+import { notifyDone } from '@/utils/opResult';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouteAction } from '@/utils/routeAction';
 import { ElMessage } from 'element-plus';
@@ -316,8 +317,7 @@ async function act(action: string, input: Record<string, unknown> = {}) {
   const c = cur.value;
   if (!c) return;
   const r = await props.api.op(`${NC}.${action}`, c.id, c.version, input);
-  if (r.warnings?.length) ElMessage.warning(r.warnings.join('；'));
-  else ElMessage.success(`已更新为${NC_STATUS[r.status] ?? r.status}`);
+  notifyDone(`已更新为${NC_STATUS[r.status] ?? r.status}`, r.warnings);
   await refresh();
 }
 

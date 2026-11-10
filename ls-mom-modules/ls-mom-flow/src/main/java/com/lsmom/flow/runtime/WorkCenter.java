@@ -403,4 +403,156 @@ public class WorkCenter {
     private String partyName(Long id) {
         return id == null ? null : jdbc.queryForList("select name from core_party where id = ?", String.class, id).stream().findFirst().orElse(null);
     }
+
+    /** 人员显示：姓名＋第一个角色名（如"张三（车间主任）"）。 */
+    private Map<String, Object> person(Long party) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("party", party);
+        m.put("name", partyName(party));
+        m.put("role", party == null ? null : jdbc.queryForList("""
+            select r.role_name from core_party p join sys_user_role ur on ur.user_id = p.user_id join sys_role r on r.role_id = ur.role_id
+             where p.id = ? and r.status = '0' and r.del_flag = '0' and r.role_key <> 'superadmin' order by r.role_sort, r.role_id limit 1""",
+            String.class, party).stream().findFirst().orElse(null));
+        return m;
+    }
+
+    // ======================= 单据的流程进度（状态与下一步、步骤条） =======================
+
+    /**
+     * 能看单据流程进度的人：发起人、任一节点的办理人或候选人、超级管理员；
+     * 其他人需要该台账的查询权限且记录在本人数据范围内（与读取记录本身一致）。
+     */
+    public void requireBizVisible(String bizType, String bizId, ActorContext actor) {
+        if (actor.superAdmin()) return;
+        Long me = actor.effectiveParty();
+        if (me != null) {
+            Integer n = jdbc.queryForObject("""
+                select count(*) from biz_flow_instance i where i.biz_type = ? and i.biz_id = ? and (i.initiator_party = ? or exists (
+                  select 1 from biz_task t where t.flow_instance_id = i.id
+                     and (t.assignee_party = ? or t.completed_by = ? or t.candidates @> to_jsonb(?::bigint))))""",
+                Integer.class, bizType, bizId, me, me, me, me);
+            if (n != null && n > 0) return;
+        }
+        ConceptDef c = concepts.find(bizType).orElseThrow(() -> LsBizException.notFound("单据", bizId));
+        if (c.storage() == ConceptDef.Storage.MANAGED_TABLE && actor.hasPermission(GenericCrudService.permission(bizType, "query"))) {
+            crud.get(bizType, Long.parseLong(bizId), actor); // 越域时抛出无权限
+            return;
+        }
+        throw new LsBizException("ACCESS_DENIED", "你无权查看该单据的流程");
+    }
+
+    /**
+     * 单据最近一次流程的进度：步骤（发起＋人工节点，按配置顺序）、当前办理人与剩余时间、本人可办理的待办、能否催办、最近一次退回。
+     * 没有流程时 flow 为 null。
+     */
+    public Map<String, Object> progress(String bizType, String bizId, ActorContext actor) {
+        requireBizVisible(bizType, bizId, actor);
+        Map<String, Object> out = new LinkedHashMap<>();
+        List<FlowInstances.Instance> list = runtime.instances().ofBiz(bizType, bizId);
+        if (list.isEmpty()) {
+            out.put("flow", null);
+            return out;
+        }
+        FlowInstances.Instance inst = list.get(0);
+        FlowDefinition def = registry.get(inst.flowCode(), inst.flowVersion()).definition();
+        Long me = actor.effectiveParty();
+        List<FlowRuntime.TaskView> tasks = jdbc.query("select * from biz_task where flow_instance_id = ? and kind in ('TASK', 'EXCEPTION') order by id",
+            (rs, i) -> runtime.view(rs), inst.id());
+
+        Map<String, Object> flow = new LinkedHashMap<>();
+        flow.put("instanceId", inst.id());
+        flow.put("flowName", def.name());
+        flow.put("status", inst.status());
+        flow.put("initiator", person(inst.initiatorParty()));
+        flow.put("startedAt", inst.startedAt());
+        flow.put("endedAt", inst.endedAt());
+        out.put("flow", flow);
+
+        List<Map<String, Object>> steps = new ArrayList<>();
+        steps.add(step(BpmnTemplateGenerator.INITIATOR, "发起", "INITIATOR", tasks, inst));
+        for (FlowDefinition.Node n : def.allNodes()) {
+            if (n.human()) steps.add(step(n.key(), n.name(), n.type().name(), tasks, inst));
+        }
+        out.put("steps", steps);
+
+        List<Map<String, Object>> current = new ArrayList<>();
+        String myTask = null;
+        for (FlowRuntime.TaskView t : tasks) {
+            if (!"TODO".equals(t.status())) continue;
+            boolean mine = me != null && (Objects.equals(t.assigneeParty(), me) || (t.assigneeParty() == null && t.candidates().contains(me)));
+            if (mine && myTask == null) myTask = t.taskId();
+            Map<String, Object> c = new LinkedHashMap<>();
+            c.put("taskId", t.taskId());
+            c.put("nodeKey", t.nodeKey());
+            c.put("nodeName", t.nodeName());
+            List<Map<String, Object>> who = new ArrayList<>();
+            if (t.assigneeParty() != null) who.add(person(t.assigneeParty()));
+            else for (Long p : t.candidates()) who.add(person(p));
+            c.put("handlers", who);
+            c.put("dueAt", t.dueAt());
+            c.put("remainingMinutes", t.dueAt() == null ? null : java.time.Duration.between(now(), t.dueAt()).toMinutes());
+            c.put("urgency", urgency(t.dueAt()));
+            c.put("mine", mine);
+            current.add(c);
+        }
+        out.put("current", current);
+        out.put("myTask", myTask);
+        out.put("canUrge", "RUNNING".equals(inst.status()) && !current.isEmpty() && myTask == null
+            && (Objects.equals(inst.initiatorParty(), me) || actor.superAdmin()));
+        // 最近一次退回（退回后尚未再提交时醒目显示）
+        Map<String, Object> returned = null;
+        for (int i = tasks.size() - 1; i >= 0; i--) {
+            FlowRuntime.TaskView t = tasks.get(i);
+            if ("RETURNED".equals(t.outcome())) {
+                boolean resolved = tasks.stream().skip(i + 1).anyMatch(x -> BpmnTemplateGenerator.INITIATOR.equals(x.nodeKey()) && "DONE".equals(x.status()));
+                if (!resolved) {
+                    returned = new LinkedHashMap<>();
+                    returned.put("nodeKey", t.nodeKey());
+                    returned.put("nodeName", t.nodeName());
+                    returned.put("by", person(t.completedBy()));
+                    returned.put("at", t.completedAt());
+                    returned.put("comment", t.comment());
+                }
+                break;
+            }
+        }
+        out.put("returned", returned);
+        return out;
+    }
+
+    /** 一个步骤：done / current / returned / rejected / pending，附每次办理的人、时间、结果与意见。 */
+    private Map<String, Object> step(String key, String name, String type, List<FlowRuntime.TaskView> tasks, FlowInstances.Instance inst) {
+        Map<String, Object> s = new LinkedHashMap<>();
+        s.put("key", key);
+        s.put("name", name);
+        s.put("type", type);
+        List<FlowRuntime.TaskView> mine = tasks.stream().filter(t -> key.equals(t.nodeKey())).toList();
+        List<Map<String, Object>> records = new ArrayList<>();
+        if (BpmnTemplateGenerator.INITIATOR.equals(key)) {
+            Map<String, Object> r = new LinkedHashMap<>();
+            r.put("by", person(inst.initiatorParty()));
+            r.put("at", inst.startedAt());
+            r.put("outcome", "SUBMITTED");
+            records.add(r);
+        }
+        for (FlowRuntime.TaskView t : mine) {
+            if (!"DONE".equals(t.status())) continue;
+            Map<String, Object> r = new LinkedHashMap<>();
+            r.put("by", person(t.completedBy()));
+            r.put("at", t.completedAt());
+            r.put("outcome", t.outcome());
+            r.put("comment", t.comment());
+            records.add(r);
+        }
+        s.put("records", records);
+        String state;
+        if (mine.stream().anyMatch(t -> "TODO".equals(t.status()))) state = "current";
+        else if (mine.isEmpty()) state = BpmnTemplateGenerator.INITIATOR.equals(key) ? "done" : "pending";
+        else {
+            String last = mine.get(mine.size() - 1).outcome();
+            state = "RETURNED".equals(last) ? "returned" : "REJECTED".equals(last) ? "rejected" : "done";
+        }
+        s.put("state", state);
+        return s;
+    }
 }

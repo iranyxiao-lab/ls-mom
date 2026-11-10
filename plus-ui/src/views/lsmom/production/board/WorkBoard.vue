@@ -101,6 +101,7 @@
 </template>
 
 <script setup lang="ts">
+import { notifyDone } from '@/utils/opResult';
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { RISK, SHIFTS, SHIFT_PLAN, WORK_STATUS, shiftLabel, type BoardWork, type Team } from '@/api/lsmom/productionModel';
@@ -164,8 +165,7 @@ async function onDrop(target: string) {
       const c = await props.api.create(SHIFT_PLAN, { workItem: w.id, team, shiftDate: day.value, shift: target });
       r = await props.api.op(`${SHIFT_PLAN}.activate`, c.id, c.version);
     }
-    if (r.warnings?.length) ElMessage.warning(r.warnings.join('；'));
-    else ElMessage.success(`已调整到${shiftLabel(target)}`);
+    notifyDone(`已调整到${shiftLabel(target)}`, r.warnings);
   } finally {
     await load();
   }

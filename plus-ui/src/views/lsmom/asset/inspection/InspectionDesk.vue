@@ -182,6 +182,7 @@
 </template>
 
 <script setup lang="ts">
+import { notifyDone } from '@/utils/opResult';
 import { computed, defineAsyncComponent, onActivated, onBeforeUnmount, onDeactivated, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { FullScreen } from '@element-plus/icons-vue';
@@ -379,8 +380,9 @@ async function savePlan() {
 
 async function planOp(row: Record<string, any>, action: string) {
   const res = await props.api.op(`${PLAN}.${action}`, row.id, row.version);
-  if (res.warnings?.length) ElMessage.warning(res.warnings.join('；'));
-  else ElMessage.success(action === 'generate' ? `已生成点检工作 ${res.data?.work ?? ''}` : '已更新');
+  // 有提醒（如责任人同一时段已有其他工作）时也要说明已经生成
+  const done = action === 'generate' ? `已生成点检工作 ${res.data?.work ?? ''}`.trim() : '已更新';
+  notifyDone(done, res.warnings);
   await loadPlans();
 }
 

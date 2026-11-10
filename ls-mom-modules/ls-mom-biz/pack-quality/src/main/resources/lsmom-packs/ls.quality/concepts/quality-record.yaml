@@ -3,8 +3,8 @@ displayName: 质量记录
 description: 检验、抽检、巡检、客诉等质量事实。可独立存在，也可关联工作、产出、设备、物料记录或外部对象中的任意多个，关联都不是必填
 fields:
   - { code: title, displayName: 标题, dataType: STRING, required: true, props: { queryable: true, maxLength: 200 } }
-  - { code: recordType, displayName: 类型, dataType: ENUM, required: true, options: [INSPECTION, SAMPLING, PATROL, COMPLAINT, OTHER], props: { queryable: true } }
-  - { code: result, displayName: 结论, dataType: ENUM, required: true, options: [PASS, FAIL, CONCESSION, NA], props: { queryable: true } }
+  - { code: recordType, displayName: 类型, dataType: ENUM, required: true, options: [INSPECTION, SAMPLING, PATROL, COMPLAINT, OTHER], props: { optionLabels: { INSPECTION: 检验, SAMPLING: 抽检, PATROL: 巡检, COMPLAINT: 客诉, OTHER: 其他 }, queryable: true } }
+  - { code: result, displayName: 结论, dataType: ENUM, required: true, options: [PASS, FAIL, CONCESSION, NA], props: { optionLabels: { PASS: 合格, FAIL: 不合格, CONCESSION: 让步接收, NA: 不适用 }, queryable: true } }
   - { code: description, displayName: 说明, dataType: TEXT }
   - { code: recordedAt, displayName: 记录时间, dataType: DATETIME, props: { sortable: true } }
   - { code: inspector, displayName: 记录人, dataType: REF, refConcept: ls.core.Party }
@@ -12,6 +12,6 @@ children:
   - code: ls.quality.QualityRecordLink
     displayName: 关联对象
     fields:
-      - { code: objectType, displayName: 对象类型, dataType: ENUM, required: true, options: [WORK, ASSET, OUTPUT, MATERIAL, EXTERNAL] }
+      - { code: objectType, displayName: 对象类型, dataType: ENUM, required: true, options: [WORK, ASSET, OUTPUT, MATERIAL, EXTERNAL], props: { optionLabels: { WORK: 工作, ASSET: 设备, OUTPUT: 产出, MATERIAL: 物料, EXTERNAL: 外部 } } }
       - { code: objectId, displayName: 对象编号, dataType: STRING, required: true, props: { maxLength: 64 } }
       - { code: label, displayName: 名称, dataType: STRING, props: { maxLength: 200 } }

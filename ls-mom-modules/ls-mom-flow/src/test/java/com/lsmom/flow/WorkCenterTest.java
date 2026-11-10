@@ -146,4 +146,67 @@ class WorkCenterTest {
         assertThat((List<Map<String, Object>>) center.context(c.getId(), f.actor(s.applicant())).get("returnTargets")).extracting(m -> m.get("key"))
             .containsExactly("initiator", "deptAudit");
     }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> list(Object o) {
+        return (List<Map<String, Object>>) o;
+    }
+
+    @Test
+    void 单据进度_发起人看到等待谁审核与催办_审核人看到自己的待办() {
+        String id = f.submitLoan(s, s.applicant(), "W-60");
+        String pi = f.instance(s, id).procInstId();
+        Task t = f.task(pi, "deptAudit");
+        due(pi, LocalDateTime.now().plusHours(20));
+
+        Map<String, Object> mine = center.progress(s.order(), id, f.actor(s.applicant()));
+        assertThat(mine.get("myTask")).isNull();
+        assertThat(mine.get("canUrge")).isEqualTo(true);
+        List<Map<String, Object>> cur = list(mine.get("current"));
+        assertThat(cur).hasSize(1);
+        assertThat(cur.get(0)).containsEntry("nodeName", "部门审核").containsEntry("mine", false);
+        assertThat(list(cur.get(0).get("handlers")).get(0)).containsEntry("name", s.auditor1().name());
+        assertThat(((Number) cur.get(0).get("remainingMinutes")).longValue()).isBetween(19 * 60L, 20 * 60L);
+        assertThat(list(mine.get("steps"))).extracting(x -> x.get("name") + ":" + x.get("state"))
+            .containsExactly("发起:done", "部门审核:current", "确认归档:pending");
+
+        Map<String, Object> auditor = center.progress(s.order(), id, f.actor(s.auditor1(), FlowFixture.AUDIT_PERM));
+        assertThat(auditor.get("myTask")).isEqualTo(t.getId());
+        assertThat(auditor.get("canUrge")).isEqualTo(false);
+        assertThat(list(auditor.get("current")).get(0)).containsEntry("mine", true);
+    }
+
+    @Test
+    void 单据进度_退回后标出退回节点与意见_再提交后不再提示() {
+        String id = f.submitLoan(s, s.applicant(), "W-61");
+        String pi = f.instance(s, id).procInstId();
+        Task t = f.task(pi, "deptAudit");
+        f.runtime.returnTask(t.getId(), null, "借用数量不清楚，请补充备注", f.actor(s.auditor1(), FlowFixture.AUDIT_PERM));
+
+        Map<String, Object> p = center.progress(s.order(), id, f.actor(s.applicant()));
+        Map<String, Object> ret = (Map<String, Object>) p.get("returned");
+        assertThat(ret).containsEntry("nodeName", "部门审核").containsEntry("comment", "借用数量不清楚，请补充备注");
+        assertThat((Map<String, Object>) ret.get("by")).containsEntry("name", s.auditor1().name());
+        assertThat(list(p.get("steps"))).extracting(x -> x.get("name") + ":" + x.get("state"))
+            .containsExactly("发起:current", "部门审核:returned", "确认归档:pending");
+        Map<String, Object> audit = list(p.get("steps")).get(1);
+        assertThat(list(audit.get("records")).get(0)).containsEntry("outcome", "RETURNED").containsEntry("comment", "借用数量不清楚，请补充备注");
+        // 轮到发起人处理：本人有待办，不提供催办
+        assertThat(p.get("myTask")).isNotNull();
+        assertThat(p.get("canUrge")).isEqualTo(false);
+
+        Task back = f.task(pi, "initiator");
+        f.runtime.complete(back.getId(), FlowRuntime.Action.RESUBMIT, "已补充", FlowFixture.j("{}"), f.actor(s.applicant()));
+        Map<String, Object> after = center.progress(s.order(), id, f.actor(s.applicant()));
+        assertThat(after.get("returned")).isNull();
+        assertThat(list(after.get("steps"))).extracting(x -> x.get("name") + ":" + x.get("state"))
+            .containsExactly("发起:done", "部门审核:current", "确认归档:pending");
+    }
+
+    @Test
+    void 单据进度_非参与人且无查看权限时拒绝() {
+        String id = f.submitLoan(s, s.applicant(), "W-62");
+        assertThatThrownBy(() -> center.progress(s.order(), id, f.actor(s.auditor2()))).extracting(e -> ((LsBizException) e).getCode())
+            .isEqualTo("ACCESS_DENIED");
+    }
 }

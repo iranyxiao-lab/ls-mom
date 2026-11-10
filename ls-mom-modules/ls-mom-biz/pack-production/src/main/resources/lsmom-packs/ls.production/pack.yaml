@@ -1,6 +1,6 @@
 # 轻生产标准 Pack：无 BOM / 工艺路线 / 仓库也能闭环的"需求 → 工作 → 分派 → 填报 → 确认 → 交接班 / 看板"
 code: ls.production
-version: 1.0.1
+version: 1.0.2
 name: 轻生产
 description: 生产需求、班次安排、产出与物料记录（默认不核销）、交接班与经营看板
 standard: true

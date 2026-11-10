@@ -4,11 +4,28 @@ import type { ExportJob, ImportReport, ListSchema, OperationCall, Page, QuerySpe
 /** 统一取 RuoYi 响应中的 data。 */
 const data = <T>(p: Promise<any>): Promise<T> => p.then((res) => res.data as T);
 
+/** 对象时间轴条目（按时间先后） */
+export interface TimelineEntry {
+  at: string;
+  type: string;
+  action: string;
+  actorName?: string;
+  fromStatus?: string;
+  toStatus?: string;
+  payload?: Record<string, any>;
+  traceId?: string;
+}
+
 const enc = (concept: string) => encodeURIComponent(concept);
 
 export const crudApi = {
   schema: (concept: string) => data<ListSchema>(request({ url: `/api/crud/${enc(concept)}/schema`, method: 'get' })),
   query: (concept: string, spec: QuerySpec) => data<Page>(request({ url: `/api/crud/${enc(concept)}/query`, method: 'post', data: spec })),
+  /** 聚合（按当前筛选条件 count/max 等），列表"有 N 条更新"用它轮询 */
+  aggregate: (concept: string, spec: QuerySpec) =>
+    data<Record<string, unknown>[]>(
+      request({ url: `/api/crud/${enc(concept)}/aggregate`, method: 'post', data: spec, headers: { silentError: true, repeatSubmit: false } })
+    ),
   get: (concept: string, id: number | string) => data<Record<string, unknown>>(request({ url: `/api/crud/${enc(concept)}/${id}`, method: 'get' })),
   create: (concept: string, body: Record<string, unknown>, idempotencyKey: string) =>
     data<{ id: number; version: number }>(
@@ -47,6 +64,8 @@ export const crudApi = {
   },
   importConfirm: (concept: string, batchId: number) =>
     data<number>(request({ url: `/api/crud/${enc(concept)}/import/${batchId}/confirm`, method: 'post' })),
+  timeline: (concept: string, id: number | string) =>
+    data<TimelineEntry[]>(request({ url: `/api/timeline/${enc(concept)}/${id}`, method: 'get', headers: { silentError: true } })),
   /** 正式动作一律经 Operation Gateway。 */
   execute: (operation: string, call: OperationCall, idempotencyKey?: string) =>
     data<{ targetId: string; version: number; status: string; warnings: string[] }>(

@@ -201,7 +201,7 @@ try {
   const openTask = async (s, node) => {
     let t;
     for (let i = 0; i < 30 && !t; i++) {
-      t = (await ok(s.api('GET', '/api/flow/todo'), '读待办')).find((x) => x.bizId === String(rec.id) && x.nodeKey === node && x.status === 'TODO');
+      t = (await ok(s.api('GET', '/api/flow/todo'), '读待办')).find((x) => x.bizType === ORDER && x.bizId === String(rec.id) && x.nodeKey === node && x.status === 'TODO');
       if (!t) await new Promise((r) => setTimeout(r, 300));
     }
     if (!t) throw new Error('没有待办：' + node);
@@ -257,12 +257,13 @@ try {
 
   // —— 5. 列表筛选、导出下载、导入预检 ——
   await p.goto(`${BASE}/lsmom/ledger/${ORDER}`);
+  await p.getByTestId('adv-open').click();
   await pick(p, 'filter-purpose', '外协');
   await p.getByTestId('search').click();
   await p.waitForTimeout(800);
-  const rowsShown = await p.locator('[data-testid="table"] .el-table__body tr').count();
+  const rowsShown = await p.locator('[data-testid="table"] .vxe-table--main-wrapper .vxe-body--row').count();
   check(
-    rowsShown >= 1 && (await p.locator('[data-testid="table"] .el-table__body tr').first().textContent()).includes(`TL-${run}-1`),
+    rowsShown >= 1 && (await p.locator('[data-testid="table"] .vxe-table--main-wrapper .vxe-body--row').first().textContent()).includes(`TL-${run}-1`),
     '列表按用途筛选'
   );
   await p.getByTestId('export').click();
@@ -319,7 +320,7 @@ try {
   check(pub.status === 'APPLIED' && v2.version === base + 1, `改布局后发布生成表单 v${v2.version}`);
   await p.goto(`${BASE}/lsmom/ledger/${ORDER}`);
   await p
-    .locator('[data-testid="table"] .el-table__body tr')
+    .locator('[data-testid="table"] .vxe-table--main-wrapper .vxe-body--row')
     .filter({ hasText: `TL-${run}-1` })
     .first()
     .click();

@@ -5,4 +5,4 @@ fields:
   - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work, required: true, props: { unique: true, queryable: true } }
   - { code: team, displayName: 班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
   - { code: shiftDate, displayName: 日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
-  - { code: shift, displayName: 班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { queryable: true } }
+  - { code: shift, displayName: 班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { optionLabels: { DAY: 早班, EVENING: 中班, NIGHT: 夜班 }, queryable: true } }

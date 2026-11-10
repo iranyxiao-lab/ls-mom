@@ -105,6 +105,7 @@
 </template>
 
 <script setup lang="ts">
+import { notifyDone } from '@/utils/opResult';
 import { onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -186,11 +187,10 @@ async function openDetail(id: number) {
 async function run(action: string, input: Record<string, unknown> = {}) {
   const c = cur.value!;
   const r = await props.api.op(`${HANDOVER}.${action}`, c.id, c.version, input);
-  if (r.warnings?.length) ElMessage.warning(r.warnings.join('；'));
-  else
-    ElMessage.success(
-      { generate: '摘要草稿已生成', publish: '已确认交班，接班班组可见', accept: '已确认接班，未完成事项已转入本班组' }[action] ?? '已完成'
-    );
+  notifyDone(
+    { generate: '摘要草稿已生成', publish: '已确认交班，接班班组可见', accept: '已确认接班，未完成事项已转入本班组' }[action] ?? '已完成',
+    r.warnings
+  );
   await load();
   await openDetail(c.id);
 }

@@ -2,7 +2,7 @@ code: ls.production.MaterialRecord
 displayName: 物料记录
 description: 领用、投料、退料、转移的事实记录；默认不核销库存、不校验物料平衡
 fields:
-  - { code: kind, displayName: 类型, dataType: ENUM, required: true, options: [ISSUE, FEED, RETURN, TRANSFER], props: { queryable: true } }
+  - { code: kind, displayName: 类型, dataType: ENUM, required: true, options: [ISSUE, FEED, RETURN, TRANSFER], props: { optionLabels: { ISSUE: 领用, FEED: 投料, RETURN: 退料, TRANSFER: 转移 }, queryable: true } }
   - { code: material, displayName: 物料, dataType: STRING, required: true, props: { queryable: true, label: true, maxLength: 100 } }
   - { code: quantity, displayName: 数量, dataType: DECIMAL, required: true }
   - { code: unit, displayName: 单位, dataType: STRING, required: true, props: { maxLength: 32 } }

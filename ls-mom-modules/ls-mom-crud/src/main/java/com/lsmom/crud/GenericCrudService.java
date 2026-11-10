@@ -774,9 +774,11 @@ public class GenericCrudService {
     // —— SQL 写入 ——
 
     private long insertMaster(LedgerModel m, Map<String, Object> values, Long org, ActorContext actor) {
-        List<String> cols = new ArrayList<>(List.of("org_id", "status", "created_by", "created_at", "version", "ext_attrs"));
+        // 新建时"最后修改时间"即创建时间，列表的"有 N 条更新"按它判断
+        LocalDateTime now = LocalDateTime.now(clock);
+        List<String> cols = new ArrayList<>(List.of("org_id", "status", "created_by", "created_at", "updated_at", "version", "ext_attrs"));
         List<Object> args = new ArrayList<>(List.of(org, DRAFT, actor.effectiveParty() == null ? 0L : actor.effectiveParty(),
-            LocalDateTime.now(clock), 0, extJson(m, values, Map.of())));
+            now, now, 0, extJson(m, values, Map.of())));
         values.forEach((code, v) -> {
             FieldDef f = m.field(code);
             if (f.ext()) return;
@@ -891,6 +893,7 @@ public class GenericCrudService {
             case "ls.core.Party" -> ref.put("label", single("select name from core_party where id = ?", id));
             case "ls.core.OrgUnit" -> ref.put("label", single("select name from core_org_unit where id = ?", id));
             case "ls.core.Work" -> ref.put("label", single("select code || ' ' || title from core_work_item where id = ?", id));
+            case "ls.core.Issue" -> ref.put("label", single("select code || ' ' || title from core_issue where id = ?", id));
             default -> {
                 Optional<ConceptDef> target = concepts.find(concept);
                 if (target.isEmpty() || target.get().storage() != ConceptDef.Storage.MANAGED_TABLE) {

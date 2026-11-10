@@ -22,3 +22,10 @@ export function saveBlob(blob: Blob, fileName: string) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** 记录的显示名：标题/名称类字段优先，否则取列表里第一个文本字段。 */
+export function recordLabel(r: Record<string, any>, schema: { fields: { code: string; type: string }[] } | null): string {
+  for (const k of ['title', 'name', 'code', 'no']) if (r[k]) return String(r[k]);
+  const f = schema?.fields.find((x) => x.type === 'STRING' && r[x.code]);
+  return f ? String(r[f.code]) : `#${r.id}`;
+}

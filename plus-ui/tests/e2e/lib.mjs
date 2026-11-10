@@ -38,6 +38,8 @@ export async function open({ width = 1600, height = 1000, user = 'admin', mobile
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
+  if (process.env.LSMOM_E2E_CONSOLE) page.on('console', (m) => console.log('[console]', m.type(), m.text().slice(0, 300)));
+  if (process.env.LSMOM_E2E_CONSOLE) page.on('pageerror', (e) => console.log('[pageerror]', e.message));
   await page.goto(BASE + '/login');
   // 登录页初始化（租户、记住我）偶尔会覆盖刚填的值，失败时重填重试
   for (let attempt = 1; ; attempt++) {

@@ -74,7 +74,7 @@ try {
   // 在途流程继续办理：部门审核通过 → 设备员确认归档
   const todo = async (who, node) => {
     for (let i = 0; i < 40; i++) {
-      const t = ((await who.api('GET', '/api/flow/todo')).data ?? []).find((x) => x.bizId === String(st.loanId) && x.nodeKey === node && x.status === 'TODO');
+      const t = ((await who.api('GET', '/api/flow/todo')).data ?? []).find((x) => x.bizType === st.ORDER && x.bizId === String(st.loanId) && x.nodeKey === node && x.status === 'TODO');
       if (t) return t;
       await new Promise((r) => setTimeout(r, 300));
     }

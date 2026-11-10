@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.lsmom.action.api.ActorContext;
 import com.lsmom.action.registry.OperationDefinition;
 import com.lsmom.action.registry.OperationRegistry;
+import com.lsmom.action.state.StateMachineDefinition;
 import com.lsmom.action.web.ActorResolver;
 import com.lsmom.core.error.LsBizException;
 import com.lsmom.crud.GenericCrudService;
@@ -102,6 +103,7 @@ public class GenericCrudController {
             ops.add(o);
         }
         s.put("operations", ops);
+        s.put("states", states(concept));
         Map<String, Boolean> perms = new LinkedHashMap<>();
         for (String a : List.of("list", "query", "add", "edit", "remove", "export", "import")) {
             perms.put(a, actor.hasPermission(GenericCrudService.permission(concept, a)));
@@ -111,6 +113,27 @@ public class GenericCrudController {
             select schema_json::text from meta_view where concept_code = ? and view_type = 'LIST' and status = 'PUBLISHED'
              order by version desc limit 1""", String.class, concept).stream().findFirst().ifPresent(v -> s.put("view", v));
         return R.ok(s);
+    }
+
+    /**
+     * 状态（供"未完成"等快速筛选使用）：名称取进入该状态的迁移名称（初始状态为"草稿"），没有出向迁移的为终态。
+     * 未发布状态机时为空。
+     */
+    private List<Map<String, Object>> states(String concept) {
+        StateMachineDefinition d;
+        try {
+            d = machines.forConcept(concept);
+        } catch (RuntimeException e) {
+            return List.of();
+        }
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (String st : d.states()) {
+            String label = st.equals(d.initial()) ? "草稿" : d.transitions().stream().filter(t -> st.equals(t.to()) && t.name() != null)
+                .map(t -> "已" + t.name()).findFirst().orElse(st);
+            boolean terminal = d.transitions().stream().noneMatch(t -> t.from().contains(st));
+            out.add(Map.of("code", st, "label", label, "initial", st.equals(d.initial()), "terminal", terminal));
+        }
+        return out;
     }
 
     private static List<Map<String, Object>> fields(LedgerModel m, ActorContext actor) {

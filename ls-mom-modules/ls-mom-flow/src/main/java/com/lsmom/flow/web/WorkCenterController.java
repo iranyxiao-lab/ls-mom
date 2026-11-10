@@ -90,6 +90,12 @@ public class WorkCenterController {
         return R.ok(center.parties(keyword));
     }
 
+    /** 单据的流程进度：状态与下一步（当前办理人、剩余时间、本人待办、催办）与步骤条。 */
+    @GetMapping("/biz/{concept}/{id}/progress")
+    public R<Map<String, Object>> progress(@PathVariable String concept, @PathVariable String id) {
+        return R.ok(center.progress(concept, id, actors.current()));
+    }
+
     @GetMapping("/tasks/{taskId}/context")
     public R<Map<String, Object>> context(@PathVariable String taskId) {
         return R.ok(center.context(taskId, actors.current()));

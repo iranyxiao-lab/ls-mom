@@ -100,6 +100,12 @@ export const constantRoutes: RouteRecordRaw[] = [
         meta: { title: '台账', icon: 'list' }
       },
       {
+        path: 'record/:concept/:id(\\d+)',
+        component: () => import('@/views/lsmom/ledger/RecordPage.vue'),
+        name: 'LedgerRecord',
+        meta: { title: '详情', icon: 'list' }
+      },
+      {
         path: 'form-designer/:code?',
         component: () => import('@/views/lsmom/form-designer/index.vue'),
         name: 'FormDesigner',

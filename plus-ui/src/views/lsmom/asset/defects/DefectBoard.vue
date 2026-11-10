@@ -127,6 +127,7 @@
 </template>
 
 <script setup lang="ts">
+import { notifyDone } from '@/utils/opResult';
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { AssetApi } from '@/api/lsmom/asset';
@@ -181,8 +182,7 @@ async function act(action: string, input: Record<string, unknown> = {}) {
   const c = cur.value;
   if (!c) return;
   const r = await props.api.op(`${DEFECT}.${action}`, c.id, c.version, input);
-  if (r.warnings?.length) ElMessage.warning(r.warnings.join('；'));
-  else ElMessage.success(`已${DEFECT_STATUS[r.status] ? '更新为' + DEFECT_STATUS[r.status] : '完成'}`);
+  notifyDone(`已${DEFECT_STATUS[r.status] ? '更新为' + DEFECT_STATUS[r.status] : '完成'}`, r.warnings);
   await refresh();
 }
 

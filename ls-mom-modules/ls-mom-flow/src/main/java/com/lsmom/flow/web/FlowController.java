@@ -40,9 +40,11 @@ public class FlowController {
     private final ActorResolver actors;
     private final JdbcTemplate jdbc;
     private final ConceptRegistry concepts;
+    private final com.lsmom.flow.runtime.WorkCenter center;
 
     public FlowController(FlowRegistry registry, FlowRuntime runtime, FlowReconciler reconciler, FlowCallbacks callbacks, ActorResolver actors,
-                          JdbcTemplate jdbc, ConceptRegistry concepts) {
+                          JdbcTemplate jdbc, ConceptRegistry concepts, com.lsmom.flow.runtime.WorkCenter center) {
+        this.center = center;
         this.jdbc = jdbc;
         this.concepts = concepts;
         this.registry = registry;
@@ -183,6 +185,8 @@ public class FlowController {
 
     @GetMapping("/biz/{concept}/{id}")
     public R<Map<String, Object>> ofBiz(@PathVariable String concept, @PathVariable String id) {
+        // 只有流程参与人或能查看该记录的人可以看
+        center.requireBizVisible(concept, id, actors.current());
         return R.ok(Map.of("instances", runtime.instancesOf(concept, id), "tasks", runtime.tasksOfBiz(concept, id)));
     }
 

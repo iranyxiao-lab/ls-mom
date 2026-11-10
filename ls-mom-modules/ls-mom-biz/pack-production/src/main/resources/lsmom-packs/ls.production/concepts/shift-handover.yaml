@@ -5,7 +5,7 @@ fields:
   - { code: fromTeam, displayName: 交班班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
   - { code: toTeam, displayName: 接班班组, dataType: REF, refConcept: ls.core.OrgUnit, required: true, props: { queryable: true } }
   - { code: shiftDate, displayName: 日期, dataType: DATE, required: true, props: { queryable: true, sortable: true } }
-  - { code: shift, displayName: 交班班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { queryable: true } }
+  - { code: shift, displayName: 交班班次, dataType: ENUM, required: true, options: [DAY, EVENING, NIGHT], props: { optionLabels: { DAY: 早班, EVENING: 中班, NIGHT: 夜班 }, queryable: true } }
   - { code: summary, displayName: 交班摘要, dataType: TEXT }
   - { code: issueSummary, displayName: 异常摘要, dataType: TEXT }
   - { code: dcsSummary, displayName: DCS 摘要, dataType: TEXT }
@@ -18,7 +18,7 @@ children:
   - code: ls.production.ShiftHandoverItem
     displayName: 交接事项
     fields:
-      - { code: kind, displayName: 类型, dataType: ENUM, required: true, options: [UNFINISHED, DONE, ISSUE, NOTE] }
+      - { code: kind, displayName: 类型, dataType: ENUM, required: true, options: [UNFINISHED, DONE, ISSUE, NOTE], props: { optionLabels: { UNFINISHED: 未完成, DONE: 已完成, ISSUE: 问题, NOTE: 备注 } } }
       - { code: workItem, displayName: 工作, dataType: REF, refConcept: ls.core.Work }
       - { code: issueId, displayName: 异常, dataType: INTEGER }
       - { code: title, displayName: 事项, dataType: STRING, required: true, props: { maxLength: 200 } }

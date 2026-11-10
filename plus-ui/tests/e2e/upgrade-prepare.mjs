@@ -65,7 +65,7 @@ try {
   await ok(team.api('POST', `/api/op/${ns}.LoanOrder.submit`, { targetId: String(loan.id), version: loan.version, input: {} }), '提交审核');
   let task;
   for (let i = 0; i < 30 && !task; i++) {
-    task = ((await leader.api('GET', '/api/flow/todo')).data ?? []).find((x) => x.bizId === String(loan.id) && x.nodeKey === 'deptAudit' && x.status === 'TODO');
+    task = ((await leader.api('GET', '/api/flow/todo')).data ?? []).find((x) => x.bizType === ORDER && x.bizId === String(loan.id) && x.nodeKey === 'deptAudit' && x.status === 'TODO');
     if (!task) await new Promise((r) => setTimeout(r, 300));
   }
   check(task, '车间主任待办中出现部门审核');
