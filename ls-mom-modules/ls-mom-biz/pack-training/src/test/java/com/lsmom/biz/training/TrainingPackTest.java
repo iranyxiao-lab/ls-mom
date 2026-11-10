@@ -81,6 +81,8 @@ class TrainingPackTest {
             ManagedRecords r = new ManagedRecords(af.core.jdbc, af.concepts);
             return List.of(c.trainingStartExam(r, CLOCK), c.trainingDraftQuestions(r), c.trainingQualification(af.core.jdbc, r, CLOCK));
         };
+        ActionFixture.extraGuards = af -> List.of(c.trainingQualificationGuard(af.core.jdbc, new ManagedRecords(af.core.jdbc, af.concepts),
+            af.core.works, CLOCK));
     }
 
     final PackFixture f = new PackFixture();
@@ -324,6 +326,50 @@ class TrainingPackTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void 分派资质守卫_适用作业的工作只能分派给资质有效的人员_拒绝时说明谁的什么资质何时过期并给出修复入口() {
+        String kw = "动火" + Long.toString(System.nanoTime(), 36).substring(4);
+        long c = course("HOT-" + System.nanoTime());
+        f.core.jdbc.update("update " + records.table(COURSE) + " set " + records.column(COURSE, "workKeywords") + " = ? where id = ?", "登高, " + kw, c);
+        publish(COURSE, c);
+        java.time.LocalDate today = java.time.LocalDate.now(clock);
+        java.time.LocalDate expired = today.minusDays(5);
+        long old = records.insert(RECORD, f.plant.teamA().id(), "VALID", admin.id(), Map.of("party", zheng.id(), "course", c, "score", 80,
+            "passedOn", expired.minusYears(1), "validUntil", expired));
+        records.insert(RECORD, f.plant.teamA().id(), "VALID", admin.id(), Map.of("party", wu.id(), "course", c, "score", 90,
+            "passedOn", today.minusMonths(1), "validUntil", today.plusMonths(11)));
+        Party li = f.core.employee("李四", f.plant.teamA());
+        ActorContext leader = f.action.human(admin, DataScopeLevel.WORKSHOP, "lsmom:work:create", "lsmom:work:edit", "lsmom:work:assign");
+
+        String hot = f.action.newWork(leader, f.plant.teamA(), kw + "：焊补 3 号管道");
+        f.action.step("ls.core.Work.ready", leader, "ls.core.Work", hot, "{}");
+        String toZheng = "{\"targets\":[{\"resourceType\":\"PARTY\",\"resourceRef\":\"" + zheng.id() + "\"}]}";
+        assertThatThrownBy(() -> f.action.step("ls.core.Work.assign", leader, "ls.core.Work", hot, toZheng))
+            .isInstanceOfSatisfying(LsBizException.class, e -> {
+                assertThat(e.getCode()).isEqualTo("GUARD_FAILED");
+                assertThat(e.getMessage()).isEqualTo("郑师傅的" + kw + "作业资质已于 " + expired.getMonthValue() + " 月 " + expired.getDayOfMonth() + " 日过期");
+                assertThat(e.getDetails()).containsEntry("reason", "QUALIFICATION_EXPIRED").containsEntry("partyId", zheng.id())
+                    .containsEntry("expiredOn", expired.toString()).containsEntry("recordId", old);
+                assertThat(String.valueOf(e.getDetails().get("why"))).contains("属于" + kw + "作业").contains("受限空间作业安全");
+                List<Map<String, Object>> fix = (List<Map<String, Object>>) e.getDetails().get("fix");
+                assertThat(fix).extracting(m -> m.get("label")).containsExactly("改派他人", "查看培训记录");
+                assertThat(fix.get(0)).containsEntry("action", "reassign");
+                assertThat(fix.get(1)).containsEntry("to", "/lsmom/ledger/" + RECORD + "?id=" + old);
+            });
+        // 没有培训记录：说明需要哪门培训
+        String toLi = "{\"targets\":[{\"resourceType\":\"PARTY\",\"resourceRef\":\"" + li.id() + "\"}]}";
+        assertThatThrownBy(() -> f.action.step("ls.core.Work.assign", leader, "ls.core.Work", hot, toLi))
+            .hasMessage("李四没有" + kw + "作业资质（需要通过「受限空间作业安全」培训）");
+        // 资质有效的人员可以分派
+        assertThat(f.action.step("ls.core.Work.assign", leader, "ls.core.Work", hot,
+            "{\"targets\":[{\"resourceType\":\"PARTY\",\"resourceRef\":\"" + wu.id() + "\"}]}").status()).isEqualTo("ASSIGNED");
+        // 标题不含关键词的工作不检查
+        String normal = f.action.newWork(leader, f.plant.teamA(), "日常巡检");
+        f.action.step("ls.core.Work.ready", leader, "ls.core.Work", normal, "{}");
+        assertThat(f.action.step("ls.core.Work.assign", leader, "ls.core.Work", normal, toZheng).status()).isEqualTo("ASSIGNED");
+    }
+
+    @Test
     void LLM草拟的题目只能为草稿_需真人审核后发布_Agent不能提交课程发布() {
         long c = course(PackFixture.code("CL"));
         Party bot = f.core.employee("培训助手", f.plant.workshop());
@@ -387,14 +433,17 @@ class TrainingPackTest {
         // 升级：新版本给 Concept 增加一个字段；已有数据保留，新字段可用
         java.util.Map<String, byte[]> files = new java.util.TreeMap<>(src.files());
         String manifest = new String(files.get("pack.yaml"), java.nio.charset.StandardCharsets.UTF_8);
-        files.put("pack.yaml", manifest.replace("version: 1.0.0", "version: 1.0.1").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String base = PackManifest.parse(src).version();
+        String[] parts = base.split("\\.");
+        String next = parts[0] + "." + parts[1] + "." + (Integer.parseInt(parts[2]) + 1);
+        files.put("pack.yaml", manifest.replace("version: " + base, "version: " + next).getBytes(java.nio.charset.StandardCharsets.UTF_8));
         String yaml = new String(files.get("concepts/course.yaml"), java.nio.charset.StandardCharsets.UTF_8);
         files.put("concepts/course.yaml", (yaml.stripTrailing() + "\n  - { code: upgradeNote, displayName: 升级备注, dataType: STRING }\n")
             .getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        if (!"1.0.1".equals(f.store.get(TrainingPack.CODE).version())) {
+        if (!next.equals(f.store.get(TrainingPack.CODE).version())) {
             com.lsmom.pack.PackInstaller.Result up = f.installer.install(PackSource.of(files), null);
             assertThat(up.status()).isEqualTo("UPGRADED");
-            assertThat(up.previousVersion()).isEqualTo("1.0.0");
+            assertThat(up.previousVersion()).isEqualTo(base);
         }
         assertThat(f.action.concepts.get(COURSE).fields()).extracting(com.lsmom.meta.concept.FieldDef::code).contains("upgradeNote");
         assertThat(f.core.jdbc.queryForObject("select count(*) from " + table, Integer.class)).isEqualTo(rows);

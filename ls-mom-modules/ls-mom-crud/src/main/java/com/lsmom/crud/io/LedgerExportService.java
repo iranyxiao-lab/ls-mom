@@ -52,6 +52,14 @@ public class LedgerExportService {
     public record Job(long id, String concept, String status, Integer rowCount, String error) {
     }
 
+    private com.lsmom.core.task.BackgroundTasks tasks;
+
+    /** 任务中心（可选）：导出进度与完成通知 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTasks(com.lsmom.core.task.BackgroundTasks tasks) {
+        this.tasks = tasks;
+    }
+
     public Job submit(String concept, QuerySpec spec, ActorContext actor) {
         String op = GenericCrudService.permission(concept, "export");
         crud.checkAccess(actor, concept, "export");
@@ -76,11 +84,17 @@ public class LedgerExportService {
         Long id = jdbc.queryForObject("insert into crud_export_job (concept_code, query, row_count, created_by) values (?, ?::jsonb, ?, ?) returning id",
             Long.class, concept, query, total, actor.effectiveParty());
         audit.writeIndependently(new OperationAudit.Entry(op, actor, concept, String.valueOf(id), null, "SUCCESS", null, null, "", query, 0, null));
-        executor.execute(() -> run(id, concept, spec, actor));
+        Long task = tasks == null || actor.userId() == null ? null
+            : tasks.start("EXPORT", "导出：" + crud.model(concept).concept().displayName(), actor.userId(), (int) total);
+        executor.execute(() -> run(id, concept, spec, actor, task));
         return job(id, actor);
     }
 
     void run(long id, String concept, QuerySpec spec, ActorContext actor) {
+        run(id, concept, spec, actor, null);
+    }
+
+    void run(long id, String concept, QuerySpec spec, ActorContext actor, Long task) {
         jdbc.update("update crud_export_job set status = 'RUNNING' where id = ?", id);
         try {
             LedgerModel m = crud.model(concept);
@@ -101,6 +115,7 @@ public class LedgerExportService {
                     for (FieldDef f : cols) row.add(cell(r.containsKey(f.code() + "Label") ? r.get(f.code() + "Label") : r.get(f.code())));
                     data.add(row);
                 }
+                if (task != null) tasks.progress(task, data.size(), 0);
                 if (p.rows().size() < batch || data.size() >= props.exportMaxRows()) break;
                 page++;
             }
@@ -109,7 +124,11 @@ public class LedgerExportService {
             String key = storage.put(m.concept().displayName() + "-" + id + ".xlsx", out.toByteArray());
             jdbc.update("update crud_export_job set status = 'DONE', row_count = ?, object_key = ?, finished_at = now() where id = ?",
                 data.size(), key, id);
+            if (task != null) {
+                tasks.finish(task, Map.of("jobId", id, "concept", concept, "rowCount", data.size(), "download", "/api/crud/export/" + id + "/download"));
+            }
         } catch (Exception e) {
+            if (task != null) tasks.fail(task, "导出失败：" + e.getMessage());
             jdbc.update("update crud_export_job set status = 'FAILED', error = ?, finished_at = now() where id = ?",
                 String.valueOf(e.getMessage()).substring(0, Math.min(1000, String.valueOf(e.getMessage()).length())), id);
         }

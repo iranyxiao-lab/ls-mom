@@ -62,6 +62,13 @@ public class TrainingConfiguration {
         return new TrainingOperations.Qualification(jdbc, records, clock);
     }
 
+    /** 分派资质守卫：适用作业的工作只能分派给持有有效培训记录的人员 */
+    @Bean
+    public QualificationGuard trainingQualificationGuard(JdbcTemplate jdbc, ManagedRecords records,
+                                                         com.lsmom.core.work.WorkItemService works, Clock clock) {
+        return new QualificationGuard(jdbc, records, works, clock);
+    }
+
     /** 考生可见、可办理自己的答卷（考生多在班组，数据域不含考试所属组织）。 */
     @Bean
     public PartyAccess trainingAnswerCandidateAccess() {

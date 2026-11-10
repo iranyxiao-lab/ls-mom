@@ -23,6 +23,8 @@ export const qualityApi = {
   query: (concept: string, spec: QuerySpec) => crudApi.query(concept, spec) as Promise<Page>,
   get: (concept: string, id: number) => crudApi.get(concept, id) as Promise<Record<string, any>>,
   create: (concept: string, body: Record<string, unknown>) => crudApi.create(concept, body, key()),
+  /** 不可撤销动作执行前的影响说明 */
+  impact: (operation: string, targetId: string | number) => crudApi.impact(operation, targetId),
   op,
   upload: (file: File) => formApi.upload(file),
   attach: (ossId: string | number, objectType: string, objectId: string | number, purpose = 'EVIDENCE') =>

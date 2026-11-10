@@ -39,3 +39,76 @@ html.dark .el-button.is-text.el-button--primary {
   --el-button-text-color: var(--ls-color-primary-text);
 }
 
+
+/* 撤销提示：完成说明 + 撤销按钮（5 秒内有效） */
+.ls-undo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ls-space-3);
+}
+.ls-undo__btn {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--el-color-primary);
+  cursor: pointer;
+}
+.ls-undo__btn:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+/* 不可撤销动作确认框：影响列表 */
+.ls-op-confirm {
+  margin: 0;
+  padding-left: 1.2em;
+  line-height: 1.8;
+}
+
+/* 可操作的错误提示：为什么、怎么解决、技术详情 */
+.ls-err__why {
+  margin: 0 0 var(--ls-space-2);
+  color: var(--el-text-color-regular);
+}
+.ls-err__fix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ls-space-2);
+  margin-bottom: var(--ls-space-2);
+}
+.ls-err__btn {
+  border: 1px solid var(--el-color-primary);
+  border-radius: var(--el-border-radius-base);
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  padding: 2px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.ls-err__btn:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
+}
+.ls-err__tech {
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+}
+.ls-err__tech summary {
+  cursor: pointer;
+}
+
+/* 新手引导（driver.js 弹层） */
+.ls-tour .ls-tour__skip {
+  margin-right: auto;
+  border: none;
+  background: none;
+  color: var(--el-text-color-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  padding: 0 4px 0 0;
+}
+.ls-tour .driver-popover-footer {
+  gap: 8px;
+}

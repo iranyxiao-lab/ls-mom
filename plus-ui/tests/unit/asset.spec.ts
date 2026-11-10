@@ -13,6 +13,15 @@ import { outOfRange } from '@/api/lsmom/assetModel';
 function makeApi(overrides: Record<string, any> = {}) {
   return {
     timeline: vi.fn(async () => [] as any[]),
+    impact: vi.fn(async (operation: string) => ({
+      operation,
+      name: '关闭',
+      undoable: false,
+      fromStatus: 'PENDING_VERIFY',
+      toStatus: 'CLOSED',
+      terminal: true,
+      lines: ['将关闭 1 个对象：测试', '关联整改工作 1 项（已完成 1 项）']
+    })),
     myInspections: vi.fn(async () => [] as any[]),
     orgs: vi.fn(async () => [{ id: 7, name: '一车间', unit_type: 'WORKSHOP' }]),
     parties: vi.fn(async () => [{ id: 5, name: '郑师傅' }]),
@@ -203,7 +212,10 @@ describe('缺陷与维修', () => {
     expect(api.op).toHaveBeenCalledTimes(1);
     await type('df-conclusion', '温度恢复 55℃');
     q('btn-df-pass')!.click();
-    await flush(150);
+    await flush(300);
+    expect(document.querySelector('[data-testid="op-confirm-body"]')!.textContent).toContain('此操作不能撤销');
+    (document.querySelector('.ls-op-confirm-box .el-button--primary') as HTMLElement).click();
+    await flush(300);
     expect(api.op).toHaveBeenLastCalledWith('ls.asset.Defect.verifyPass', 41, 3, { conclusion: '温度恢复 55℃' });
   });
 });

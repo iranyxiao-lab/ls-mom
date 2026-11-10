@@ -105,19 +105,21 @@ try {
   await leader.page.getByTestId('col-DAY').getByTestId(`card-${w1.id}`).waitFor();
   await leader.page.waitForTimeout(500);
   await dragCard(leader.page, card, leader.page.getByTestId('col-EVENING'));
+  // 乐观更新：卡片立即出现在中班；服务端完成后提示里给出撤销
   await leader.page.getByTestId('col-EVENING').getByTestId(`card-${w1.id}`).waitFor({ timeout: 15000 });
+  const undoBtn = leader.page.getByTestId('undo-btn');
+  await undoBtn.waitFor({ timeout: 10000 });
   cur1 = (await board(leader, { requestId: req.id })).find((x) => x.id === w1.id);
   check(cur1.shift === 'EVENING' && String(cur1.plannedStart).includes('16:00'), '拖到中班：班次与计划时间同步更新');
-  // 冲突提示浮在页面顶部，等它消失再拖，免得按到提示上
-  await leader.page
-    .locator('.el-message')
-    .first()
-    .waitFor({ state: 'detached', timeout: 15000 })
-    .catch(() => undefined);
-  await dragCard(leader.page, leader.page.getByTestId('col-EVENING').getByTestId(`card-${w1.id}`), leader.page.getByTestId('col-DAY'));
+  // 提示里 5 秒内可撤销：点撤销，服务端以补偿 Operation 挪回早班
+  check((await leader.page.locator('.el-message', { has: undoBtn }).textContent()).includes('已调整到中班'), '调整后提示可撤销');
+  await undoBtn.click();
+  await leader.page.locator('.el-message', { hasText: '已撤销' }).first().waitFor({ timeout: 10000 });
   await leader.page.getByTestId('col-DAY').getByTestId(`card-${w1.id}`).waitFor({ timeout: 15000 });
   cur1 = (await board(leader, { requestId: req.id })).find((x) => x.id === w1.id);
-  check(cur1.shift === 'DAY', '拖回早班');
+  check(cur1.shift === 'DAY' && String(cur1.plannedStart).includes('08:00'), '撤销：回到早班，计划时间同步恢复');
+  const undoEvents = (await leader.api('GET', `/api/timeline/ls.production.ShiftPlan/${cur1.planId}`)).data ?? [];
+  check(undoEvents.filter((e) => /调整班次/.test(e.action ?? '')).length >= 2, '撤销以补偿 Operation 记入时间轴');
 
   // —— 移动填报（手机视口）：开始 → 草稿（拍照）→ 恢复草稿 → 提交 → 提交确认 ——
   const m = worker.page;

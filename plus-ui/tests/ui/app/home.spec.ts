@@ -72,11 +72,19 @@ test('个人调整：隐藏与排序在换浏览器后保持，恢复默认回�
   const roleOrder = await order(a.page);
   await a.page.getByTestId('home-edit').click();
   // 隐藏「待我审核」，把「未关闭异常」上移到第一位
+  // 隐藏是低风险可逆操作：不弹确认，5 秒内可撤销，回到原位置
+  const before = await order(a.page);
+  await a.page.locator('.home-slot[data-card="ls.home.myReviews"]').getByTestId('card-hide').click();
+  await expect(a.page.locator('.el-message-box')).toHaveCount(0);
+  await expect(a.page.getByTestId('undo-text')).toContainText('已隐藏「待我审核」');
+  await a.page.getByTestId('undo-btn').click();
+  await expect(a.page.locator('.home-slot[data-card="ls.home.myReviews"]')).toBeVisible();
+  expect(await order(a.page)).toEqual(before);
   await a.page.locator('.home-slot[data-card="ls.home.myReviews"]').getByTestId('card-hide').click();
   await a.page.locator('.home-slot[data-card="ls.home.openIssues"]').getByTestId('card-up').click();
   await expect(a.page.getByTestId('card-add-ls.home.myReviews')).toBeVisible();
   await a.page.getByTestId('home-done').click();
-  await expect(a.page.locator('.el-message--success')).toContainText('已保存');
+  await expect(a.page.locator('.el-message--success', { hasText: '已保存' })).toBeVisible();
   const mine = await order(a.page);
   expect(mine[0]).toBe('ls.home.openIssues');
   expect(mine).not.toContain('ls.home.myReviews');

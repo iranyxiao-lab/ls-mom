@@ -56,6 +56,12 @@
       <el-tabs v-model="tab">
         <el-tab-pane label="详情" name="detail">
           <SchemaDetail v-if="view" :schema="view.schema" :record="record" :frozen-version="view.version" :latest-version="latest" :api="forms" />
+          <!-- 没有发布表单时按台账字段显示 -->
+          <el-descriptions v-else-if="listSchema" :column="2" border size="small" data-testid="detail-fields">
+            <el-descriptions-item v-for="f in listSchema.fields.filter((x) => x.type !== 'JSON')" :key="f.code" :label="f.label">{{
+              cellText(f, record)
+            }}</el-descriptions-item>
+          </el-descriptions>
           <el-empty v-else description="该台账没有已发布的表单" />
         </el-tab-pane>
         <el-tab-pane :label="`时间轴${timeline.length ? `（${timeline.length}）` : ''}`" name="timeline">
@@ -77,6 +83,8 @@
 
 <script setup lang="ts">
 import { notifyDone } from '@/utils/opResult';
+import { confirmOperation } from '@/utils/opConfirm';
+import { useUndoable } from '@/utils/undoable';
 import { computed, reactive, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import SchemaDetail from '@/components/SchemaDetail/index.vue';
@@ -88,8 +96,8 @@ import type { FormApi } from '@/api/lsmom/form';
 import type { ListSchema, SchemaOperation } from '@/api/lsmom/types';
 import type { FormSchema, ViewVersion } from '@/types/lsView';
 import { statesOf } from '@/components/SchemaTable/conditions';
-import { rowOperations } from '@/components/SchemaTable/querySpec';
-import { idempotencyKey } from './ledgerModel';
+import { cellText, rowOperations } from '@/components/SchemaTable/querySpec';
+import { idempotencyKey, recordLabel } from './ledgerModel';
 
 /** 单条记录：状态、可执行动作、只读详情（按记录冻结的表单版本）与时间轴。抽屉和"在新页签打开"共用。 */
 const props = defineProps<{
@@ -105,6 +113,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ (e: 'changed', record: Record<string, any>): void; (e: 'loaded', record: Record<string, any>): void }>();
 
+const undoable = useUndoable();
 const record = ref<Record<string, any> | null>(null);
 const view = ref<ViewVersion<FormSchema> | null>(null);
 const latest = ref(0);
@@ -199,10 +208,39 @@ async function run(op: SchemaOperation) {
     return;
   }
   const r = record.value!;
+  if (op.undoable) return runUndoable(op, r);
+  const ok = await confirmOperation({
+    name: op.name,
+    label: recordLabel(r, listSchema.value),
+    impact: typeof props.crud.impact === 'function' ? () => props.crud.impact(op.operation, r.id) : undefined,
+    stateLabel: (c) => stateLabel(c ?? undefined)
+  });
+  if (!ok) return;
   busy.value = op.operation;
   try {
     const res = await props.crud.execute(op.operation, { targetId: String(r.id), version: Number(r.version), input: { ...input } }, idempotencyKey());
     notifyDone(`已${op.name}`, res.warnings);
+    pending.value = null;
+    await load();
+    emit('changed', record.value!);
+  } finally {
+    busy.value = null;
+  }
+}
+
+/** 可撤销的动作：直接执行，提示里 5 秒内可撤销 */
+async function runUndoable(op: SchemaOperation, r: Record<string, any>) {
+  busy.value = op.operation;
+  try {
+    await undoable.run({
+      done: `已${op.name}`,
+      exec: () => props.crud.execute(op.operation, { targetId: String(r.id), version: Number(r.version), input: { ...input } }, idempotencyKey()),
+      compensate: (o, id, version, inp) => props.crud.execute(o, { targetId: id, version, input: inp }, idempotencyKey()),
+      after: async () => {
+        await load();
+        if (record.value) emit('changed', record.value);
+      }
+    });
     pending.value = null;
     await load();
     emit('changed', record.value!);

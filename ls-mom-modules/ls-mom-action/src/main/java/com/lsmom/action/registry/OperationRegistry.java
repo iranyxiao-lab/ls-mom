@@ -48,7 +48,8 @@ public class OperationRegistry {
         rs.getString("concept_code"), rs.getString("display_name"), OperationDefinition.Kind.valueOf(rs.getString("kind")),
         Risk.valueOf(rs.getString("risk")), Exposure.valueOf(rs.getString("exposure")), rs.getString("permission"),
         readTree(rs.getString("input_schema")), readList(rs.getString("guards")), IdempotencyPolicy.valueOf(rs.getString("idempotency")),
-        rs.getBoolean("requires_version"), rs.getString("source"), rs.getString("status"), rs.getInt("version"), rs.getString("description"));
+        rs.getBoolean("requires_version"), rs.getString("source"), rs.getString("status"), rs.getInt("version"), rs.getString("description"),
+        rs.getString("undo_operation"));
 
     public Optional<OperationDefinition> find(String code) {
         return jdbc.query("select * from meta_operation where code = ?", mapper, code).stream().findFirst();
@@ -77,15 +78,16 @@ public class OperationRegistry {
     public void upsertMeta(OperationDefinition d) {
         jdbc.update("""
             insert into meta_operation (code, concept_code, display_name, kind, risk, exposure, permission, input_schema, guards,
-              idempotency, requires_version, source, status, version, description)
-            values (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, 'META', 'PUBLISHED', ?, ?)
+              idempotency, requires_version, source, status, version, description, undo_operation)
+            values (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, 'META', 'PUBLISHED', ?, ?, ?)
             on conflict (code) do update set display_name = excluded.display_name, risk = excluded.risk, exposure = excluded.exposure,
               permission = excluded.permission, input_schema = excluded.input_schema, guards = excluded.guards,
               idempotency = excluded.idempotency, requires_version = excluded.requires_version, status = 'PUBLISHED',
-              version = excluded.version, description = excluded.description, updated_at = now()
+              version = excluded.version, description = excluded.description, undo_operation = excluded.undo_operation, updated_at = now()
             where meta_operation.source = 'META'""",
             d.code(), d.concept(), d.name(), d.kind().name(), d.risk().name(), d.exposure().name(), d.permission(),
-            write(d.inputSchema()), write(d.guards()), d.idempotency().name(), d.requiresVersion(), d.version(), d.description());
+            write(d.inputSchema()), write(d.guards()), d.idempotency().name(), d.requiresVersion(), d.version(), d.description(),
+            d.undoOperation());
         Integer src = jdbc.queryForObject("select count(*) from meta_operation where code = ? and source = 'CODE'", Integer.class, d.code());
         if (src != null && src > 0) {
             throw new LsBizException("OPERATION_CODE_TAKEN", "编码已被 Java Operation 占用：" + d.code());

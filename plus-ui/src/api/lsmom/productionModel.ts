@@ -98,4 +98,6 @@ export interface OpResult {
   status: string;
   warnings: string[];
   data?: any;
+  /** 可撤销时的撤销方式 */
+  undo?: { operation: string; targetId: string; input: Record<string, unknown> } | null;
 }

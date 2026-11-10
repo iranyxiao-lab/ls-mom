@@ -1,7 +1,9 @@
 <template>
   <div class="p-2">
     <el-card shadow="never">
-      <KnowledgeCenter :api="knowledgeApi" :can-manage="checkPermi(['lsmom:knowledge:manage'])" :can-publish="checkPermi(['lsmom:knowledge:publish'])" />
+      <KnowledgeCenter
+        :api="knowledgeApi"
+        :initial-question="typeof $route.query.q === 'string' ? `${$route.query.q} 怎么操作` : ''" :can-manage="checkPermi(['lsmom:knowledge:manage'])" :can-publish="checkPermi(['lsmom:knowledge:publish'])" />
     </el-card>
   </div>
 </template>

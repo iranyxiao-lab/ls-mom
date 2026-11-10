@@ -184,6 +184,7 @@
 
 <script setup lang="ts">
 import { notifyDone } from '@/utils/opResult';
+import { confirmOperation } from '@/utils/opConfirm';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouteAction } from '@/utils/routeAction';
 import { ElMessage } from 'element-plus';
@@ -313,9 +314,21 @@ async function refresh() {
   await load();
 }
 
+/** 关闭、驳回不可撤销：先确认，列出将结束的不符合项、关联问题与整改工作数量 */
+const FINAL: Record<string, string> = { close: '验证通过并关闭', reject: '驳回' };
+
 async function act(action: string, input: Record<string, unknown> = {}) {
   const c = cur.value;
   if (!c) return;
+  if (FINAL[action]) {
+    const ok = await confirmOperation({
+      name: FINAL[action],
+      label: c.title,
+      impact: () => props.api.impact(`${NC}.${action}`, c.id),
+      stateLabel: (s) => (s ? (NC_STATUS[s] ?? s) : '')
+    });
+    if (!ok) return;
+  }
   const r = await props.api.op(`${NC}.${action}`, c.id, c.version, input);
   notifyDone(`已更新为${NC_STATUS[r.status] ?? r.status}`, r.warnings);
   await refresh();

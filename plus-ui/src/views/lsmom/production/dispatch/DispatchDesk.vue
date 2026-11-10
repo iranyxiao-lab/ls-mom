@@ -62,6 +62,7 @@
         filterable
         remote
         :remote-method="searchParty"
+        ref="partySelect"
         placeholder="搜索人员"
         style="width: 100%"
         data-testid="dispatch-party"
@@ -79,13 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { registerFixAction } from '@/utils/actionableError';
 import { ElMessage } from 'element-plus';
 import { SHIFTS, SHIFT_PLAN, WORK_STATUS, shiftLabel, type BoardWork, type Team } from '@/api/lsmom/productionModel';
 import type { ProductionApi } from '@/api/lsmom/production';
+import { useUndoable } from '@/utils/undoable';
 
 /** 13.3 分派台：给生产工作排班（班组、日期、班次）并分派到人；资源冲突按约束 Profile 提示或阻断。 */
 const props = defineProps<{ api: ProductionApi }>();
+const undoable = useUndoable();
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const now = new Date();
@@ -131,11 +135,24 @@ async function searchParty(q: string) {
 
 async function savePlan() {
   const w = cur.value!;
-  const r = w.planId
-    ? await props.api.op(`${SHIFT_PLAN}.move`, w.planId, w.planVersion, { teamId: plan.teamId, shiftDate: plan.shiftDate, shift: plan.shift })
-    : await props.api
-        .create(SHIFT_PLAN, { workItem: w.id, team: plan.teamId, shiftDate: plan.shiftDate, shift: plan.shift })
-        .then((c) => props.api.op(`${SHIFT_PLAN}.activate`, c.id, c.version));
+  if (w.planId) {
+    // 调整班次可撤销：5 秒内点撤销，服务端以补偿 Operation 恢复原班组、日期、班次
+    const r = await undoable.run({
+      done: '班次已调整',
+      exec: () => props.api.op(`${SHIFT_PLAN}.move`, w.planId!, w.planVersion, { teamId: plan.teamId, shiftDate: plan.shiftDate, shift: plan.shift }),
+      compensate: (op, id, version, input) => props.api.op(op, id, version, input),
+      after: async () => {
+        await load();
+        if (cur.value) select(cur.value);
+      }
+    });
+    warnings.value = r?.warnings ?? [];
+    await load();
+    return;
+  }
+  const r = await props.api
+    .create(SHIFT_PLAN, { workItem: w.id, team: plan.teamId, shiftDate: plan.shiftDate, shift: plan.shift })
+    .then((c) => props.api.op(`${SHIFT_PLAN}.activate`, c.id, c.version));
   warnings.value = r.warnings ?? [];
   if (!warnings.value.length) ElMessage.success('班次已安排');
   await load();
@@ -155,6 +172,16 @@ async function assign() {
   if (!warnings.value.length) ElMessage.success('已分派');
   await load();
 }
+
+// 分派被拒（如资质过期）时错误提示里的「改派他人」：去掉该人员，光标回到人员选择
+const partySelect = ref<{ focus: () => void }>();
+const offFix = registerFixAction('reassign', async (fix) => {
+  const id = Number(fix.partyId);
+  parties.value = parties.value.filter((p) => p !== id);
+  await nextTick();
+  partySelect.value?.focus();
+});
+onBeforeUnmount(offFix);
 
 onMounted(async () => {
   teams.value = (await props.api.teams().catch(() => [] as Team[])).filter((t) => t.inScope !== false);

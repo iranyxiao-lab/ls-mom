@@ -13,6 +13,9 @@ import { encryptBase64, encryptWithAes, generateAesKey, decryptWithAes, decryptB
 import { encrypt, decrypt } from '@/utils/jsencrypt';
 import router from '@/router';
 import { reloginAvailable, requestRelogin } from '@/utils/relogin';
+import { setFixNavigator, showActionableError } from '@/utils/actionableError';
+
+setFixNavigator((to) => router.push(to));
 
 const encryptHeader = 'encrypt-key';
 let downloadLoadingInstance: LoadingInstance;
@@ -179,10 +182,10 @@ service.interceptors.response.use(
     } else if (code !== HttpStatus.SUCCESS) {
       // 业务错误优先用服务端给的具体原因（如「没有找到编码为…的设备」），没有时才用通用文案
       const reason = res.data.msg || msg;
-      // 无权限等错误：附上追踪编号，便于反馈给管理员（silentError：调用方自己就近显示原因，如扫码结果）
-      if (!res.config.headers?.silentError) ElNotification.error({ title: reason, message: trace ? `追踪编号 ${trace}` : undefined });
       // 带上业务错误编码与细节（如校验失败的字段错误 details.errors），调用方可定位到字段
       const payload = (res.data.data ?? {}) as { errorCode?: string; details?: Record<string, unknown> };
+      // 可操作的错误提示：原因、怎么解决（修复入口）、技术详情与追踪编号（silentError：调用方自己就近显示原因，如扫码结果）
+      if (!res.config.headers?.silentError) showActionableError({ message: reason, errorCode: payload.errorCode, details: payload.details, trace });
       return Promise.reject(Object.assign(new Error(reason), { code, errorCode: payload.errorCode, details: payload.details, trace }));
     } else {
       return Promise.resolve(res.data);

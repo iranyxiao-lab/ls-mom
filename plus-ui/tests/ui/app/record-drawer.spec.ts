@@ -58,6 +58,12 @@ test('连续审阅：抽屉内办理并切换下一条，列表保持不动', as
   await expect(page.locator('.el-message', { hasText: '请填写审核意见' }).first()).toBeVisible();
   await drawer.getByTestId('detail-in-auditOpinion').fill('不构成不符合项');
   await drawer.getByTestId('detail-op-confirm').click();
+  // 驳回不可撤销：确认框列出影响对象与后果
+  const box = page.locator('.ls-op-confirm-box');
+  await expect(box.getByTestId('op-confirm-body')).toContainText(`将驳回 1 个不符合项：${marker}-3`);
+  await expect(box.getByTestId('op-confirm-body')).toContainText('状态：已登记提交 → 已审核驳回');
+  await expect(box.getByTestId('op-confirm-body')).toContainText('流程结束，不能再编辑或办理');
+  await box.getByRole('button', { name: '驳回' }).click();
   await expect(drawer.getByTestId('detail-status')).toHaveText('已审核驳回');
   await expect(drawer.getByTestId(`detail-op-${NC}.reject`)).toHaveCount(0);
 

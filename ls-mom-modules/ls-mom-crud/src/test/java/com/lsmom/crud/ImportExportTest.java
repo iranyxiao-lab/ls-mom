@@ -50,6 +50,8 @@ class ImportExportTest {
     private final MemoryStorage storage = new MemoryStorage();
     private final OperationAudit audit = new OperationAudit(f.action.core.jdbc, f.action.txm);
     private final LedgerImportService imports = new LedgerImportService(f.crud, f.action.core.jdbc, audit, CrudProperties.defaults());
+    private final com.lsmom.core.task.BackgroundTasks tasks = new com.lsmom.core.task.BackgroundTasks(f.action.core.jdbc, f.action.txm);
+    private final LedgerImportService asyncImports = new LedgerImportService(f.crud, f.action.core.jdbc, audit, CrudProperties.defaults(), tasks, Runnable::run);
     private CrudFixture.Loan loan;
     private String order;
     private CoreFixture.Plant plant;
@@ -96,6 +98,43 @@ class ImportExportTest {
         assertThatThrownBy(() -> imports.confirm(order, report.batchId(), admin)).extracting("code").isEqualTo("IMPORT_BATCH_STATE");
         assertThat(f.action.count("select count(*) from op_audit where op_code = ? and result = 'SUCCESS'",
             GenericCrudService.permission(order, "import"))).isEqualTo(1);
+    }
+
+    @Test
+    void 后台导入_任务中心记录进度与结果_仅发起人可见() {
+        List<List<String>> head = List.of(List.of("借用单号*"), List.of("借用人*"), List.of("借出日期*"), List.of("是否加急"),
+            List.of(LedgerImportService.ORG_HEADER));
+        List<List<Object>> rows = new ArrayList<>();
+        for (int i = 1; i <= 50; i++)
+            rows.add(List.of("BG-" + loan.ns().hashCode() + "-" + i, "员工" + i, "2026-11-02", i == 7 ? "MAYBE" : "N", String.valueOf(plant.teamA().id())));
+        long checkId = asyncImports.precheckAsync(order, xlsx(head, rows), "借还单.xlsx", admin);
+        var check = tasks.get(checkId, admin.userId());
+        assertThat(check.kind()).isEqualTo("IMPORT_CHECK");
+        assertThat(check.status()).isEqualTo("DONE");
+        assertThat(check.total()).isEqualTo(50);
+        assertThat(check.done()).isEqualTo(50);
+        assertThat(check.title()).contains("借还单.xlsx");
+        var report = check.result().get("report");
+        assertThat(report.get("invalid").asInt()).isEqualTo(1);
+        assertThat(report.get("errors").get(0).get("row").asInt()).isEqualTo(8);
+        assertThat(tasks.mine(admin.userId(), 10)).extracting(com.lsmom.core.task.BackgroundTasks.Task::id).contains(checkId);
+        assertThatThrownBy(() -> tasks.get(checkId, admin.userId() + 999_999)).isInstanceOf(LsBizException.class);
+
+        long importId = asyncImports.confirmAsync(order, report.get("batchId").asLong(), admin);
+        var imp = tasks.get(importId, admin.userId());
+        assertThat(imp.status()).isEqualTo("DONE");
+        assertThat(imp.result().get("imported").asInt()).isEqualTo(49);
+        assertThat(imp.done()).isEqualTo(49);
+        assertThat(f.action.count("select count(*) from \"" + loan.order().tableName() + "\"")).isEqualTo(49);
+        assertThat(imp.notified()).isFalse();
+        tasks.notified(importId, admin.userId());
+        assertThat(tasks.get(importId, admin.userId()).notified()).isTrue();
+
+        // 失败任务：记下原因
+        long failId = asyncImports.precheckAsync(order, new byte[]{1, 2, 3}, "坏文件.xlsx", admin);
+        var fail = tasks.get(failId, admin.userId());
+        assertThat(fail.status()).isEqualTo("FAILED");
+        assertThat(fail.error()).isNotBlank();
     }
 
     @Test

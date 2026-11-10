@@ -76,6 +76,7 @@ import { useUserStore } from '@/store/modules/user';
 import { homeApi, type HomeLayout } from '@/api/lsmom/uiHome';
 import { registerBuiltinHomeCards } from '@/home/builtin';
 import { homeCard, usableCards } from '@/home/registry';
+import { useUndoable } from '@/utils/undoable';
 import { mergeLayout, move, toLayout, type Merged } from '@/home/layout';
 import { useMenuPaths } from '@/home/useMenuPaths';
 
@@ -104,7 +105,16 @@ const edit = (fn: (m: Merged) => Merged) => {
   draft.value = fn({ ...merged.value });
 };
 const shift = (code: string, d: -1 | 1) => edit((m) => ({ ...m, shown: move(m.shown, code, d) }));
-const hide = (code: string) => edit((m) => ({ ...m, shown: m.shown.filter((c) => c !== code), hidden: [...m.hidden, code] }));
+const undoable = useUndoable();
+/** 隐藏卡片是低风险、可逆的：不确认，提示里 5 秒内可撤销（回到原位置） */
+function hide(code: string) {
+  const m = merged.value;
+  const before: Merged = { ...m, shown: [...m.shown], hidden: [...m.hidden], available: [...m.available] };
+  edit((m) => ({ ...m, shown: m.shown.filter((c) => c !== code), hidden: [...m.hidden, code] }));
+  undoable.offer(`已隐藏「${homeCard(code)?.title ?? code}」`, () => {
+    draft.value = before;
+  });
+}
 const add = (code: string) =>
   edit((m) => ({ shown: [...m.shown, code], hidden: m.hidden.filter((c) => c !== code), available: m.available.filter((c) => c !== code) }));
 

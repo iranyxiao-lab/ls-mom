@@ -269,6 +269,11 @@ describe('通用台账工作区', () => {
     await flush();
     q('detail-op-confirm')!.click();
     await flush(200);
+    // 驳回不可撤销：确认框说明后再执行
+    expect(a.crud.execute).not.toHaveBeenCalled();
+    expect(document.querySelector('[data-testid="op-confirm-body"]')!.textContent).toContain('此操作不能撤销');
+    (document.querySelector('.ls-op-confirm-box .el-button--primary') as HTMLElement).click();
+    await flush(300);
     expect(a.crud.execute).toHaveBeenCalledWith(
       C + '.reject',
       { targetId: '41', version: 1, input: { auditOpinion: '数量不符' } },

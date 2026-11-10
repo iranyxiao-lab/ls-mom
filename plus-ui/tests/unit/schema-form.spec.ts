@@ -284,6 +284,22 @@ describe('SchemaForm', () => {
     expect(q(el, 'add-row-loanLine')).toBeNull();
     expect(q(el, 'field-auditNote')!.className).toContain('is-required');
   });
+
+  it('字段说明以悬浮提示显示：标签旁有可聚焦的说明图标，移上去显示说明', async () => {
+    const withHelp: FormSchema = {
+      ...loanForm,
+      fields: loanForm.fields.map((f) => (f.key === 'loanNo' ? { ...f, help: '单号贴在工器具柜门上' } : f))
+    };
+    const { el } = await mount(SchemaForm, { schema: withHelp, api: fakeApi() }, { loanLine: [] });
+    const icon = q(el, 'help-loanNo')!;
+    expect(icon.getAttribute('aria-label')).toBe('说明：单号贴在工器具柜门上');
+    expect(icon.tabIndex).toBe(0);
+    expect(q(el, 'field-loanNo')!.textContent).not.toContain('单号贴在工器具柜门上');
+    icon.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+    await flush(400);
+    expect(document.body.textContent).toContain('单号贴在工器具柜门上');
+    expect(q(el, 'help-borrower')).toBeNull();
+  });
 });
 
 describe('SchemaDetail / SchemaPrint / SchemaMobile', () => {

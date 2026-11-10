@@ -32,6 +32,8 @@
             <svg-icon class-name="search-icon" icon-class="search" />
           </div>
         </el-tooltip>
+        <!-- 帮助：重看新手引导、操作手册 -->
+        <help-menu />
         <!-- 消息 -->
         <!-- 通知抽屉（替换上游消息弹框）：未读数、分组、抽屉内确认 -->
         <el-tooltip :content="proxy.$t('navbar.message')" effect="dark" placement="bottom">
@@ -87,6 +89,7 @@ import { getTenantList } from '@/api/login';
 import { dynamicClear, dynamicTenant } from '@/api/system/tenant';
 import { TenantVO } from '@/api/types';
 import NotificationDrawer from './NotificationDrawer/index.vue';
+import HelpMenu from './HelpMenu/index.vue';
 import router from '@/router';
 import { ElMessageBoxOptions } from 'element-plus/es/components/message-box/src/message-box.type';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';

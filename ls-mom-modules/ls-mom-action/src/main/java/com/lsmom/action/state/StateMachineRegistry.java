@@ -61,7 +61,7 @@ public class StateMachineRegistry {
                 t.risk() == null ? Risk.C1 : Risk.valueOf(t.risk()), t.exposure() == null ? Exposure.NONE : Exposure.valueOf(t.exposure()),
                 t.permission(), t.inputSchema() == null ? JSON.createObjectNode().put("type", "object") : t.inputSchema(),
                 t.guards() == null ? List.of() : t.guards(), IdempotencyPolicy.OPTIONAL, true, "META", "PUBLISHED", version,
-                "迁移 " + String.join("/", t.from()) + " → " + t.to()));
+                "迁移 " + String.join("/", t.from()) + " → " + t.to(), t.undoOperation()));
         }
         byConcept.put(def.concept(), def);
         return version;
@@ -93,6 +93,13 @@ public class StateMachineRegistry {
             if (!ops.add(t.operation())) p.add("迁移 Operation 重复：" + t.operation());
             if (!states.contains(t.to())) p.add(t.operation() + " 的目标状态未定义：" + t.to());
             t.from().stream().filter(s -> !states.contains(s)).forEach(s -> p.add(t.operation() + " 的来源状态未定义：" + s));
+            if (t.undoOperation() != null) {
+                StateMachineDefinition.Transition u = def.transition(t.undoOperation());
+                if (u == null) p.add(t.operation() + " 的补偿 Operation 不是本状态机的迁移：" + t.undoOperation());
+                else if (!u.from().contains(t.to()) || !t.from().contains(u.to())) {
+                    p.add(t.operation() + " 的补偿 Operation 不能从 " + t.to() + " 回到原状态：" + t.undoOperation());
+                }
+            }
         }
         return p;
     }

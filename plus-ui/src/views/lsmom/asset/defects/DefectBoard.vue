@@ -128,6 +128,7 @@
 
 <script setup lang="ts">
 import { notifyDone } from '@/utils/opResult';
+import { confirmOperation } from '@/utils/opConfirm';
 import { onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import type { AssetApi } from '@/api/lsmom/asset';
@@ -178,9 +179,21 @@ async function refresh() {
   await load();
 }
 
+/** 关闭、取消不可撤销：先确认，列出将结束的缺陷、关联问题与维修工作数量 */
+const FINAL: Record<string, string> = { verifyPass: '验证通过，关闭缺陷', cancel: '取消缺陷' };
+
 async function act(action: string, input: Record<string, unknown> = {}) {
   const c = cur.value;
   if (!c) return;
+  if (FINAL[action]) {
+    const ok = await confirmOperation({
+      name: FINAL[action],
+      label: c.title,
+      impact: () => props.api.impact(`${DEFECT}.${action}`, c.id),
+      stateLabel: (s) => (s ? (DEFECT_STATUS[s] ?? s) : '')
+    });
+    if (!ok) return;
+  }
   const r = await props.api.op(`${DEFECT}.${action}`, c.id, c.version, input);
   notifyDone(`已${DEFECT_STATUS[r.status] ? '更新为' + DEFECT_STATUS[r.status] : '完成'}`, r.warnings);
   await refresh();

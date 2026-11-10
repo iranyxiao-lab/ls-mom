@@ -89,6 +89,15 @@ function fakeApi(over: Partial<CrudApi> = {}) {
     schema: vi.fn(async () => schema),
     query: vi.fn(async () => ({ rows, total: 2, page: 1, size: 20 })),
     execute: vi.fn(async () => ({ targetId: '1', version: 1, status: 'SUBMITTED', warnings: [] })),
+    impact: vi.fn(async (operation: string) => ({
+      operation,
+      name: '提交',
+      undoable: false,
+      fromStatus: 'DRAFT',
+      toStatus: 'SUBMITTED',
+      terminal: false,
+      lines: ['将提交 1 张借用单：L-1']
+    })),
     exportJob: vi.fn(async () => ({ id: 9, concept: schema.concept, status: 'PENDING' })),
     ...over
   } as unknown as CrudApi;
@@ -205,10 +214,58 @@ describe('SchemaTable 组件', () => {
     expect(q(el, 'op-acme.tool.LoanOrder.submit-2')).toBeNull(); // SUBMITTED 不能再提交
     expect(q(el, 'op-acme.tool.LoanOrder.approve-2')).toBeNull(); // 无权限
     q(el, 'op-acme.tool.LoanOrder.submit-1')!.click();
-    await flush();
+    await flush(300);
+    // 不可撤销：先确认，确认框列出影响对象、状态变化并说明不能撤销
+    expect(api.execute).not.toHaveBeenCalled();
+    expect(api.impact).toHaveBeenCalledWith('acme.tool.LoanOrder.submit', 1);
+    const body = document.querySelector('[data-testid="op-confirm-body"]')!;
+    expect(body.textContent).toContain('将提交 1 张借用单：L-1');
+    expect(body.textContent).toContain('状态：DRAFT → SUBMITTED');
+    expect(body.textContent).toContain('此操作不能撤销');
+    (document.querySelector('.ls-op-confirm-box .el-button--primary') as HTMLElement).click();
+    await flush(300);
     expect(api.execute).toHaveBeenCalledWith('acme.tool.LoanOrder.submit', { targetId: '1', version: 0, input: {} });
     expect(events.find((e) => e.name === 'action-done')?.payload).toMatchObject({ ok: 1 });
     expect(api.query).toHaveBeenCalledTimes(2);
+  });
+
+  it('不可撤销的动作取消确认则不执行；可撤销的动作不弹确认，5 秒内可撤销并调用补偿 Operation', async () => {
+    const api = fakeApi();
+    const { el } = await mount(api);
+    q(el, 'op-acme.tool.LoanOrder.submit-1')!.click();
+    await flush(300);
+    (document.querySelector('.ls-op-confirm-box .el-message-box__btns .el-button:not(.el-button--primary)') as HTMLElement).click();
+    await flush(300);
+    expect(api.execute).not.toHaveBeenCalled();
+    app?.unmount();
+    host?.remove();
+
+    const undoSchema = { ...schema, operations: schema.operations.map((o) => (o.operation.endsWith('.submit') ? { ...o, undoable: true } : o)) };
+    const api2 = fakeApi({
+      schema: vi.fn(async () => undoSchema) as any,
+      execute: vi.fn(async (op: string) =>
+        op.endsWith('.submit')
+          ? {
+              targetId: '1',
+              version: 1,
+              status: 'SUBMITTED',
+              warnings: [],
+              undo: { operation: 'acme.tool.LoanOrder.withdraw', targetId: '1', input: { a: 1 } }
+            }
+          : { targetId: '1', version: 2, status: 'DRAFT', warnings: [] }
+      ) as any
+    });
+    const m = await mount(api2);
+    q(m.el, 'op-acme.tool.LoanOrder.submit-1')!.click();
+    await flush(300);
+    expect(document.querySelector('[data-testid="op-confirm-body"]')).toBeNull();
+    expect(api2.execute).toHaveBeenCalledWith('acme.tool.LoanOrder.submit', { targetId: '1', version: 0, input: {} });
+    const undo = document.querySelector('[data-testid="undo-btn"]') as HTMLElement;
+    expect(undo.closest('.el-message')!.textContent).toContain('已提交');
+    undo.click();
+    await flush(300);
+    expect(api2.execute).toHaveBeenLastCalledWith('acme.tool.LoanOrder.withdraw', { targetId: '1', version: 1, input: { a: 1 } });
+    expect(document.body.textContent).toContain('已撤销');
   });
 
   it('批量动作逐条执行并汇总失败；需要输入的动作不提供批量', async () => {

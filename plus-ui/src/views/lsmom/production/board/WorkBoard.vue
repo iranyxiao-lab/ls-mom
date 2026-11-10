@@ -102,6 +102,7 @@
 
 <script setup lang="ts">
 import { notifyDone } from '@/utils/opResult';
+import { useUndoable } from '@/utils/undoable';
 import { computed, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { RISK, SHIFTS, SHIFT_PLAN, WORK_STATUS, shiftLabel, type BoardWork, type Team } from '@/api/lsmom/productionModel';
@@ -109,6 +110,7 @@ import type { ProductionApi } from '@/api/lsmom/production';
 
 /** 13.3 工作板：按状态 / 班组 / 日期 / 风险查看生产工作；班次看板中拖动卡片即调整班次（冲突按 Profile 提示或阻断）。 */
 const props = defineProps<{ api: ProductionApi; initialDay?: string }>();
+const undoable = useUndoable();
 
 const STATUS_TYPE: Record<string, any> = {
   DRAFT: 'info',
@@ -155,17 +157,29 @@ async function onDrop(target: string) {
   const w = dragging.value;
   dragging.value = undefined;
   if (!w || target === 'NONE' || w.shift === target) return;
-  try {
-    let r;
-    if (w.planId) {
-      r = await props.api.op(`${SHIFT_PLAN}.move`, w.planId, w.planVersion, { shift: target, shiftDate: day.value });
-    } else {
-      const team = teamId.value ?? teams.value[0]?.id;
-      if (!team) return ElMessage.warning('请先选择班组再排班');
-      const c = await props.api.create(SHIFT_PLAN, { workItem: w.id, team, shiftDate: day.value, shift: target });
-      r = await props.api.op(`${SHIFT_PLAN}.activate`, c.id, c.version);
+  if (w.planId) {
+    // 已排班：先在看板上移过去，5 秒内可撤销（服务端以补偿 Operation 恢复原班次）
+    const old = w.shift;
+    try {
+      await undoable.run({
+        done: `已调整到${shiftLabel(target)}`,
+        apply: () => (w.shift = target as typeof w.shift),
+        revert: () => (w.shift = old),
+        exec: () => props.api.op(`${SHIFT_PLAN}.move`, w.planId!, w.planVersion, { shift: target, shiftDate: day.value }),
+        compensate: (op, id, version, input) => props.api.op(op, id, version, input),
+        after: load
+      });
+    } finally {
+      await load();
     }
-    notifyDone(`已调整到${shiftLabel(target)}`, r.warnings);
+    return;
+  }
+  try {
+    const team = teamId.value ?? teams.value[0]?.id;
+    if (!team) return ElMessage.warning('请先选择班组再排班');
+    const c = await props.api.create(SHIFT_PLAN, { workItem: w.id, team, shiftDate: day.value, shift: target });
+    const r = await props.api.op(`${SHIFT_PLAN}.activate`, c.id, c.version);
+    notifyDone(`已排到${shiftLabel(target)}`, r.warnings);
   } finally {
     await load();
   }
@@ -176,7 +190,7 @@ onMounted(async () => {
   await load();
 });
 
-defineExpose({ load, onDrop, dragging });
+defineExpose({ load, onDrop, dragging, rows });
 </script>
 
 <style scoped>

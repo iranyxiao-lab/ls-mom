@@ -26,6 +26,27 @@ export interface SchemaOperation {
   inputSchema?: Record<string, unknown>;
   /** 迁移类动作允许的起始状态 */
   from?: string[];
+  /** 执行后可撤销（注册了补偿 Operation）：直接执行并提供撤销；否则先确认 */
+  undoable?: boolean;
+}
+
+/** 撤销方式：对同一对象以 input 执行补偿 Operation（版本取执行结果的 version） */
+export interface UndoInfo {
+  operation: string;
+  targetId: string;
+  input: Record<string, unknown>;
+}
+
+/** 执行前的影响说明 */
+export interface OperationImpact {
+  operation: string;
+  name: string;
+  undoable: boolean;
+  fromStatus?: string | null;
+  toStatus?: string | null;
+  /** 执行后进入终态：不能再修改或办理 */
+  terminal: boolean;
+  lines: string[];
 }
 
 export interface ListSchema {

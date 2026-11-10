@@ -95,7 +95,13 @@ public class ActionFixture {
         stores = new StateStores(List.of(new WorkStateStore(core.works), new IssueStateStore(issues), summaries));
         rules = new com.lsmom.action.rule.RuleService(core.jdbc, new com.lsmom.action.rule.CelRuleEngine(), core.clock);
         var ruleGuards = new com.lsmom.action.rule.RuleGuardProvider(rules, stores, facts, core.clock);
-        guardRegistry = new GuardRegistry(guards, List.of(ruleGuards), List.of(ruleGuards));
+        List<Guard> allGuards = new java.util.ArrayList<>(guards);
+        List<GuardRegistry.GuardAttachment> attachments = new java.util.ArrayList<>(List.of(ruleGuards));
+        for (Guard x : extraGuards.apply(this)) {
+            allGuards.add(x);
+            if (x instanceof GuardRegistry.GuardAttachment at) attachments.add(at);
+        }
+        guardRegistry = new GuardRegistry(allGuards, List.of(ruleGuards), attachments);
         rulePublisher = new com.lsmom.action.rule.RulePublisher(rules, guardRegistry, ruleGuards);
         gateway = new OperationGateway(operations, machines, stores,
             guardRegistry, new InputSchemaValidator(), List.of(), effects,
@@ -110,6 +116,8 @@ public class ActionFixture {
 
     /** 其他模块的测试追加的代码 Operation 处理器（如 Pack 自带的 Operation）；共享测试库中每个夹具对账时都要带上。 */
     public static volatile java.util.function.Function<ActionFixture, List<OperationHandler>> extraHandlers = f -> List.of();
+    /** Pack 测试追加的代码守卫（实现 GuardAttachment 的同时按 Operation 附加）。 */
+    public static volatile java.util.function.Function<ActionFixture, List<Guard>> extraGuards = f -> List.of();
 
     public List<OperationHandler> handlers() {
         List<OperationHandler> list = new ArrayList<>(List.of(new CoreOperations.CreateWork(core.works), new CoreOperations.SplitWork(core.relations),

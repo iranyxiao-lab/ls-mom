@@ -14,6 +14,15 @@ function makeApi(overrides: Record<string, any> = {}) {
     objects: vi.fn(async (type: string) => (type === 'ASSET' ? [{ id: 3, label: 'P-101 循环泵' }] : [{ id: 70, label: 'W70 焊接 A 段' }])),
     orgs: vi.fn(async () => [{ id: 7, name: '一车间', unit_type: 'WORKSHOP' }]),
     rectifications: vi.fn(async () => [] as any[]),
+    impact: vi.fn(async (operation: string) => ({
+      operation,
+      name: '关闭',
+      undoable: false,
+      fromStatus: 'PENDING_VERIFY',
+      toStatus: 'CLOSED',
+      terminal: true,
+      lines: ['将关闭 1 个对象：测试', '关联整改工作 1 项（已完成 1 项）']
+    })),
     parties: vi.fn(async () => [{ id: 5, name: '郑师傅' }]),
     query: vi.fn(async () => ({ rows: [], total: 0, page: 1, size: 100 })),
     get: vi.fn(async () => ({})),
@@ -140,7 +149,16 @@ describe('不符合项', () => {
     expect(q('nc-work-evidence-70')!.textContent).toContain('1');
     await type('nc-conclusion', '复检合格');
     q('btn-nc-close')!.click();
-    await flush(150);
+    await flush(300);
+    // 关闭不可撤销：确认框列出影响、说明关闭后不能再编辑
+    const body = document.querySelector('[data-testid="op-confirm-body"]')!.textContent!;
+    expect(body).toContain('关联整改工作 1 项');
+    expect(body).toContain('状态：待验证 → 已关闭');
+    expect(body).toContain('流程结束，不能再编辑或办理');
+    expect(api.impact).toHaveBeenCalledWith('ls.quality.NonConformance.close', 41);
+    expect(api.op).not.toHaveBeenCalledWith('ls.quality.NonConformance.close', expect.anything(), expect.anything(), expect.anything());
+    (document.querySelector('.ls-op-confirm-box .el-button--primary') as HTMLElement).click();
+    await flush(300);
     expect(api.op).toHaveBeenCalledWith('ls.quality.NonConformance.close', 41, 5, { conclusion: '复检合格' });
   });
 });

@@ -391,6 +391,8 @@
 
 <script setup lang="ts">
 import { notifyDone } from '@/utils/opResult';
+import { confirmOperation } from '@/utils/opConfirm';
+import { useUndoable } from '@/utils/undoable';
 import { computed, nextTick, onActivated, onBeforeUnmount, onDeactivated, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { VxeColumn, VxeTable } from '@/plugins/vxe';
@@ -434,6 +436,7 @@ const props = withDefaults(
   }>(),
   { api: () => lazyCrudApi, pageSize: 20, columns: null, maxHeight: 640, viewApi: null, pollInterval: 30000 }
 );
+const undoable = useUndoable();
 const emit = defineEmits<{
   (e: 'create'): void;
   (e: 'edit', row: Record<string, any>): void;
@@ -897,11 +900,42 @@ function onSort({ field, order }: any) {
   return load();
 }
 
+/** 不可撤销的动作先确认：列出影响对象、状态变化与后果 */
+function confirmRow(op: SchemaOperation, row: Record<string, any>) {
+  return confirmOperation({
+    name: op.name,
+    label: rowLabel(row),
+    impact: typeof props.api.impact === 'function' ? () => props.api.impact(op.operation, row.id) : undefined,
+    stateLabel: (c) => stateLabel(c ?? '')
+  });
+}
+
 async function runRow(op: SchemaOperation, row: Record<string, any>) {
+  if (op.undoable) return runRowUndoable(op, row);
+  if (!(await confirmRow(op, row))) return;
   busy.value = true;
   try {
     const r = await props.api.execute(op.operation, { targetId: String(row.id), version: Number(row.version), input: {} });
     if (r.warnings?.length) notifyDone(`已${op.name}`, r.warnings);
+    emit('action-done', { operation: op.operation, ok: 1, failed: [] });
+  } catch (e: any) {
+    emit('action-done', { operation: op.operation, ok: 0, failed: [{ id: row.id, message: e?.message ?? String(e) }] });
+  } finally {
+    busy.value = false;
+    await load();
+  }
+}
+
+/** 可撤销的动作：直接执行，提示里 5 秒内可撤销 */
+async function runRowUndoable(op: SchemaOperation, row: Record<string, any>) {
+  busy.value = true;
+  try {
+    await undoable.run({
+      done: `已${op.name}`,
+      exec: () => props.api.execute(op.operation, { targetId: String(row.id), version: Number(row.version), input: {} }),
+      compensate: (o, id, version, input) => props.api.execute(o, { targetId: id, version, input }),
+      after: load
+    });
     emit('action-done', { operation: op.operation, ok: 1, failed: [] });
   } catch (e: any) {
     emit('action-done', { operation: op.operation, ok: 0, failed: [{ id: row.id, message: e?.message ?? String(e) }] });

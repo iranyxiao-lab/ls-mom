@@ -65,6 +65,13 @@ class IssueLifecycleTest {
         assertThat(notice.payload().get("notify").toString()).isEqualTo("[" + owner.id() + "]");
 
         f.step("ls.core.Issue.submitVerify", handler, "ls.core.Issue", id, "{}");
+        // 关闭前的影响说明：列出将被关闭的问题与整改工作数量；关闭不可撤销、进入终态
+        List<String> impact = new com.lsmom.action.core.CoreImpacts(f.issues).describe("ls.core.Issue.verifyPass", id);
+        assertThat(impact.get(0)).startsWith("将关闭 1 个问题：").endsWith("传送带跑偏");
+        assertThat(impact.get(1)).isEqualTo("关联整改工作 2 项（已完成 2 项）");
+        assertThat(f.operations.require("ls.core.Issue.verifyPass").undoOperation()).isNull();
+        assertThat(f.machines.forConcept("ls.core.Issue").terminal("CLOSED")).isTrue();
+        assertThat(f.machines.forConcept("ls.core.Issue").terminal("OPEN")).isFalse();
         f.step("ls.core.Issue.verifyPass", qa, "ls.core.Issue", id, "{\"conclusion\":\"连续运行 2 小时无跑偏\"}");
         Issue closed = f.issues.get(Long.parseLong(id));
         assertThat(closed.status().name()).isEqualTo("CLOSED");
@@ -104,5 +111,25 @@ class IssueLifecycleTest {
         assertThat(f.core.works.get(Long.parseLong(w)).progress()).isEqualByComparingTo("40");
         assertThat(f.events.eventsOf("ls.core.WorkReport", String.valueOf(reportId))).extracting(DomainEvent::type)
             .containsExactly("ls.core.WorkReport.submitted");
+    }
+
+    @Test
+    void 补偿Operation_必须是本状态机能回到原状态的迁移_并随契约登记() {
+        com.fasterxml.jackson.databind.JsonNode none = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode().put("type", "object");
+        String c = "ls.core.Work";
+        var bad = new com.lsmom.action.state.StateMachineDefinition("x.lifecycle", c, "测试", List.of("A", "B"), "A", List.of(
+            new com.lsmom.action.state.StateMachineDefinition.Transition(c + ".go", "去", List.of("A"), "B", List.of(), "", "C1", none, "NONE",
+                c + ".missing")));
+        assertThat(f.machines.validate(bad)).anySatisfy(m -> assertThat(m).contains("补偿 Operation 不是本状态机的迁移"));
+        var oneWay = new com.lsmom.action.state.StateMachineDefinition("x.lifecycle", c, "测试", List.of("A", "B", "C"), "A", List.of(
+            new com.lsmom.action.state.StateMachineDefinition.Transition(c + ".go", "去", List.of("A"), "B", List.of(), "", "C1", none, "NONE",
+                c + ".other"),
+            new com.lsmom.action.state.StateMachineDefinition.Transition(c + ".other", "别处", List.of("B"), "C", List.of(), "", "C1", none, "NONE")));
+        assertThat(f.machines.validate(oneWay)).anySatisfy(m -> assertThat(m).contains("不能从 B 回到原状态"));
+        var ok = new com.lsmom.action.state.StateMachineDefinition("x.lifecycle", c, "测试", List.of("A", "B"), "A", List.of(
+            new com.lsmom.action.state.StateMachineDefinition.Transition(c + ".go", "去", List.of("A"), "B", List.of(), "", "C1", none, "NONE",
+                c + ".back"),
+            new com.lsmom.action.state.StateMachineDefinition.Transition(c + ".back", "回", List.of("B"), "A", List.of(), "", "C1", none, "NONE")));
+        assertThat(f.machines.validate(ok)).isEmpty();
     }
 }

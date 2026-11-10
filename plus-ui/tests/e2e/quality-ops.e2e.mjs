@@ -166,6 +166,20 @@ try {
   await q.getByTestId(`nc-row-${nc.id}`).click();
   await q.getByTestId('nc-conclusion').fill('复检 5 件合格');
   await q.getByTestId('btn-nc-close').click();
+  // 关闭不可撤销：确认框列出将被关闭的问题与整改工作数量，说明关闭后不可再编辑
+  const ncBox = q.locator('.ls-op-confirm-box');
+  const ncImpact = await ncBox.getByTestId('op-confirm-body').textContent();
+  check(
+    ncImpact.includes('将关闭 1 个不符合项') && /同时关闭关联问题/.test(ncImpact) && /关联整改工作 \d+ 项（已完成 \d+ 项）/.test(ncImpact) &&
+      ncImpact.includes('不能再编辑') && ncImpact.includes('不能撤销'),
+    '关闭前确认：列出问题与整改工作数量、关闭后不可再编辑：' + ncImpact
+  );
+  // 取消则不执行
+  await ncBox.getByRole('button', { name: '取消' }).click();
+  await q.waitForTimeout(500);
+  check((await qa.api('GET', `/api/crud/${NC}/${nc.id}`)).data.status === 'PENDING_VERIFY', '取消确认则不关闭');
+  await q.getByTestId('btn-nc-close').click();
+  await q.locator('.ls-op-confirm-box').getByRole('button', { name: '验证通过并关闭' }).click();
   await q.getByTestId('nc-detail-status').filter({ hasText: '已关闭' }).waitFor();
   const closed = (await qa.api('GET', `/api/crud/${NC}/${nc.id}`)).data;
   check(closed.status === 'CLOSED' && closed.verifyConclusion === '复检 5 件合格' && closed.closedBy, '质检员终判关闭，记录终判人与结论');

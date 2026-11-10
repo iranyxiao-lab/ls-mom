@@ -251,6 +251,38 @@ public class PackController {
         return R.ok(pipeline.approve(id, b.approve(), b.note(), actors.current().effectiveParty()));
     }
 
+    private com.lsmom.core.task.BackgroundTasks tasks;
+    private java.util.concurrent.Executor taskExecutor;
+
+    /** 任务中心：Pack 发布在后台执行，进度与结果在任务中心查看 */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTasks(com.lsmom.core.task.BackgroundTasks tasks,
+                         @org.springframework.beans.factory.annotation.Qualifier(com.lsmom.crud.CrudConfiguration.EXPORT_EXECUTOR)
+                         java.util.concurrent.Executor executor) {
+        this.tasks = tasks;
+        this.taskExecutor = executor;
+    }
+
+    /** 后台发布（安装 / 升级）：返回任务编号，发起人可离开页面，完成后通知。 */
+    @SaCheckPermission("lsmom:pack:install")
+    @PostMapping("/changesets/{id}/release/async")
+    public R<Long> releaseAsync(@PathVariable long id) {
+        if (tasks == null) throw new LsBizException("TASKS_UNAVAILABLE", "任务中心不可用");
+        var actor = actors.current();
+        ChangeSetPipeline.ChangeSet cs = pipeline.get(id);
+        long task = tasks.start("PACK_INSTALL", "安装 Pack：" + cs.title() + "（" + cs.pack() + "）", actor.userId(), 1);
+        taskExecutor.execute(() -> {
+            try {
+                tasks.finish(task, pipeline.release(id, actor));
+            } catch (LsBizException e) {
+                tasks.fail(task, e.getMessage());
+            } catch (RuntimeException e) {
+                tasks.fail(task, "安装失败：" + e.getMessage());
+            }
+        });
+        return R.ok(task);
+    }
+
     @SaCheckPermission("lsmom:pack:install")
     @PostMapping("/changesets/{id}/release")
     public R<PackInstaller.Result> release(@PathVariable long id) {

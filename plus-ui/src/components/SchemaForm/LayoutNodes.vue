@@ -9,9 +9,20 @@
         :data-testid="'field-' + n.key"
         :data-field-key="n.key"
       >
-        <template v-if="ctx.origin?.[n.key!]" #label>
+        <template v-if="ctx.origin?.[n.key!] || fieldOf(n.key)!.help" #label>
           {{ fieldOf(n.key)!.label ?? n.key }}
-          <span :class="['ls-form__origin', 'is-' + ctx.origin[n.key!]]" :data-testid="'origin-' + n.key">{{
+          <!-- 字段悬浮说明：鼠标移上或键盘聚焦时显示 -->
+          <el-tooltip v-if="fieldOf(n.key)!.help" :content="fieldOf(n.key)!.help" placement="top">
+            <span
+              class="ls-form__help-icon"
+              tabindex="0"
+              role="img"
+              :aria-label="`说明：${fieldOf(n.key)!.help}`"
+              :data-testid="'help-' + n.key"
+              >?</span
+            >
+          </el-tooltip>
+          <span v-if="ctx.origin?.[n.key!]" :class="['ls-form__origin', 'is-' + ctx.origin[n.key!]]" :data-testid="'origin-' + n.key">{{
             ORIGIN_LABEL[ctx.origin[n.key!]]
           }}</span>
         </template>
@@ -26,7 +37,6 @@
           @update:model-value="(v: unknown) => ctx.set(n.key!, v)"
           @scan-error="(m: string | null) => ctx.setCellErrors?.({ [n.key!]: m })"
         />
-        <div v-if="fieldOf(n.key)!.help" class="ls-form__help">{{ fieldOf(n.key)!.help }}</div>
       </el-form-item>
     </template>
     <template v-else-if="n.type === 'subTable' && tableOf(n.key)">
@@ -108,7 +118,24 @@ const openPanels = (n: LayoutNode) => (n.children ?? []).map((c, j) => (c.collap
 .ls-form__block {
   margin-bottom: 16px;
 }
-.ls-form__help,
+.ls-form__help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border-radius: 50%;
+  border: 1px solid var(--el-text-color-secondary);
+  color: var(--el-text-color-secondary);
+  font-size: 10px;
+  line-height: 1;
+  cursor: help;
+  vertical-align: middle;
+}
+.ls-form__help-icon:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+}
 .ls-form__text {
   color: var(--el-text-color-secondary);
   font-size: 12px;

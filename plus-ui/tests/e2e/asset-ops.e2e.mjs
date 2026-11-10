@@ -150,6 +150,14 @@ try {
   await k.getByTestId(`df-row-${defect.id}`).click();
   await k.getByTestId('df-conclusion').fill('温度恢复 55℃');
   await k.getByTestId('btn-df-pass').click();
+  // 关闭不可撤销：确认框列出将关闭的缺陷、关联问题与维修工作数量
+  const dfBox = k.locator('.ls-op-confirm-box');
+  const dfImpact = await dfBox.getByTestId('op-confirm-body').textContent();
+  check(
+    dfImpact.includes('将关闭 1 个缺陷') && /同时关闭关联问题/.test(dfImpact) && /关联整改工作 \d+ 项（已完成 \d+ 项）/.test(dfImpact) && dfImpact.includes('不能撤销'),
+    '关闭缺陷前确认：列出缺陷、关联问题与维修工作数量：' + dfImpact
+  );
+  await dfBox.getByRole('button', { name: '验证通过，关闭缺陷' }).click();
   await k.getByTestId('df-detail-status').filter({ hasText: '已关闭' }).waitFor();
   const closed = (await keeper.api('GET', `/api/crud/${DEFECT}/${defect.id}`)).data;
   check(closed.status === 'CLOSED' && closed.verifyConclusion === '温度恢复 55℃', '验证通过，缺陷关闭');

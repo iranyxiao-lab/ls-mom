@@ -28,6 +28,8 @@ export const assetApi = {
   query: (concept: string, spec: QuerySpec) => crudApi.query(concept, spec) as Promise<Page>,
   get: (concept: string, id: number) => crudApi.get(concept, id) as Promise<Record<string, any>>,
   create: (concept: string, body: Record<string, unknown>) => crudApi.create(concept, body, key()),
+  /** 不可撤销动作执行前的影响说明 */
+  impact: (operation: string, targetId: string | number) => crudApi.impact(operation, targetId),
   op,
   upload: (file: File) => formApi.upload(file),
   /** 已发布的缺陷登记表单（带入设备、位置、登记人、登记时间，记住上次的严重度） */

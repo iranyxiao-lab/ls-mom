@@ -252,8 +252,10 @@ public class OperationGateway {
             eventIds.add(e.eventId().toString());
         }
         agentPolicy.checkResult(op, ctx.targetStatus(), actor);
+        OperationResult.Undo undo = op.undoOperation() != null && ctx.undoInput() != null && !req.simulate()
+            ? new OperationResult.Undo(op.undoOperation(), ctx.targetId(), ctx.undoInput()) : null;
         OperationResult result = new OperationResult(op.code(), ctx.targetId(), ctx.targetVersion(), ctx.targetStatus(), data,
-            List.copyOf(ctx.warnings()), eventIds, false, req.simulate());
+            List.copyOf(ctx.warnings()), eventIds, false, req.simulate(), undo);
         for (com.lsmom.action.api.OperationListener l : listeners) l.afterSuccess(ctx, result);
         return result;
     }

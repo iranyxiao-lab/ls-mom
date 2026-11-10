@@ -1,7 +1,7 @@
 <template>
   <div class="m" data-testid="mobile-report">
     <template v-if="!cur">
-      <div class="m-head">我的生产工作 <el-button link size="small" @click="load">刷新</el-button></div>
+      <div class="m-head" data-tour="mr-list">我的生产工作 <el-button link size="small" @click="load">刷新</el-button></div>
       <el-empty v-if="!loading && !works.length" description="暂无分派给你的工作" />
       <div v-for="w in works" :key="w.id" class="m-card" :data-testid="`m-work-${w.id}`" @click="open(w)">
         <div class="m-title">{{ w.title }}</div>

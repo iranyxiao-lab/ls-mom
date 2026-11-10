@@ -11,8 +11,19 @@ import java.util.List;
 public record StateMachineDefinition(String code, String concept, String displayName, List<String> states, String initial,
                                      List<Transition> transitions) {
 
+    /** {@code undoOperation}：撤销该迁移的补偿 Operation（同一 Concept 的迁移），效果须以 {@code ctx.undoWith} 登记执行前的值。 */
     public record Transition(String operation, String name, List<String> from, String to, List<String> guards,
-                             String permission, String risk, JsonNode inputSchema, String exposure) {
+                             String permission, String risk, JsonNode inputSchema, String exposure, String undoOperation) {
+
+        public Transition(String operation, String name, List<String> from, String to, List<String> guards,
+                          String permission, String risk, JsonNode inputSchema, String exposure) {
+            this(operation, name, from, to, guards, permission, risk, inputSchema, exposure, null);
+        }
+    }
+
+    /** 终态：没有任何迁移可以离开的状态。 */
+    public boolean terminal(String status) {
+        return transitions.stream().noneMatch(t -> t.from().contains(status));
     }
 
     public List<Transition> allowedFrom(String status) {

@@ -115,6 +115,11 @@ public class ProductionEffects {
                 ctx.text("shift") != null ? ctx.text("shift") : from.shift());
             Long team = ctx.longValue("teamId") != null ? ctx.longValue("teamId") : ((Number) plan.get("team")).longValue();
             reschedule(ctx, ((Number) plan.get("workItem")).longValue(), to);
+            Map<String, Object> undo = new HashMap<>();
+            undo.put("teamId", ((Number) plan.get("team")).longValue());
+            undo.put("shiftDate", from.date().toString());
+            undo.put("shift", from.shift());
+            ctx.undoWith(undo);
             ctx.eventPayload().put("from", from.label());
             ctx.eventPayload().put("to", to.label());
             Map<String, Object> changes = new HashMap<>();

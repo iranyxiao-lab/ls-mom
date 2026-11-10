@@ -21,6 +21,7 @@ public class OperationContext {
     private final List<String> warnings = new ArrayList<>();
     private final Map<String, Object> eventPayload = new LinkedHashMap<>();
     private final List<PendingEvent> extraEvents = new ArrayList<>();
+    private Map<String, Object> undoInput;
 
     public record PendingEvent(String type, String subjectConcept, String subjectId, Long orgUnitId, Map<String, Object> payload) {
     }
@@ -56,6 +57,13 @@ public class OperationContext {
         this.targetStatus = status;
         this.targetOrgUnitId = orgUnitId;
     }
+
+    /** 登记撤销输入（执行前的值）；Operation 注册了补偿 Operation 时结果会带上撤销方式。 */
+    public void undoWith(Map<String, Object> input) {
+        this.undoInput = input;
+    }
+
+    public Map<String, Object> undoInput() { return undoInput; }
 
     public void warn(String message) {
         warnings.add(message);

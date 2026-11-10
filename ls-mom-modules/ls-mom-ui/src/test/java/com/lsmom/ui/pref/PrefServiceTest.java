@@ -35,6 +35,16 @@ class PrefServiceTest {
     }
 
     @Test
+    void 新手引导状态_看完或跳过后记住() throws Exception {
+        long u = user();
+        prefs.updatePrefs(u, json("{\"tourWorkbench\":\"skipped\"}"));
+        JsonNode merged = prefs.updatePrefs(u, json("{\"tourDesigner\":\"done\"}"));
+        assertThat(merged.get("tourWorkbench").asText()).isEqualTo("skipped");
+        assertThat(merged.get("tourDesigner").asText()).isEqualTo("done");
+        assertThatThrownBy(() -> prefs.updatePrefs(u, json("{\"tourWorkbench\":\"maybe\"}"))).hasMessageContaining("取值应为");
+    }
+
+    @Test
     void 未知偏好项与非法取值被拒绝() {
         long u = user();
         assertThatThrownBy(() -> prefs.updatePrefs(u, json("{\"theme\":\"pink\"}"))).isInstanceOf(LsBizException.class).hasMessageContaining("取值应为");

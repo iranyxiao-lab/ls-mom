@@ -127,6 +127,41 @@ describe('工作板', () => {
     expect(document.body.textContent).toContain('资源时间冲突');
   });
 
+  it('拖动调整班次先在看板上移过去；5 秒内点撤销，以补偿 Operation 恢复原班次', async () => {
+    const rows = [work(1, { shift: 'DAY', shiftDate: '2026-11-10', teamId: 18, teamName: '甲班', planId: 41, planVersion: 1 })];
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    let calls = 0;
+    const api = makeApi({
+      board: vi.fn(async () => rows.map((r) => ({ ...r }))),
+      op: vi.fn(async (code: string) => {
+        if (++calls === 1) await gate;
+        return {
+          targetId: '41',
+          version: 2,
+          status: 'ACTIVE',
+          warnings: [],
+          undo: { operation: 'ls.production.ShiftPlan.move', targetId: '41', input: { teamId: 18, shiftDate: '2026-11-10', shift: 'DAY' } }
+        };
+      })
+    });
+    const board = await mount(WorkBoard, api, { initialDay: '2026-11-10' });
+    board.value.dragging = board.value.rows[0];
+    const p = board.value.onDrop('EVENING');
+    await flush();
+    // 乐观更新：服务端还没返回，卡片已在中班
+    expect(q('col-EVENING')!.textContent).toContain('工作1');
+    release();
+    await p;
+    await flush();
+    const undo = document.querySelector('[data-testid="undo-btn"]') as HTMLElement;
+    expect(undo.closest('.el-message')!.textContent).toContain('已调整到中班');
+    undo.click();
+    await flush();
+    expect(api.op).toHaveBeenLastCalledWith('ls.production.ShiftPlan.move', '41', 2, { teamId: 18, shiftDate: '2026-11-10', shift: 'DAY' });
+    expect(document.body.textContent).toContain('已撤销');
+  });
+
   it('未排班的工作拖入班次：新建班次安排并生效', async () => {
     const rows = [work(3, { risks: ['UNSCHEDULED'] })];
     const api = makeApi({ board: vi.fn(async () => rows) });

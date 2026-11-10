@@ -55,6 +55,12 @@ async function tokenValid(page: Page) {
     .catch(() => false);
 }
 
+/** 新手引导会盖住页面：测试账号登录后统一标记为已跳过（引导用例自己重置）。 */
+export const TOUR_PREFS = { tourWorkbench: 'skipped', tourDesigner: 'skipped', tourMobileReport: 'skipped' };
+async function dismissTours(page: Page) {
+  await api(page)('PUT', '/api/ui/prefs', TOUR_PREFS).catch(() => undefined);
+}
+
 /** 以种子账号登录的新上下文（同一用户 30 分钟内复用登录态）。 */
 export async function loggedIn(browser: Browser, user = 'admin', opts: BrowserContextOptions = {}): Promise<{ context: BrowserContext; page: Page }> {
   fs.mkdirSync(STATE_DIR, { recursive: true });
@@ -66,9 +72,13 @@ export async function loggedIn(browser: Browser, user = 'admin', opts: BrowserCo
   if (fresh) {
     await page.goto('/index');
     // 同一账号在别处重新登录会让缓存的令牌失效；页面会原地弹登录框而不是跳转，所以用接口确认令牌仍有效
-    if (!page.url().includes('login') && (await tokenValid(page))) return { context, page };
+    if (!page.url().includes('login') && (await tokenValid(page))) {
+      await dismissTours(page);
+      return { context, page };
+    }
   }
   await loginOnPage(page, user);
+  await dismissTours(page);
   await context.storageState({ path: file });
   return { context, page };
 }
@@ -80,6 +90,7 @@ export async function freshLogin(browser: Browser, user: string, opts: BrowserCo
   const context = await browser.newContext({ baseURL, ...opts });
   const page = await context.newPage();
   await loginOnPage(page, user);
+  await dismissTours(page);
   return { context, page };
 }
 

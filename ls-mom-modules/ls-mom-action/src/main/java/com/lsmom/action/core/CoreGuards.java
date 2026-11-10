@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
+import java.util.Map;
 
 /** 核心对象的 Java 守卫（L3 跨对象约束）。 */
 @Configuration(proxyBeanMethods = false)
@@ -32,7 +33,9 @@ public class CoreGuards {
             }
             boolean hasEvidence = docs.listByObject("ISSUE", String.valueOf(i.id())).stream().anyMatch(d -> "EVIDENCE".equals(d.purpose()));
             return hasEvidence ? GuardResult.pass()
-                : GuardResult.block("EVIDENCE_REQUIRED", "严重度为 " + i.severity() + " 的异常提交前必须上传现场证据");
+                : GuardResult.block("EVIDENCE_REQUIRED", "严重度为 " + i.severity() + " 的异常提交前必须上传现场证据", Map.of(
+                    "why", "高、严重级别的异常需要现场照片或检测记录作为依据，便于后续判定与追溯。",
+                    "fix", List.of(Map.of("label", "上传现场证据", "action", "upload-evidence"))));
         });
     }
 
@@ -43,7 +46,10 @@ public class CoreGuards {
                 issues.requireRectificationsDone(ctx.targetIdAsLong());
                 return GuardResult.pass();
             } catch (LsBizException e) {
-                return GuardResult.block(e.getCode(), e.getMessage(), e.getDetails());
+                Map<String, Object> d = new java.util.LinkedHashMap<>(e.getDetails());
+                d.put("why", "整改工作全部完成（或取消）后才能提交验证。");
+                d.put("fix", List.of(Map.of("label", "查看整改工作", "action", "show-rectifications")));
+                return GuardResult.block(e.getCode(), e.getMessage(), d);
             }
         });
     }
@@ -55,7 +61,9 @@ public class CoreGuards {
                 issues.requireVerifierSeparation(ctx.targetIdAsLong(), ctx.actor().effectiveParty());
                 return GuardResult.pass();
             } catch (LsBizException e) {
-                return GuardResult.block(e.getCode(), e.getMessage());
+                return GuardResult.block(e.getCode(), e.getMessage(), Map.of(
+                    "why", "该约束配置要求验证与整改分离：唯一的整改执行人不能自己验证。",
+                    "fix", List.of(Map.of("label", "请他人验证", "action", "ask-verifier"))));
             }
         });
     }

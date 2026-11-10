@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { ExportJob, ImportReport, ListSchema, OperationCall, Page, QuerySpec } from './types';
+import type { ExportJob, ImportReport, ListSchema, OperationCall, OperationImpact, Page, QuerySpec, UndoInfo } from './types';
 
 /** 统一取 RuoYi 响应中的 data。 */
 const data = <T>(p: Promise<any>): Promise<T> => p.then((res) => res.data as T);
@@ -66,9 +66,14 @@ export const crudApi = {
     data<number>(request({ url: `/api/crud/${enc(concept)}/import/${batchId}/confirm`, method: 'post' })),
   timeline: (concept: string, id: number | string) =>
     data<TimelineEntry[]>(request({ url: `/api/timeline/${enc(concept)}/${id}`, method: 'get', headers: { silentError: true } })),
+  /** 不可撤销动作执行前的影响说明（确认框内容）。 */
+  impact: (operation: string, targetId: string | number) =>
+    data<OperationImpact>(
+      request({ url: '/api/op/impact', method: 'get', params: { operation, targetId: String(targetId) }, headers: { silentError: true } })
+    ),
   /** 正式动作一律经 Operation Gateway。 */
   execute: (operation: string, call: OperationCall, idempotencyKey?: string) =>
-    data<{ targetId: string; version: number; status: string; warnings: string[] }>(
+    data<{ targetId: string; version: number; status: string; warnings: string[]; undo?: UndoInfo | null }>(
       request({
         url: `/api/op/${operation}`,
         method: 'post',

@@ -91,6 +91,7 @@ public class GenericCrudController {
             o.put("kind", d.kind().name());
             o.put("risk", d.risk().name());
             o.put("permitted", actor.hasPermission(d.permission()));
+            o.put("undoable", d.undoOperation() != null);
             o.put("inputSchema", d.inputSchema());
             if (d.kind() == OperationDefinition.Kind.TRANSITION) {
                 try {
@@ -211,6 +212,19 @@ public class GenericCrudController {
         try (InputStream in = file.getInputStream()) {
             return R.ok(imports.precheck(concept, in, file.getOriginalFilename(), actors.current()));
         }
+    }
+
+    /** 后台预检：返回任务编号，进度与结果在任务中心查看。 */
+    @PostMapping("/{concept}/import/async")
+    public R<Long> precheckAsync(@PathVariable String concept, @RequestParam("file") MultipartFile file) throws IOException {
+        if (file.isEmpty()) throw LsBizException.validation(Map.of("file", "请选择文件"));
+        return R.ok(imports.precheckAsync(concept, file.getBytes(), file.getOriginalFilename(), actors.current()));
+    }
+
+    /** 后台确认导入：返回任务编号。 */
+    @PostMapping("/{concept}/import/{batchId}/confirm/async")
+    public R<Long> confirmAsync(@PathVariable String concept, @PathVariable long batchId) {
+        return R.ok(imports.confirmAsync(concept, batchId, actors.current()));
     }
 
     @PostMapping("/{concept}/import/{batchId}/confirm")

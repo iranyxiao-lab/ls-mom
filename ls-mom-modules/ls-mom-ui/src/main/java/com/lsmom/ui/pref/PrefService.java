@@ -33,6 +33,8 @@ public class PrefService {
         PREFS.put("navType", Set.of("left", "top", "mix"));
         PREFS.put("tagsView", null);
         PREFS.put("hotkeyHints", null);
+        // 新手引导：看完（done）或跳过（skipped）后不再自动出现，可从帮助菜单重看；pending 表示重新自动出现
+        for (String tour : List.of("tourWorkbench", "tourDesigner", "tourMobileReport")) PREFS.put(tour, Set.of("done", "skipped", "pending"));
     }
 
     private final JdbcTemplate jdbc;

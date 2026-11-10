@@ -205,8 +205,16 @@ class ProductionPackTest {
         assertThat(records.row(SHIFT_PLAN, evening).get("shift")).isEqualTo("DAY");
         assertThat(f.core.works.get(ws.get(1).id()).plannedStart()).isEqualTo(LocalDate.parse(day).atTime(8, 0));
         assertThat(f.core.assignments.listActive(ws.get(1).id()).get(0).plannedStart()).isEqualTo(LocalDate.parse(day).atTime(8, 0));
-        // 挪回中班无冲突
-        assertThat(step(SHIFT_PLAN + ".move", a, SHIFT_PLAN, evening, "{\"shift\":\"EVENING\"}").warnings()).isEmpty();
+        // 结果带撤销方式：以调整前的班组、日期、班次再调整一次
+        assertThat(moved.undo()).isNotNull();
+        assertThat(moved.undo().operation()).isEqualTo(SHIFT_PLAN + ".move");
+        assertThat(moved.undo().input()).containsEntry("shift", "EVENING").containsEntry("shiftDate", day)
+            .containsEntry("teamId", f.plant.teamA().id());
+        // 撤销（挪回中班）无冲突
+        OperationResult undone = step(moved.undo().operation(), a, SHIFT_PLAN, evening,
+            new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(moved.undo().input()).toString());
+        assertThat(undone.warnings()).isEmpty();
+        assertThat(records.row(SHIFT_PLAN, evening).get("shift")).isEqualTo("EVENING");
 
         // 严格 Profile：同样的调整被阻断，安排保持不变
         OrgUnit strictTeam = f.core.org("严格班" + System.nanoTime(), com.lsmom.core.org.OrgUnitType.TEAM, f.plant.workshop().id());

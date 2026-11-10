@@ -13,7 +13,9 @@ import com.lsmom.action.state.StateSnapshot;
 import com.lsmom.action.state.StateStores;
 import com.lsmom.action.timeline.TimelineService;
 import com.lsmom.core.error.LsBizException;
+import com.lsmom.action.api.OperationImpactProvider;
 import org.dromara.common.core.domain.R;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,9 +41,11 @@ public class OperationController {
     private final StateStores stores;
     private final TimelineService timeline;
     private final ActorResolver actors;
+    private final ObjectProvider<OperationImpactProvider> impacts;
 
     public OperationController(OperationGateway gateway, OperationRegistry registry, StateMachineRegistry machines, StateStores stores,
-                               TimelineService timeline, ActorResolver actors) {
+                               TimelineService timeline, ActorResolver actors, ObjectProvider<OperationImpactProvider> impacts) {
+        this.impacts = impacts;
         this.gateway = gateway;
         this.registry = registry;
         this.machines = machines;
@@ -64,7 +68,9 @@ public class OperationController {
         return R.ok(r.warnings().isEmpty() ? "操作成功" : String.join("；", r.warnings()), r);
     }
 
-    public record ActionView(String operation, String name, String risk, boolean permitted, String toStatus, JsonNode inputSchema) {
+    /** {@code undoable}：执行后可撤销（注册了补偿 Operation），界面直接执行并提供撤销；否则先确认。 */
+    public record ActionView(String operation, String name, String risk, boolean permitted, String toStatus, JsonNode inputSchema,
+                             boolean undoable) {
     }
 
     public record AllowedActions(String concept, String id, String status, int version, List<ActionView> actions) {
@@ -81,15 +87,52 @@ public class OperationController {
         StateMachineDefinition sm = machines.forConcept(concept);
         List<ActionView> transitions = sm.allowedFrom(s.status()).stream().map(t -> {
             OperationDefinition d = registry.require(t.operation());
-            return new ActionView(t.operation(), t.name(), d.risk().name(), actor.hasPermission(d.permission()), t.to(), d.inputSchema());
+            return new ActionView(t.operation(), t.name(), d.risk().name(), actor.hasPermission(d.permission()), t.to(), d.inputSchema(),
+                d.undoOperation() != null);
         }).toList();
         List<ActionView> handlers = registry.listByConcept(concept).stream()
             .filter(d -> d.kind() == OperationDefinition.Kind.HANDLER && d.requiresVersion())
-            .map(d -> new ActionView(d.code(), d.name(), d.risk().name(), actor.hasPermission(d.permission()), null, d.inputSchema()))
+            .map(d -> new ActionView(d.code(), d.name(), d.risk().name(), actor.hasPermission(d.permission()), null, d.inputSchema(),
+                d.undoOperation() != null))
             .toList();
         List<ActionView> all = new java.util.ArrayList<>(transitions);
         all.addAll(handlers);
         return R.ok(new AllowedActions(concept, id, s.status(), s.version(), all));
+    }
+
+    /**
+     * 执行前的影响说明：动作名、状态变化、是否进入终态（之后不能再修改）、是否可撤销，以及业务模块给出的影响对象。
+     * 只读；目标须在本人数据范围内。
+     */
+    public record Impact(String operation, String name, boolean undoable, String fromStatus, String toStatus, boolean terminal,
+                         List<String> lines) {
+    }
+
+    @GetMapping("/op/impact")
+    public R<Impact> impact(@RequestParam String operation, @RequestParam String targetId) {
+        ActorContext actor = actors.current();
+        OperationDefinition d = registry.require(operation);
+        String from = null;
+        String to = null;
+        boolean terminal = false;
+        if (stores.has(d.concept())) {
+            StateSnapshot s = stores.of(d.concept()).load(targetId);
+            if (!actor.dataScope().all() && !actor.dataScope().allowsOrg(s.orgUnitId())) {
+                throw new LsBizException("ACCESS_DENIED", "目标对象不在你的数据范围内");
+            }
+            from = s.status();
+            if (d.kind() == OperationDefinition.Kind.TRANSITION) {
+                StateMachineDefinition sm = machines.forConcept(d.concept());
+                StateMachineDefinition.Transition t = sm.transition(operation);
+                if (t != null) {
+                    to = t.to();
+                    terminal = sm.terminal(t.to());
+                }
+            }
+        }
+        List<String> lines = impacts.orderedStream().filter(p -> p.supports(operation))
+            .flatMap(p -> p.describe(operation, targetId).stream()).toList();
+        return R.ok(new Impact(operation, d.name(), d.undoOperation() != null, from, to, terminal, lines));
     }
 
     @GetMapping("/op/catalog")

@@ -73,6 +73,8 @@ export async function open({ width = 1600, height = 1000, user = 'admin', mobile
       },
       [method, url, body, CLIENT_ID, API]
     );
+  // 新手引导会盖住页面：登录后标记为已跳过（引导用例自己重置）
+  await api('PUT', '/api/ui/prefs', { tourWorkbench: 'skipped', tourDesigner: 'skipped', tourMobileReport: 'skipped' }).catch(() => undefined);
   return { browser, context, page, api, errors };
 }
 

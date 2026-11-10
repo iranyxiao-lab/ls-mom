@@ -210,6 +210,7 @@ public class GenericCrudService {
             o.put("operation", d.code());
             o.put("name", d.name());
             o.put("permitted", actor.hasPermission(d.permission()));
+            o.put("undoable", d.undoOperation() != null);
             out.add(o);
         }
         return out;

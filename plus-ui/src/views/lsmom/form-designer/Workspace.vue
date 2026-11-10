@@ -11,8 +11,8 @@
         <el-button :disabled="!canUndo" data-testid="undo" @click="undo">撤销</el-button>
         <el-button :disabled="!canRedo" data-testid="redo" @click="redo">重做</el-button>
         <el-button :loading="busy" data-testid="save" @click="save">保存草稿</el-button>
-        <el-button :loading="busy" data-testid="check" @click="check">校验</el-button>
-        <el-button type="primary" :loading="busy" data-testid="publish" @click="publish">发布</el-button>
+        <el-button :loading="busy" data-testid="check" data-tour="fd-check" @click="check">校验</el-button>
+        <el-button type="primary" :loading="busy" data-testid="publish" data-tour="fd-publish" @click="publish">发布</el-button>
       </div>
     </div>
 
@@ -40,7 +40,7 @@
     <el-tabs v-model="tab" class="ls-designer__tabs">
       <el-tab-pane label="设计" name="design">
         <div class="ls-designer__main">
-          <div class="ls-designer__canvas">
+          <div class="ls-designer__canvas" data-tour="fd-canvas">
             <FcDesigner
               ref="designer"
               :height="height"

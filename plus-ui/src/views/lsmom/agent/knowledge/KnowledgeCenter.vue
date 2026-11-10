@@ -101,10 +101,14 @@ import { ElMessage } from 'element-plus';
 import type { Answer, KnowledgeApi, KnowledgeDoc } from '@/api/lsmom/knowledge';
 
 /** 知识问答（指标问数＋带引用的文档问答）与知识库维护（修订稿 → 真人发布）。 */
-const props = withDefaults(defineProps<{ api: KnowledgeApi; canManage?: boolean; canPublish?: boolean }>(), { canManage: false, canPublish: false });
+const props = withDefaults(defineProps<{ api: KnowledgeApi; canManage?: boolean; canPublish?: boolean; /** 帮助菜单带来的主题 */ initialQuestion?: string }>(), {
+  canManage: false,
+  canPublish: false,
+  initialQuestion: ''
+});
 
 const tab = ref('ask');
-const question = ref('');
+const question = ref(props.initialQuestion);
 const asking = ref(false);
 const answer = ref<Answer>();
 const docs = ref<KnowledgeDoc[]>([]);

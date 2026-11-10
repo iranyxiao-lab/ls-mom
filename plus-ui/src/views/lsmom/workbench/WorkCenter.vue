@@ -1,6 +1,6 @@
 <template>
   <div class="wc" data-testid="work-center">
-    <el-tabs v-model="tab" @tab-change="load">
+    <el-tabs v-model="tab" data-tour="wc-tabs" @tab-change="load">
       <el-tab-pane name="todo">
         <template #label>
           我的待办 <el-badge v-if="counts.todo" :value="counts.todo" :type="counts.overdue ? 'danger' : 'primary'" data-testid="badge-todo" />
@@ -19,7 +19,7 @@
       </el-tab-pane>
     </el-tabs>
 
-    <div v-if="['todo', 'done', 'started', 'cc'].includes(tab)" class="filters">
+    <div v-if="['todo', 'done', 'started', 'cc'].includes(tab)" class="filters" data-tour="wc-filters">
       <el-select v-model="filter.bizType" clearable placeholder="业务类型" style="width: 220px" data-testid="filter-biz" @change="load">
         <el-option v-for="b in bizTypes" :key="b" :label="b" :value="b" />
       </el-select>
@@ -48,6 +48,7 @@
 
     <!-- 待办 / 已办 / 抄送 -->
     <el-table
+      data-tour="wc-list"
       v-if="tab === 'todo' || tab === 'done' || tab === 'cc'"
       v-loading="loading"
       :data="items"

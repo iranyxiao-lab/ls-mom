@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Clock;
+import java.util.Map;
 
 /**
  * 质量 Pack 的代码部分：元数据（Concept、状态机、规则、视图）在 {@code lsmom-packs/ls.quality}，由标准 Pack 安装器在启动时安装；
@@ -19,6 +20,17 @@ import java.time.Clock;
  */
 @Configuration(proxyBeanMethods = false)
 public class QualityConfiguration {
+
+    /** 关闭、驳回前的确认框内容：将结束的不符合项、同时关闭的关联问题、整改工作数量。 */
+    @Bean
+    public com.lsmom.action.core.IssueImpact ncImpact(ManagedRecords records, IssueService issues) {
+        return new com.lsmom.action.core.IssueImpact(Map.of(QualityPack.NC + ".close", "关闭", QualityPack.NC + ".reject", "驳回"), "不符合项", id -> {
+            Map<String, Object> r = records.find(QualityPack.NC, Long.parseLong(id))
+                .orElseThrow(() -> com.lsmom.core.error.LsBizException.notFound("不符合项", id));
+            Object issue = r.get("issue");
+            return new com.lsmom.action.core.IssueImpact.Target(String.valueOf(r.get("title")), issue == null ? null : ((Number) issue).longValue());
+        }, issues);
+    }
 
     @Bean
     public QualityEffects qualityEffects(ManagedRecords records, IssueService issues, WorkItemService works, AssignmentService assignments, Clock clock) {

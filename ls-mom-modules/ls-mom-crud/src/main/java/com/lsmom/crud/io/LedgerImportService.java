@@ -37,12 +37,63 @@ public class LedgerImportService {
     private final JdbcTemplate jdbc;
     private final OperationAudit audit;
     private final CrudProperties props;
+    private final com.lsmom.core.task.BackgroundTasks tasks;
+    private final java.util.concurrent.Executor executor;
 
     public LedgerImportService(GenericCrudService crud, JdbcTemplate jdbc, OperationAudit audit, CrudProperties props) {
+        this(crud, jdbc, audit, props, null, Runnable::run);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public LedgerImportService(GenericCrudService crud, JdbcTemplate jdbc, OperationAudit audit, CrudProperties props,
+                               com.lsmom.core.task.BackgroundTasks tasks,
+                               @org.springframework.beans.factory.annotation.Qualifier(com.lsmom.crud.CrudConfiguration.EXPORT_EXECUTOR)
+                               java.util.concurrent.Executor executor) {
         this.crud = crud;
         this.jdbc = jdbc;
         this.audit = audit;
         this.props = props;
+        this.tasks = tasks;
+        this.executor = executor;
+    }
+
+    /**
+     * 后台预检（任务中心）：大文件预检较慢，发起人可离开页面；完成后任务结果为预检报告（含错误行），可在任务中心确认导入。
+     * 权限在发起时检查。
+     */
+    public long precheckAsync(String concept, byte[] xlsx, String fileName, ActorContext actor) {
+        guard(concept, actor, GenericCrudService.permission(concept, "import"));
+        String name = crud.model(concept).concept().displayName();
+        long id = tasks.start("IMPORT_CHECK", "导入检查：" + name + "（" + fileName + "）", actor.userId(), 0);
+        executor.execute(() -> {
+            try {
+                Report r = precheck(concept, new java.io.ByteArrayInputStream(xlsx), fileName, actor, n -> tasks.total(id, n), tasks.reporter(id));
+                tasks.finish(id, java.util.Map.of("concept", concept, "conceptName", name, "report", r));
+            } catch (LsBizException e) {
+                tasks.fail(id, e.fieldErrors().isEmpty() ? e.getMessage() : String.join("；", e.fieldErrors().values()));
+            } catch (RuntimeException e) {
+                tasks.fail(id, "导入检查失败：" + e.getMessage());
+            }
+        });
+        return id;
+    }
+
+    /** 后台确认导入（任务中心）：逐行重新校验后入库，完成后通知发起人导入条数。 */
+    public long confirmAsync(String concept, long batchId, ActorContext actor) {
+        Map<String, Object> b = batch(concept, batchId, actor);
+        String name = crud.model(concept).concept().displayName();
+        long id = tasks.start("IMPORT", "导入：" + name + "（批次 " + batchId + "）", actor.userId(), ((Number) b.get("valid_rows")).intValue());
+        executor.execute(() -> {
+            try {
+                int n = confirm(concept, batchId, actor, tasks.reporter(id));
+                tasks.finish(id, java.util.Map.of("concept", concept, "conceptName", name, "imported", n, "batchId", batchId));
+            } catch (LsBizException e) {
+                tasks.fail(id, e.getMessage());
+            } catch (RuntimeException e) {
+                tasks.fail(id, "导入失败：" + e.getMessage());
+            }
+        });
+        return id;
     }
 
     public record RowError(int row, String field, String message) {
@@ -63,6 +114,11 @@ public class LedgerImportService {
     }
 
     public Report precheck(String concept, InputStream xlsx, String fileName, ActorContext actor) {
+        return precheck(concept, xlsx, fileName, actor, n -> { }, n -> { });
+    }
+
+    private Report precheck(String concept, InputStream xlsx, String fileName, ActorContext actor, java.util.function.IntConsumer onTotal,
+                            java.util.function.IntConsumer onRow) {
         String op = GenericCrudService.permission(concept, "import");
         guard(concept, actor, op);
         LedgerModel m = crud.model(concept);
@@ -84,14 +140,17 @@ public class LedgerImportService {
             else columns.put(h.getKey(), f);
         }
         if (!unknown.isEmpty()) throw LsBizException.validation(Map.of("file", "无法识别的表头：" + String.join("、", unknown)));
+        if (columns.isEmpty()) throw LsBizException.validation(Map.of("file", "没有识别到任何列，请用「下载模板」得到的文件填写后导入"));
         int total = rows.size() - 1;
         if (total > props.importMaxRows()) {
             throw LsBizException.validation(Map.of("file", "单次最多导入 " + props.importMaxRows() + " 行，当前 " + total + " 行"));
         }
+        onTotal.accept(total);
         List<RowError> errors = new ArrayList<>();
         List<Map<String, Object>> valid = new ArrayList<>();
         Map<String, java.util.Set<String>> seen = new LinkedHashMap<>();
         for (int i = 1; i < rows.size(); i++) {
+            onRow.accept(i - 1);
             int excelRow = i + 1;
             Map<Integer, String> r = rows.get(i);
             ObjectNode node = JsonNodeFactory.instance.objectNode();
@@ -132,19 +191,30 @@ public class LedgerImportService {
 
     /** 确认导入：只导入预检通过的行（入库前重新校验）。返回导入条数。 */
     public int confirm(String concept, long batchId, ActorContext actor) {
-        String op = GenericCrudService.permission(concept, "import");
-        guard(concept, actor, op);
-        Map<String, Object> b = jdbc.queryForList("select concept_code, status, created_by, payload::text as payload from crud_import_batch where id = ?",
+        return confirm(concept, batchId, actor, n -> { });
+    }
+
+    private Map<String, Object> batch(String concept, long batchId, ActorContext actor) {
+        guard(concept, actor, GenericCrudService.permission(concept, "import"));
+        Map<String, Object> b = jdbc.queryForList(
+            "select concept_code, status, created_by, valid_rows, payload::text as payload from crud_import_batch where id = ?",
             batchId).stream().findFirst().orElseThrow(() -> LsBizException.notFound("导入批次", String.valueOf(batchId)));
         if (!concept.equals(b.get("concept_code"))) throw LsBizException.notFound("导入批次", String.valueOf(batchId));
         if (!"CHECKED".equals(b.get("status"))) throw new LsBizException("IMPORT_BATCH_STATE", "该批次已导入或已失效");
         if (actor.effectiveParty() != null && !actor.effectiveParty().equals(b.get("created_by")) && !actor.superAdmin()) {
             throw new LsBizException("ACCESS_DENIED", "只能确认自己上传的导入批次");
         }
+        return b;
+    }
+
+    private int confirm(String concept, long batchId, ActorContext actor, java.util.function.IntConsumer onRow) {
+        String op = GenericCrudService.permission(concept, "import");
+        Map<String, Object> b = batch(concept, batchId, actor);
         LedgerModel m = crud.model(concept);
         List<Map<String, Object>> rows = new ArrayList<>();
         try {
             for (JsonNode item : JSON.readTree(String.valueOf(b.get("payload")))) {
+                onRow.accept(rows.size());
                 JsonNode data = item.get("data");
                 Map<String, Object> v = crud.precheck(m, data, actor);
                 if (data.hasNonNull("orgId")) v.put("orgId", data.get("orgId").asLong());

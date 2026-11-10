@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.Clock;
+import java.util.Map;
 
 /**
  * 设备 Pack 的代码部分：元数据（Concept、状态机、视图）在 {@code lsmom-packs/ls.asset}，由标准 Pack 安装器在启动时安装；
@@ -23,6 +24,17 @@ import java.time.Clock;
  */
 @Configuration(proxyBeanMethods = false)
 public class AssetConfiguration {
+
+    /** 关闭、驳回前的确认框内容：将结束的缺陷、同时关闭的关联问题、整改工作数量。 */
+    @Bean
+    public com.lsmom.action.core.IssueImpact defectImpact(ManagedRecords records, IssueService issues) {
+        return new com.lsmom.action.core.IssueImpact(Map.of(AssetPack.DEFECT + ".verifyPass", "关闭", AssetPack.DEFECT + ".cancel", "取消"), "缺陷", id -> {
+            Map<String, Object> r = records.find(AssetPack.DEFECT, Long.parseLong(id))
+                .orElseThrow(() -> com.lsmom.core.error.LsBizException.notFound("缺陷", id));
+            Object issue = r.get("issue");
+            return new com.lsmom.action.core.IssueImpact.Target(String.valueOf(r.get("title")), issue == null ? null : ((Number) issue).longValue());
+        }, issues);
+    }
 
     @Bean
     public AssetEffects assetEffects(JdbcTemplate jdbc, ManagedRecords records, WorkItemService works, AssignmentService assignments,
