@@ -94,6 +94,21 @@
                     <el-input v-model="ext.pattern" placeholder="^L-[0-9]+$" data-testid="ext-pattern" @change="touch" />
                     <el-input v-model="ext.patternMessage" placeholder="格式提示" @change="touch" />
                   </el-form-item>
+                  <el-form-item label="自动带入">
+                    <el-select v-model="defaultFromKind" clearable placeholder="不带入" data-testid="ext-default-from" @change="touch">
+                      <el-option v-for="o in DEFAULT_FROM" :key="o.value" :label="o.label" :value="o.value" />
+                    </el-select>
+                    <el-input
+                      v-if="defaultFromKind === '$source'"
+                      v-model="defaultFromSource"
+                      placeholder="来源对象的字段，如 assetId"
+                      data-testid="ext-default-from-source"
+                      @change="touch"
+                    />
+                  </el-form-item>
+                  <el-form-item label="记住上次填写">
+                    <el-switch v-model="ext.remember" data-testid="ext-remember" @change="touch" />
+                  </el-form-item>
                   <el-form-item label="字典类型"><el-input v-model="ext.dictType" placeholder="sys_yes_no" @change="touch" /></el-form-item>
                   <el-form-item v-if="isRef" label="引用 Concept / 显示字段 / 过滤">
                     <el-input v-model="refConcept" placeholder="acme.asset.Equipment" data-testid="ext-ref-concept" @change="touch" />
@@ -530,6 +545,21 @@ function bindField(code: string) {
   touch();
 }
 
+const DEFAULT_FROM = [
+  { value: '$user', label: '当前人员' },
+  { value: '$org', label: '当前组织' },
+  { value: '$shift', label: '当前班次' },
+  { value: '$now', label: '当前时间' },
+  { value: '$source', label: '来源对象的字段' }
+];
+const defaultFromKind = computed<string | undefined>({
+  get: () => (ext.value.defaultFrom?.startsWith('$source.') ? '$source' : ext.value.defaultFrom),
+  set: (v) => (ext.value.defaultFrom = !v ? undefined : v === '$source' ? '$source.' : v)
+});
+const defaultFromSource = computed({
+  get: () => (ext.value.defaultFrom?.startsWith('$source.') ? ext.value.defaultFrom.slice(8) : ''),
+  set: (v: string) => (ext.value.defaultFrom = `$source.${v.trim()}`)
+});
 const isRef = computed(() => /Ref$/.test(ext.value.widget ?? '') || ext.value.widget === 'remoteSelect');
 const refConcept = computed({
   get: () => ext.value.ref?.concept ?? '',

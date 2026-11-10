@@ -33,7 +33,7 @@
 
 ## 4. 高效录入（渲染器平台能力）
 
-- [ ] 4.1 扩展 FormSchema 字段属性 `defaultFrom` 与 `remember`，并更新 JSON Schema 与后端校验；验证非法 `defaultFrom` 值被拒绝
+- [x] 4.1 扩展 FormSchema 字段属性 `defaultFrom` 与 `remember`，并更新 JSON Schema 与后端校验；验证非法 `defaultFrom` 值被拒绝
 - [ ] 4.2 实现 `useSmartDefaults`（当前人员/组织/班次/时间/来源对象带入、记忆值存 `ui_user_pref`、视觉区分记忆值）；验证"从设备报缺陷"自动带出设备、位置、登记人、时间
 - [ ] 4.3 实现 `useDraft`（3 秒防抖、内容哈希去重、IndexedDB＋服务端 `ui_form_draft`、重新打开时提示恢复）与会话过期原地重新登录后继续提交；验证关闭浏览器后恢复草稿、会话过期提交不丢内容
 - [ ] 4.4 统一服务端字段错误结构 `{field,rowIndex,code,message,fix}`，渲染器实现失焦校验、就近错误、顶部汇总可点击定位、自动滚动到首个错误；验证子表第 3 行服务端错误高亮定位

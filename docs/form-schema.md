@@ -112,6 +112,15 @@ JSON Schema 采用 2020-12，位于 `ls-mom-form/src/main/resources/ls-schema/`�
 
 布局节点：`field` `subTable` `group` `row`/`col` `tabs`/`tab` `collapse`/`panel` `divider` `text` `description` `metricCard` `relatedSummary` `relatedList`。
 
+### 自动带入与记住上次填写
+
+| 属性 | 取值 | 说明 |
+| --- | --- | --- |
+| `defaultFrom` | `$user` 当前人员、`$org` 当前组织、`$shift` 当前班次、`$now` 当前时间、`$source.<字段>` 来源对象的字段 | 打开新单据时带入；用户可改。`$user` 用于 `userRef`/`input`/`readonlyText`，`$org` 用于 `deptRef`/`teamRef`/`conceptRef`/`input`/`readonlyText`，`$shift` 用于 `select`/`radio`/`dict`/`input`/`readonlyText`，`$now` 用于 `date`/`datetime`/`readonlyText`，`$source.*` 不限控件 |
+| `remember` | `true` | 记住本人上次填写的值，下次打开时带入（保存在服务端用户偏好，换设备也生效）；记忆值与普通输入样式不同 |
+
+计算字段不能设置这两个属性；只读字段、附件和确认类控件不能记忆。不合法的配置在保存与发布时被拒绝（`DEFAULT_FROM_INVALID`、`REMEMBER_INVALID`）。带入的值只是建议，提交时仍由服务端按字段策略和守卫校验。
+
 ### 规则
 
 `level`：`L1` 阻断保存、`L2` 阻断提交（由 Operation 守卫执行）、`L3` 只提示。`when` 求值失败（例如可选字段缺失）视为规则不适用；`assert` 为假时把 `message` 挂到 `field` 上。前端（`@bufbuild/cel`）与后端（cel-java）用同一表达式，结果一致。

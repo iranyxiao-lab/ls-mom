@@ -145,6 +145,29 @@ describe('fc-adapter 纯转换', () => {
     expect(normalizeForm(fromFcRule(rule, options))).toEqual(normalizeForm(s));
   });
 
+  it('自动带入与记忆值属性能往返', () => {
+    const s: FormSchema = {
+      viewType: 'FORM',
+      formCode: 'acme.demo.smart',
+      version: 1,
+      conceptCode: 'acme.demo.Defect',
+      layout: [
+        { type: 'field', key: 'reporter' },
+        { type: 'field', key: 'foundAt' },
+        { type: 'field', key: 'asset' },
+        { type: 'field', key: 'location' }
+      ],
+      fields: [
+        { key: 'reporter', widget: 'userRef', defaultFrom: '$user', readonly: true },
+        { key: 'foundAt', widget: 'datetime', defaultFrom: '$now' },
+        { key: 'asset', widget: 'assetRef', defaultFrom: '$source.id', ref: { concept: 'ls.asset.Equipment' } },
+        { key: 'location', widget: 'input', defaultFrom: '$source.location', remember: true }
+      ]
+    };
+    const { rule, options } = toFcRule(s);
+    expect(normalizeForm(fromFcRule(rule, options))).toEqual(normalizeForm(s));
+  });
+
   it('设计器附加的内部属性不影响结果', () => {
     const { rule, options } = toFcRule(loanForm);
     const decorate = (rs: any[]) =>

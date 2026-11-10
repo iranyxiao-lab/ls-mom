@@ -44,6 +44,36 @@ class ViewSchemaTest {
     }
 
     @Test
+    void 自动带入与记忆值的合法与非法配置() {
+        ArrayNode fields = form.withArray("fields");
+        ((ObjectNode) fields.get(1)).put("defaultFrom", "$user").put("remember", true);
+        ((ObjectNode) fields.get(2)).put("defaultFrom", "$now");
+        ((ObjectNode) fields.get(4)).put("defaultFrom", "$source.toolId");
+        assertThat(f.validator.validate(form).issues()).isEmpty();
+
+        // 未知来源由 JSON Schema 拒绝
+        ((ObjectNode) fields.get(0)).put("defaultFrom", "$password");
+        assertThat(f.validator.validate(form).issues()).anySatisfy(i -> assertThat(i.path()).startsWith("/fields/0/defaultFrom"));
+        ((ObjectNode) fields.get(0)).remove("defaultFrom");
+
+        // 来源与控件不匹配、记忆只读字段由语义校验拒绝
+        ((ObjectNode) fields.get(3)).put("defaultFrom", "$now");
+        ((ObjectNode) fields.get(6)).put("defaultFrom", "$user");
+        ((ObjectNode) fields.get(7)).put("remember", true);
+        ViewSchemaValidator.Result r = f.validator.validate(form);
+        assertThat(r.issues()).anySatisfy(i -> {
+            assertThat(i.path()).isEqualTo("/fields/3/defaultFrom");
+            assertThat(i.code()).isEqualTo("DEFAULT_FROM_INVALID");
+        });
+        assertThat(r.issues()).anySatisfy(i -> assertThat(i.path()).isEqualTo("/fields/6/defaultFrom"));
+        assertThat(r.issues()).anySatisfy(i -> {
+            assertThat(i.path()).isEqualTo("/fields/7/remember");
+            assertThat(i.code()).isEqualTo("REMEMBER_INVALID");
+        });
+        assertThatThrownBy(() -> f.validator.require(form)).isInstanceOf(LsBizException.class);
+    }
+
+    @Test
     void 未知控件类型定位到字段() {
         ((ObjectNode) form.withArray("fields").get(2)).put("widget", "fancyDate");
         ViewSchemaValidator.Result r = f.validator.validate(form);

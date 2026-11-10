@@ -123,6 +123,8 @@ export interface RefSpec {
   labelField?: string;
 }
 
+export type DefaultFrom = '$user' | '$org' | '$shift' | '$now' | `$source.${string}`;
+
 export interface FormField {
   key: string;
   label?: string;
@@ -131,6 +133,10 @@ export interface FormField {
   readonly?: boolean;
   hidden?: boolean;
   default?: unknown;
+  /** 打开表单时自动带入：$user、$org、$shift、$now、$source.<字段> */
+  defaultFrom?: DefaultFrom;
+  /** 记住本人上次填写的值，下次打开时带入 */
+  remember?: boolean;
   placeholder?: string;
   help?: string;
   span?: number;

@@ -42,6 +42,14 @@ public class ViewSchemaValidator {
         "orgId", "schemaVersion");
     private static final Pattern SQL = Pattern.compile("(?is)\\b(select\\s+.+\\s+from|insert\\s+into|update\\s+\\S+\\s+set|delete\\s+from|drop\\s+table|union\\s+select)\\b");
 
+    /** defaultFrom 各来源可用的控件；$source 不限控件（类型由来源字段决定）。 */
+    static final Map<String, Set<String>> DEFAULT_FROM_WIDGETS = Map.of(
+        "$user", Set.of("userRef", "input", "readonlyText"),
+        "$org", Set.of("deptRef", "teamRef", "conceptRef", "input", "readonlyText"),
+        "$shift", Set.of("select", "radio", "dict", "input", "readonlyText"),
+        "$now", Set.of("date", "datetime", "readonlyText"));
+    static final Set<String> NOT_REMEMBERED = Set.of("attachment", "image", "file", "confirm", "readonlyText", "expression", "sourceRef");
+
     private final ConceptRegistry concepts;
     private final OperationRegistry operations;
     private final CelRuleEngine cel;
@@ -271,8 +279,26 @@ public class ViewSchemaValidator {
                     issue(p + "/component", "COMPONENT_INCOMPATIBLE", "组件不兼容当前 FormSchema 版本：" + code + "@" + ver);
                 }
             }
+            smartDefaults(f, widget, computed, p);
             if ((widget.equals("dict")) && !f.has("dictType") && (def == null || def.textProp("dictType") == null)) {
                 issue(p + "/dictType", "DICT_MISSING", "字典控件需要 dictType");
+            }
+        }
+
+        /** defaultFrom 的来源要与控件匹配；计算字段不能带入或记忆，只读字段和附件类控件不能记忆。 */
+        void smartDefaults(JsonNode f, String widget, boolean computed, String p) {
+            String from = f.path("defaultFrom").asText(null);
+            if (from != null) {
+                Set<String> allowed = DEFAULT_FROM_WIDGETS.get(from.startsWith("$source.") ? "$source" : from);
+                if (computed) issue(p + "/defaultFrom", "DEFAULT_FROM_INVALID", "计算字段不能设置自动带入");
+                else if (allowed != null && !allowed.contains(widget)) {
+                    issue(p + "/defaultFrom", "DEFAULT_FROM_INVALID", from + " 不能带入 " + widget + " 控件，可用于：" + String.join("、", new java.util.TreeSet<>(allowed)));
+                }
+            }
+            if (f.path("remember").asBoolean(false)) {
+                if (computed || f.path("readonly").asBoolean(false) || NOT_REMEMBERED.contains(widget)) {
+                    issue(p + "/remember", "REMEMBER_INVALID", "计算字段、只读字段和附件、确认类控件不能记住上次填写的值");
+                }
             }
         }
 
