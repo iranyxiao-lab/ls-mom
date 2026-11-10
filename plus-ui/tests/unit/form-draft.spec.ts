@@ -61,7 +61,14 @@ function mountForm(api: any, key: string) {
   app = createApp(
     defineComponent({
       setup: () => () =>
-        h(SchemaForm as any, { schema: form, api, draftKey: key, ref: inst, modelValue: model.value, 'onUpdate:modelValue': (v: any) => (model.value = v) })
+        h(SchemaForm as any, {
+          schema: form,
+          api,
+          draftKey: key,
+          ref: inst,
+          modelValue: model.value,
+          'onUpdate:modelValue': (v: any) => (model.value = v)
+        })
     })
   );
   app.use(ElementPlus).mount(host);

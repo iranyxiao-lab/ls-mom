@@ -11,7 +11,9 @@
       >
         <template v-if="ctx.origin?.[n.key!]" #label>
           {{ fieldOf(n.key)!.label ?? n.key }}
-          <span :class="['ls-form__origin', 'is-' + ctx.origin[n.key!]]" :data-testid="'origin-' + n.key">{{ ORIGIN_LABEL[ctx.origin[n.key!]] }}</span>
+          <span :class="['ls-form__origin', 'is-' + ctx.origin[n.key!]]" :data-testid="'origin-' + n.key">{{
+            ORIGIN_LABEL[ctx.origin[n.key!]]
+          }}</span>
         </template>
         <FieldWidget
           :field="fieldOf(n.key)!"
@@ -82,7 +84,6 @@ import { ORIGIN_LABEL } from '@/utils/lsform/smartDefaults';
 import SubTableEditor from './SubTableEditor.vue';
 
 defineOptions({ name: 'LayoutNodes' });
-
 
 const props = defineProps<{ nodes: LayoutNode[]; ctx: RenderCtx }>();
 

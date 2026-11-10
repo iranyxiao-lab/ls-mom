@@ -8,19 +8,23 @@
     data-testid="schema-form"
     @submit.prevent
     @focusout="onBlur"
+    @keydown.capture="onKeydown"
   >
     <div v-if="draftState.found.value" class="schema-form__draft" role="status" data-testid="draft-found">
       <span>发现未提交的草稿（{{ draftTime(draftState.found.value.savedAt) }}）</span>
       <el-button size="small" type="primary" data-testid="draft-restore" @click="restoreDraft">恢复</el-button>
       <el-button size="small" data-testid="draft-discard" @click="discardDraft">丢弃</el-button>
     </div>
-    <div v-else-if="draftState.savedAt.value" class="schema-form__draft-saved" data-testid="draft-saved">草稿已自动保存 {{ draftTime(draftState.savedAt.value) }}</div>
+    <div v-else-if="draftState.savedAt.value" class="schema-form__draft-saved" data-testid="draft-saved">
+      草稿已自动保存 {{ draftTime(draftState.savedAt.value) }}
+    </div>
     <div v-if="showSummary && summary.length" class="schema-form__summary" role="alert" data-testid="error-summary">
       <div class="schema-form__summary-title">有 {{ summary.length }} 处需要修改，点击定位：</div>
       <ul>
         <li v-for="item in summary" :key="item.key">
           <button type="button" class="schema-form__summary-item" data-testid="error-summary-item" :data-key="item.key" @click="locate(item.key)">
-            <b>{{ item.label }}</b>：{{ item.message }}<span v-if="item.fix" class="schema-form__fix">（{{ item.fix }}）</span>
+            <b>{{ item.label }}</b
+            >：{{ item.message }}<span v-if="item.fix" class="schema-form__fix">（{{ item.fix }}）</span>
           </button>
         </li>
       </ul>
@@ -28,6 +32,9 @@
     <el-alert v-if="formError" type="error" :title="formError" :closable="false" class="schema-form__alert" />
     <el-alert v-for="w in warnings" :key="w" type="warning" :title="w" :closable="false" class="schema-form__alert" />
     <LayoutNodes :nodes="nodes" :ctx="ctx" />
+    <div v-if="hotkeys && hotkeyHints && !readonly" class="schema-form__hints" data-testid="form-hotkey-hints">
+      Enter 下一项 · {{ hotkeyLabel('mod+s') }} 保存草稿 · {{ hotkeyLabel('mod+enter') }} 提交
+    </div>
     <div v-if="showActions && actions.length" class="schema-form__actions">
       <el-button
         v-for="a in actions"
@@ -44,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import type { FormAction, FormSchema, LayoutNode } from '@/types/lsView';
 import type { RendererApi } from '@/api/lsmom/form';
@@ -54,6 +61,8 @@ import { computeFields, validateForm, type FormCheck, type FormContext } from '@
 import { rememberValues, smartDefaults, usesSmartDefaults, type FillOrigin } from '@/utils/lsform/smartDefaults';
 import { useDraft } from '@/utils/lsform/useDraft';
 import { mapServerErrors, summaryItems } from '@/utils/lsform/serverErrors';
+import { fieldHosts, focusHost, parseCell, selectOpen } from '@/utils/lsform/keyboardNav';
+import { hotkeyHints, hotkeyLabel, useHotkeys } from '@/utils/hotkeys';
 import { draftTime } from '@/utils/lsform/draftModel';
 import { currentUserId } from '@/utils/currentUser';
 import LayoutNodes from './LayoutNodes.vue';
@@ -87,12 +96,18 @@ const props = withDefaults(
     smart?: boolean;
     /** 草稿自动保存的键：表单或 Concept 编码 + 记录 id（新单据用 new）；不传则不保存草稿。本机草稿按当前用户隔离 */
     draftKey?: string;
+    /** 键盘录入快捷键：Ctrl/⌘+S 触发 save、Ctrl/⌘+Enter 触发 submit（由调用方保存与提交） */
+    hotkeys?: boolean;
+    /** 打开后聚焦第一个可录入的字段 */
+    autofocus?: boolean;
   }>(),
   { api: () => lazyFormApi, showActions: true, context: () => ({}), smart: true }
 );
 const emit = defineEmits<{
   (e: 'update:modelValue', v: Record<string, any>): void;
   (e: 'action', payload: { action: FormAction; model: Record<string, any> }): void;
+  (e: 'save'): void;
+  (e: 'submit'): void;
 }>();
 
 const errors = reactive<Record<string, string>>({});
@@ -255,7 +270,9 @@ function locate(key: string) {
   const el = root.querySelector<HTMLElement>(`[data-field-key="${CSS.escape(key)}"]`);
   if (!el) return;
   el.scrollIntoView({ block: 'center' });
-  const input = el.querySelector<HTMLElement>('input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+  const input = el.querySelector<HTMLElement>(
+    'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
   input?.focus({ preventScroll: true });
 }
 
@@ -274,6 +291,76 @@ function validate(opts: { focus?: boolean } = {}): FormCheck {
   if (opts.focus !== false) showErrors();
   return r;
 }
+
+/** 子表新增一行（带列默认值）。 */
+function addRow(tableKey: string) {
+  const t = tables.value.get(tableKey);
+  if (!t) return;
+  const row: Record<string, unknown> = {};
+  for (const f of t.fields) if (f.default !== undefined) row[f.key] = f.default;
+  const rows = Array.isArray(props.modelValue[tableKey]) ? props.modelValue[tableKey] : [];
+  set(tableKey, [...rows, row]);
+}
+
+/**
+ * Enter 跳到下一个可录入的字段；子表最后一行的最后一个单元格按 Enter 新增一行并聚焦新行第一个单元格。
+ * 多行文本、按钮、展开中的下拉框（Enter 用于选中选项）和输入法组字时不拦截。
+ */
+async function onKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Enter' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing || props.readonly) return;
+  const t = e.target as HTMLElement;
+  if (t.tagName === 'TEXTAREA' || t.tagName === 'BUTTON') return;
+  const host = t.closest<HTMLElement>('[data-field-key]');
+  const root = rootRef.value?.$el;
+  if (!host || !root) return;
+  // 日期控件离开时会按输入确认取值，Enter 直接跳到下一项
+  if (!t.closest('.el-date-editor') && selectOpen(t)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const hosts = fieldHosts(root);
+  const i = hosts.indexOf(host);
+  const cell = parseCell(host.dataset.fieldKey!);
+  if (cell) {
+    const rows = Array.isArray(props.modelValue[cell.table]) ? props.modelValue[cell.table] : [];
+    const rowHosts = hosts.filter((h) => {
+      const c = parseCell(h.dataset.fieldKey!);
+      return c?.table === cell.table && c.row === cell.row;
+    });
+    const t2 = tables.value.get(cell.table)!;
+    const canAdd = access.value[cell.table]?.editable !== false && rows.length < (t2.maxRows ?? 1000);
+    if (rowHosts[rowHosts.length - 1] === host && cell.row === rows.length - 1 && canAdd) {
+      addRow(cell.table);
+      await nextTick();
+      await nextTick();
+      const next = fieldHosts(root).find((h) => {
+        const c = parseCell(h.dataset.fieldKey!);
+        return c?.table === cell.table && c.row === cell.row + 1;
+      });
+      focusHost(next);
+      return;
+    }
+  }
+  if (i >= 0) focusHost(hosts[i + 1]);
+}
+
+onMounted(async () => {
+  if (!props.autofocus || props.readonly) return;
+  await nextTick();
+  // 抽屉、对话框的进场动画结束后再聚焦
+  setTimeout(() => {
+    const root = rootRef.value?.$el;
+    if (root && !root.contains(document.activeElement)) focusHost(fieldHosts(root)[0]);
+  }, 350);
+});
+
+useHotkeys(
+  () => rootRef.value?.$el,
+  {
+    'mod+s': () => emit('save'),
+    'mod+enter': () => emit('submit')
+  },
+  () => !!props.hotkeys && !props.readonly
+);
 
 /** 失焦校验：离开字段或单元格时就近显示该处的错误。 */
 function onBlur(e: FocusEvent) {
@@ -380,6 +467,11 @@ defineExpose({ validate, setServerErrors, locate, payload, access, errors, origi
 }
 .schema-form__fix {
   color: var(--el-text-color-regular);
+}
+.schema-form__hints {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 .schema-form__alert {
   margin-bottom: 12px;

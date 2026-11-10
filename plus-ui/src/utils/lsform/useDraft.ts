@@ -51,7 +51,9 @@ export function useDraft(o: UseDraftOptions) {
       o.api?.draftGet ? o.api.draftGet(k).catch(() => null) : Promise.resolve(null)
     ]);
     if (seq !== loadSeq) return;
-    const fromServer: DraftRecord | null = server ? { content: server.content, hash: server.hash, savedAt: new Date(server.updatedAt).getTime() } : null;
+    const fromServer: DraftRecord | null = server
+      ? { content: server.content, hash: server.hash, savedAt: new Date(server.updatedAt).getTime() }
+      : null;
     if (server) serverHash = server.hash;
     const best = newer(local, fromServer);
     if (best && hasContent(best.content) && best.hash !== contentHash(o.model())) found.value = best;

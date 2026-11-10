@@ -39,7 +39,17 @@ const serverError = Object.assign(new Error('输入校验失败'), {
   errorCode: 'VALIDATION_FAILED',
   details: {
     fields: { 'loanLine[2].tool': '第 3 行：工器具最多 100 个字符' },
-    errors: [{ key: 'loanLine[2].tool', field: 'loanLine.tool', table: 'loanLine', rowIndex: 2, code: 'MAX_LENGTH', message: '工器具最多 100 个字符', fix: '缩短到 100 个字符以内' }]
+    errors: [
+      {
+        key: 'loanLine[2].tool',
+        field: 'loanLine.tool',
+        table: 'loanLine',
+        rowIndex: 2,
+        code: 'MAX_LENGTH',
+        message: '工器具最多 100 个字符',
+        fix: '缩短到 100 个字符以内'
+      }
+    ]
   }
 });
 

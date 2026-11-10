@@ -1,5 +1,5 @@
 <template>
-  <div class="ls-subtable" :data-testid="'subtable-' + table.key">
+  <div ref="rootEl" class="ls-subtable" :data-testid="'subtable-' + table.key">
     <div class="ls-subtable__head">
       <span class="ls-subtable__title">{{ table.label ?? table.key }}</span>
       <el-button v-if="tableAccess.editable && rows.length < (table.maxRows ?? 1000)" size="small" :data-testid="'add-row-' + table.key" @click="add">
@@ -40,7 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, nextTick, ref } from 'vue';
+import { fieldHosts, focusHost, parseCell } from '@/utils/lsform/keyboardNav';
 import type { SubTable } from '@/types/lsView';
 import type { RendererApi } from '@/api/lsmom/form';
 import type { Access } from '@/utils/lsform/fieldPolicy';
@@ -66,14 +67,27 @@ const tableAccess = computed(() => props.access[props.table.key] ?? { visible: t
 const cellKey = (i: number, f: string) => `${props.table.key}[${i}].${f}`;
 const columns = computed(() => props.table.fields.filter((f) => props.access[props.table.key + '.' + f.key]?.visible !== false));
 
-function add() {
+const rootEl = ref<HTMLElement>();
+
+/** 新增一行并聚焦新行第一个可录入的单元格。 */
+async function add() {
   const row: Record<string, unknown> = {};
   for (const f of props.table.fields) if (f.default !== undefined) row[f.key] = f.default;
+  const index = rows.value.length;
   emit('update:modelValue', [...rows.value, row]);
+  await nextTick();
+  await nextTick();
+  const first = rootEl.value
+    ? fieldHosts(rootEl.value).find((h) => parseCell(h.dataset.fieldKey!)?.row === index && parseCell(h.dataset.fieldKey!)?.table === props.table.key)
+    : undefined;
+  focusHost(first);
 }
 
 function remove(i: number) {
-  emit('update:modelValue', rows.value.filter((_, j) => j !== i));
+  emit(
+    'update:modelValue',
+    rows.value.filter((_, j) => j !== i)
+  );
 }
 
 function setCell(i: number, key: string, v: unknown) {

@@ -125,7 +125,8 @@ describe('SchemaForm 预填', () => {
     const model = ref<Record<string, any>>({ id: 5, title: '旧' });
     app = createApp(
       defineComponent({
-        setup: () => () => h(SchemaForm as any, { schema: defectForm, api, modelValue: model.value, 'onUpdate:modelValue': (v: any) => (model.value = v) })
+        setup: () => () =>
+          h(SchemaForm as any, { schema: defectForm, api, modelValue: model.value, 'onUpdate:modelValue': (v: any) => (model.value = v) })
       })
     );
     app.use(ElementPlus).mount(host);

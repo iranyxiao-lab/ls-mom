@@ -22,8 +22,9 @@ test('从设备报缺陷：带出设备、位置、登记人、时间；严重�
   const a = await freshLogin(browser, USER, { viewport: { width: 1440, height: 900 } });
   await a.page.goto('/index');
   const call = api(a.page);
-  const assets = (await call('POST', '/api/crud/ls.asset.Asset/query', { filters: [{ field: 'status', op: 'eq', value: 'RUNNING' }], page: 1, size: 50 })).data
-    .rows as any[];
+  const assets = (
+    await call('POST', '/api/crud/ls.asset.Asset/query', { filters: [{ field: 'status', op: 'eq', value: 'RUNNING' }], page: 1, size: 50 })
+  ).data.rows as any[];
   const asset = assets.find((x) => x.location) ?? assets[0];
   expect(asset, '有可登记缺陷的在用设备').toBeTruthy();
   const me = (await call('GET', '/api/flow/me')).data;

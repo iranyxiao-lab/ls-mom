@@ -2,7 +2,7 @@
  * 偏好中心的服务端同步：登录后读取服务端偏好（主题、密度、布局、页签、快捷键提示）与收藏、最近访问并应用，
  * 之后任何入口（偏好中心、布局设置抽屉、命令面板）修改都会写回服务端。本地存储只作缓存，换浏览器登录后偏好保持。
  */
-import { ref, watch } from 'vue';
+import { watch } from 'vue';
 import { useDensity, useThemeMode } from '@/design/theme';
 import { useSettingsStore } from '@/store/modules/settings';
 import { useNavHistoryStore } from '@/store/modules/navHistory';
@@ -12,7 +12,9 @@ import { getPrefs, putNav, putPrefs, type UiPrefs } from '@/api/lsmom/uiPrefs';
 import { NavTypeEnum } from '@/enums/NavTypeEnum';
 
 /** 是否显示快捷键提示（命令面板底栏、按钮提示）。 */
-export const hotkeyHints = ref(localStorage.getItem('ls-hotkey-hints') !== 'false');
+import { hotkeyHints } from '@/utils/hotkeys';
+
+export { hotkeyHints };
 
 let started = false;
 let applying = false;

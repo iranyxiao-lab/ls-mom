@@ -26,7 +26,8 @@
 <script setup lang="ts">
 import SideBar from './components/Sidebar/index.vue';
 import OfflineBanner from './components/OfflineBanner.vue';
-import ReloginDialog from './components/ReloginDialog/index.vue';
+// 会话过期时的原地登录框：随布局加载，但不放进首屏包
+const ReloginDialog = defineAsyncComponent(() => import('./components/ReloginDialog/index.vue'));
 import { AppMain, Navbar, Settings, TagsView } from './components';
 import { useAppStore } from '@/store/modules/app';
 import { useSettingsStore } from '@/store/modules/settings';

@@ -144,7 +144,9 @@
       />
       <template #footer>
         <el-button @click="defectVisible = false">取消</el-button>
-        <el-button type="primary" :disabled="!defectSchema" :loading="defectBusy" data-testid="btn-defect-report" @click="reportDefect">登记</el-button>
+        <el-button type="primary" :disabled="!defectSchema" :loading="defectBusy" data-testid="btn-defect-report" @click="reportDefect"
+          >登记</el-button
+        >
       </template>
     </el-dialog>
   </div>

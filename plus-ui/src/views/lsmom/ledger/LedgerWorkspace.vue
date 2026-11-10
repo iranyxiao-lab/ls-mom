@@ -32,6 +32,10 @@
         :api="forms"
         :show-actions="false"
         :draft-key="`${concept}:${editor.id ?? 'new'}`"
+        hotkeys
+        autofocus
+        @save="save()"
+        @submit="save(submitAction)"
       />
       <el-empty v-else-if="!editor.loading" description="该台账没有已发布的表单" />
       <template #footer>
@@ -96,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import SchemaTable from '@/components/SchemaTable/index.vue';
 import SchemaForm from '@/components/SchemaForm/index.vue';
@@ -182,6 +186,9 @@ async function openEdit(id: number) {
     editor.loading = false;
   }
 }
+
+/** Ctrl/⌘+Enter 执行的表单动作：优先 submit，没有时取第一个动作（都没有则只保存）。 */
+const submitAction = computed(() => editor.schema?.actions?.find((a) => a.key === 'submit') ?? editor.schema?.actions?.[0]);
 
 /** 保存草稿；带表单动作时保存后经 Operation 执行（如提交审核）。 */
 async function save(action?: FormAction) {

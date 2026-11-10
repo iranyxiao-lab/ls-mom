@@ -13,8 +13,9 @@ test.describe.configure({ timeout: 150_000, mode: 'serial' });
 
 async function pickAsset(page: Page) {
   await page.goto('/index');
-  const rows = (await api(page)('POST', '/api/crud/ls.asset.Asset/query', { filters: [{ field: 'status', op: 'eq', value: 'RUNNING' }], page: 1, size: 20 })).data
-    .rows as any[];
+  const rows = (
+    await api(page)('POST', '/api/crud/ls.asset.Asset/query', { filters: [{ field: 'status', op: 'eq', value: 'RUNNING' }], page: 1, size: 20 })
+  ).data.rows as any[];
   expect(rows.length, '有在用设备').toBeGreaterThan(0);
   return rows[rows.length - 1];
 }
@@ -87,8 +88,8 @@ test('提交时会话已过期：原地重新登录后自动继续提交，内�
 
   await expect(page.locator('.el-message').first()).toContainText(/缺陷已登记|保存为草稿/);
   await expect(page.getByTestId('defect-dialog')).toBeHidden();
-  const rows = (await api(page)('POST', `/api/crud/${DEFECT}/query`, { filters: [{ field: 'title', op: 'eq', value: title }], page: 1, size: 5 })).data
-    .rows as any[];
+  const rows = (await api(page)('POST', `/api/crud/${DEFECT}/query`, { filters: [{ field: 'title', op: 'eq', value: title }], page: 1, size: 5 }))
+    .data.rows as any[];
   expect(rows, '自动继续提交，只保存了一条').toHaveLength(1);
   expect(rows[0].symptom).toBe('填写中会话过期');
   await context.close();

@@ -1,11 +1,26 @@
 <template>
   <!-- 只读展示 -->
   <div v-if="!editable && !alwaysInteractive" class="ls-field__text" :data-testid="'text-' + field.key">
-    <RefSelect v-if="refSpec && !empty" :model-value="modelValue" :ref-spec="refSpec" :api="api" :multiple="field.multiple" disabled :org-id="orgId" />
+    <RefSelect
+      v-if="refSpec && !empty"
+      :model-value="modelValue"
+      :ref-spec="refSpec"
+      :api="api"
+      :multiple="field.multiple"
+      disabled
+      :org-id="orgId"
+    />
     <UploadField v-else-if="isFile" :model-value="modelValue" :api="api" :image="field.widget === 'image'" disabled />
     <span v-else>{{ display }}</span>
   </div>
-  <component :is="registered" v-else-if="field.widget === 'registered' && registered" v-bind="field.component?.props ?? {}" :model-value="modelValue" :disabled="!editable" @update:model-value="set" />
+  <component
+    :is="registered"
+    v-else-if="field.widget === 'registered' && registered"
+    v-bind="field.component?.props ?? {}"
+    :model-value="modelValue"
+    :disabled="!editable"
+    @update:model-value="set"
+  />
   <el-alert v-else-if="field.widget === 'registered'" type="error" :closable="false" :title="'组件未注册：' + (field.component?.code ?? '')" />
   <el-input
     v-else-if="field.widget === 'input'"
@@ -52,6 +67,8 @@
     v-else-if="field.widget === 'select' || field.widget === 'dict'"
     :model-value="modelValue as any"
     :multiple="field.multiple"
+    filterable
+    default-first-option
     clearable
     style="width: 100%"
     :data-testid="'input-' + field.key"
@@ -62,7 +79,12 @@
   <el-radio-group v-else-if="field.widget === 'radio'" :model-value="modelValue as any" :data-testid="'input-' + field.key" @update:model-value="set">
     <el-radio v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</el-radio>
   </el-radio-group>
-  <el-checkbox-group v-else-if="field.widget === 'checkbox'" :model-value="(modelValue as any) ?? []" :data-testid="'input-' + field.key" @update:model-value="set">
+  <el-checkbox-group
+    v-else-if="field.widget === 'checkbox'"
+    :model-value="(modelValue as any) ?? []"
+    :data-testid="'input-' + field.key"
+    @update:model-value="set"
+  >
     <el-checkbox v-for="o in options" :key="String(o.value)" :value="o.value">{{ o.label }}</el-checkbox>
   </el-checkbox-group>
   <el-cascader

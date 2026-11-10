@@ -3,6 +3,7 @@
     :model-value="modelValue"
     filterable
     remote
+    default-first-option
     clearable
     :multiple="multiple"
     :disabled="disabled"
@@ -11,7 +12,7 @@
     :placeholder="placeholder ?? '输入关键字搜索'"
     style="width: 100%"
     @update:model-value="(v: any) => emit('update:modelValue', v)"
-    @visible-change="(open: boolean) => open && !options.length && search('')"
+    @visible-change="onOpen"
   >
     <el-option v-for="o in options" :key="o.id" :label="o.label" :value="o.id" />
   </el-select>
@@ -38,15 +39,25 @@ const emit = defineEmits<{ (e: 'update:modelValue', v: unknown): void }>();
 const options = ref<RefOption[]>([]);
 const loading = ref(false);
 
+let seq = 0;
+
+/** 搜索候选；只采用最后一次搜索的结果（先发出的空关键字搜索晚返回时不覆盖输入后的结果）。 */
 async function search(keyword: string) {
+  const mine = ++seq;
   loading.value = true;
   try {
     const found = await props.api.refSearch({ ref: props.refSpec, keyword, orgId: props.orgId, model: props.model });
+    if (mine !== seq) return;
     const keep = options.value.filter((o) => selected().includes(o.id) && !found.some((x) => x.id === o.id));
     options.value = [...keep, ...found];
   } finally {
-    loading.value = false;
+    if (mine === seq) loading.value = false;
   }
+}
+
+/** 展开时还没搜过就列出默认候选；输入关键字打开下拉时已在搜索，不再用空关键字覆盖。 */
+function onOpen(open: boolean) {
+  if (open && !options.length && !seq) void search('');
 }
 
 function selected(): number[] {

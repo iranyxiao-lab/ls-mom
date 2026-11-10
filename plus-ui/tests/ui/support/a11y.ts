@@ -14,7 +14,14 @@ export async function scan(page: Page, opts: { include?: string; exclude?: strin
 
 export function describeViolations(vs: Awaited<ReturnType<typeof scan>>) {
   return vs
-    .map((v) => `[${v.impact}] ${v.id}：${v.help}\n` + v.nodes.slice(0, 5).map((n) => `    ${n.target.join(' ')}  ${n.failureSummary?.split('\n')[1] ?? ''}`).join('\n'))
+    .map(
+      (v) =>
+        `[${v.impact}] ${v.id}：${v.help}\n` +
+        v.nodes
+          .slice(0, 5)
+          .map((n) => `    ${n.target.join(' ')}  ${n.failureSummary?.split('\n')[1] ?? ''}`)
+          .join('\n')
+    )
     .join('\n');
 }
 

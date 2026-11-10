@@ -40,7 +40,10 @@ test('子表第 3 行服务端错误：单元格高亮、滚动到该处并聚�
   const line = ed.getByTestId('subtable-loanLine');
   for (let i = 0; i < 3; i++) {
     await ed.getByTestId('add-row-loanLine').click();
-    await line.getByTestId('input-tool').nth(i).fill(i === 2 ? '超长名称'.repeat(26) : `扳手${i + 1}`);
+    await line
+      .getByTestId('input-tool')
+      .nth(i)
+      .fill(i === 2 ? '超长名称'.repeat(26) : `扳手${i + 1}`);
     await line.getByTestId('input-qty').nth(i).locator('input').fill('1');
   }
   // 失焦校验：清空单号后离开，字段旁立即提示
@@ -74,8 +77,9 @@ test('子表第 3 行服务端错误：单元格高亮、滚动到该处并聚�
   await expect(cell).not.toHaveClass(/is-error/);
   await ed.getByTestId('btn-save-draft').click();
   await expect(page.locator('.el-message--success').first()).toContainText('已保存草稿');
-  const saved = (await api(page)('POST', `/api/crud/${concept}/query`, { filters: [{ field: 'loanNo', op: 'eq', value: `TL-${run}-E` }], page: 1, size: 1 })).data
-    .rows;
+  const saved = (
+    await api(page)('POST', `/api/crud/${concept}/query`, { filters: [{ field: 'loanNo', op: 'eq', value: `TL-${run}-E` }], page: 1, size: 1 })
+  ).data.rows;
   expect(saved).toHaveLength(1);
   await context.close();
 });
