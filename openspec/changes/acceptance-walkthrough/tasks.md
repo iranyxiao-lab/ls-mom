@@ -7,7 +7,7 @@
 - [x] 1.1 建立 `acceptance/` 目录结构，编写 `schema/case.schema.json` 与 ajv 校验脚本 `tools/validate.ts`；验证缺少 `ref.scenario` 或 AUTO 用例缺脚本的示例用例校验失败
 - [x] 1.2 编写 `tools/trace.ts`：调用 `openspec show <change> --json --type change` 提取 (spec, requirement, scenario)，输出未覆盖、悬空、P0 缺 AUTO 三类问题；验证对两个 change 运行后列出全部 264 个未覆盖场景（当前用例为空）
 - [x] 1.3 编写 `priorities.yaml`，把 v2.1 §13 验收编号（DOM、CRUD、FORM、FLOW、AI）涉及的 Requirement 和 UI 操作预算项标为 P0；验证 trace 报告中 P0 数量与清单一致
-- [ ] 1.4 把 `validate` 与 `trace` 接入 CI（先只报告不阻断）；验证 PR 中出现覆盖报告摘要
+- [x] 1.4 把 `validate` 与 `trace` 接入 CI（先只报告不阻断）；验证 PR 中出现覆盖报告摘要
 - [x] 1.5 编写 `acceptance/README.md`（用例写法、命名规则、如何运行、如何补用例）；验证按文档新增一条用例后 trace 覆盖数加 1
 
 ## 2. 数据基线与执行框架
