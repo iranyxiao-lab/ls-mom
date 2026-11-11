@@ -35,6 +35,9 @@ jobs:
       - name: 安装 Playwright Chromium
         run: pnpm exec playwright install --with-deps --only-shell chromium
       - name: Vitest（Browser Mode，无头）
+        # 共享运行器比开发机慢约一倍：一万行滚动的长任务阈值放宽到 150ms（规格 50ms 在本地与性能环境验证）
+        env:
+          VITE_LONGTASK_BUDGET_MS: '150'
         run: pnpm exec vitest run --browser.headless
       - name: 生产构建
         run: pnpm build:prod

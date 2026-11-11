@@ -200,7 +200,7 @@ describe('审批流配置器', () => {
     await insert('add-root-4', 'SERVICE');
     const svc = d.nodes[4];
     await click('btn-validate');
-    expect(q('issues')!.textContent).toContain('须选择 Operation');
+    await expect.poll(() => q('issues')?.textContent ?? '', { timeout: 5000 }).toContain('须选择 Operation');
     ws.value.selected = null;
     await flush();
     (q('issues')!.querySelector('.issue') as HTMLElement).click();
@@ -239,7 +239,7 @@ describe('审批流配置器', () => {
     await mount(api, { ...v1, callbacks: { approved: v1.callbacks.approved } });
     await click('btn-publish');
     expect(api.publish).not.toHaveBeenCalled();
-    expect(q('issues')!.textContent).toContain('驳回回调必填');
+    await expect.poll(() => q('issues')?.textContent ?? '', { timeout: 5000 }).toContain('驳回回调必填');
   });
 
   it('LogicFlow 只读预览，v1/v2 差异高亮新增会签节点', async () => {
