@@ -25,8 +25,6 @@ jobs:
       LSMOM_E2E_PROJECT: lsmom-acc
     steps:
       - uses: actions/checkout@v4
-      - name: 一键重置验收环境（构建镜像）
-        run: deploy/scripts/acceptance-reset.sh --build
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -40,6 +38,19 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps --only-shell chromium
+      - name: 安装验收工具依赖（重置脚本用它生成种子 SQL）
+        working-directory: acceptance
+        run: pnpm install --frozen-lockfile
+      - name: 一键重置验收环境（构建镜像）
+        run: deploy/scripts/acceptance-reset.sh --build
+      - name: 视觉回归（组件与核心页面，固定 Playwright 容器；核心页面基线取自刚重置的数据，须在其他用例写数据之前）
+        working-directory: plus-ui
+        run: |
+          pnpm storybook:build
+          tests/ui/visual-docker.sh
+      - name: 准备借还台账配置包（模板→演练→批准→发布，部分界面用例依赖）
+        working-directory: plus-ui
+        run: node tests/e2e/toolloan-config.e2e.mjs
       - name: 无障碍扫描、点击预算（无头）
         working-directory: plus-ui
         run: LS_UI_NO_STORYBOOK=1 pnpm exec playwright test --project=app
@@ -48,11 +59,6 @@ jobs:
         run: |
           pnpm exec lhci collect --config=lighthouserc.cjs && pnpm exec lhci assert --config=lighthouserc.cjs
           LHCI_FORM=mobile pnpm exec lhci collect --config=lighthouserc.cjs && LHCI_FORM=mobile pnpm exec lhci assert --config=lighthouserc.cjs
-      - name: 视觉回归（组件与核心页面，固定 Playwright 容器）
-        working-directory: plus-ui
-        run: |
-          pnpm storybook:build
-          tests/ui/visual-docker.sh
       - name: 失败时保留报告
         if: failure()
         uses: actions/upload-artifact@v4
