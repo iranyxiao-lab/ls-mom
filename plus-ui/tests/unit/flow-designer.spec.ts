@@ -142,11 +142,22 @@ async function mount(api: any, definition: FlowDef = v1) {
 }
 
 /** 点「＋」并在菜单中选节点类型。 */
+/** 可见的节点类型选项（弹出菜单关闭动画期间旧菜单仍可见，慢机器上会误点到上一个菜单） */
+const visiblePicks = (type = '') =>
+  [...document.querySelectorAll(`[data-testid^="pick-${type}"]`)].filter((e) => (e as HTMLElement).offsetParent !== null) as HTMLElement[];
+async function until(cond: () => boolean, what: string, ms = 5000) {
+  const t0 = Date.now();
+  while (!cond()) {
+    if (Date.now() - t0 > ms) throw new Error('等待超时：' + what);
+    await flush(30);
+  }
+}
 async function insert(addId: string, type: string) {
+  await until(() => visiblePicks().length === 0, '上一个节点菜单关闭');
   q(addId)!.click();
-  await flush(150);
-  const item = [...document.querySelectorAll(`[data-testid="pick-${type}"]`)].find((e) => (e as HTMLElement).offsetParent !== null) as HTMLElement;
-  item.click();
+  await until(() => visiblePicks(type).length === 1, `出现 ${type} 选项`);
+  visiblePicks(type)[0].click();
+  await until(() => visiblePicks().length === 0, '节点菜单关闭');
   await flush();
 }
 
