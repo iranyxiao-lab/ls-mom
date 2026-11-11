@@ -20,7 +20,7 @@
 
 ## 3. 缺陷管理与报告
 
-- [ ] 3.1 编写 `.github/ISSUE_TEMPLATE/defect.yml`（必填：严重级别、类型、用例编号、spec/Scenario、复现步骤、预期与实际、证据）并创建 `defect`、`S1`～`S4`、`type/*` 标签；验证缺少用例编号时无法提交 Issue
+- [x] 3.1 编写 `.github/ISSUE_TEMPLATE/defect.yml`（必填：严重级别、类型、用例编号、spec/Scenario、复现步骤、预期与实际、证据）并创建 `defect`、`S1`～`S4`、`type/*` 标签；验证缺少用例编号时无法提交 Issue
 - [x] 3.2 在 `acceptance/README.md` 中写明 S1～S4 定级规则和示例；验证"非办理人可办理他人任务"示例被定为 S1
 - [ ] 3.3 编写 `tools/defects.ts`（`gh issue list --json` 拉取缺陷并关联到矩阵，网络失败时标注"未同步"）与修复 PR 自动回归工作流（`Fixes #n` → 重跑关联用例 → 结果评论回 Issue，失败则重新打开）；验证示例缺陷的回归结果出现在 Issue 评论中
 - [x] 3.4 编写 `tools/report.ts`：生成 Markdown＋单文件 HTML 报告（范围与提交号、覆盖、通过率、缺陷、预算实测、可用性结果、延期项），并按准出条件自动判定结论；验证有 1 个 S2 缺陷时结论为"不通过"并给出原因
