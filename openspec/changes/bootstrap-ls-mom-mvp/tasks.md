@@ -22,7 +22,7 @@
 
 - [x] 3.1 编写 `deploy/docker-compose.yml`（app、postgres:16 含 pgvector、redis、minio，`flowable` 独立 schema，可选 profile `dcs`）与健康检查；验证全新机器 `docker compose up -d` 后所有服务 healthy
 - [x] 3.2 编写幂等种子（演示组织、管理员、角色、班次、工作类型），重复执行不产生重复数据；验证连续执行两次种子命令后记录数不变
-- [ ] 3.3 编写 GitHub Actions：backend（构建、单测、ArchUnit、Testcontainers）、frontend（pnpm build、`vitest --browser.headless`）、security（gitleaks、许可证扫描拒绝 GPL/AGPL、CycloneDX SBOM）；验证提交含伪造密钥的分支时 CI 失败
+- [x] 3.3 编写 GitHub Actions：backend（构建、单测、ArchUnit、Testcontainers）、frontend（pnpm build、`vitest --browser.headless`）、security（gitleaks、许可证扫描拒绝 GPL/AGPL、CycloneDX SBOM）；验证提交含伪造密钥的分支时 CI 失败
 - [x] 3.4 编写 `deploy/scripts/backup.sh` 与 `restore.sh`（业务库＋flowable schema＋对象存储＋Pack 清单）；验证在空环境恢复后可登录并读取附件
 
 ## 4. 稳定核心：主体、组织与工作（P1）
