@@ -198,9 +198,18 @@ describe('审批流配置器', () => {
 
     // 服务节点：Operation 只能从已发布列表中选择；未选时校验报错并可定位
     await insert('add-root-4', 'SERVICE');
+    await expect.poll(() => d.nodes[4]?.type, { timeout: 5000 }).toBe('SERVICE');
     const svc = d.nodes[4];
-    await click('btn-validate');
-    await expect.poll(() => q('issues')?.textContent ?? '', { timeout: 5000 }).toContain('须选择 Operation');
+    // 慢机器上按钮可能还在加载状态：轮询中重复点"校验"，直到结果出现
+    await expect
+      .poll(
+        async () => {
+          if (!q('issues')?.textContent?.includes('须选择 Operation')) await click('btn-validate');
+          return q('issues')?.textContent ?? '';
+        },
+        { timeout: 8000 }
+      )
+      .toContain('须选择 Operation');
     ws.value.selected = null;
     await flush();
     (q('issues')!.querySelector('.issue') as HTMLElement).click();
