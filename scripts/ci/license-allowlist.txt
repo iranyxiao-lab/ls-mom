@@ -1,2 +1,3 @@
 # 人工核实过的许可证例外。格式：<group:name 或去版本的 purl>  <理由>
 # 新增条目需在合并请求中说明来源与核实结论。
+pkg:npm/config-chain  MIT：package.json 的 license 为旧式对象写法 {"type":"MIT"}，SBOM 未识别；包内 LICENCE 为 MIT 全文（已核实 1.1.13）
