@@ -132,7 +132,9 @@ export function vantVars(): Record<string, string> {
     '--van-button-radius': 'var(--ls-radius-md)',
     '--van-cell-font-size': 'var(--ls-font-size-md)',
     '--van-cell-vertical-padding': 'var(--ls-space-3)',
-    '--van-cell-horizontal-padding': 'var(--ls-space-4)'
+    '--van-cell-horizontal-padding': 'var(--ls-space-4)',
+    // 实色标签的文字：浅色主题为白字配深底色，深色主题语义色变亮，改用深色字（白字配 #3cbf74 对比度只有 2.3:1）
+    '--van-tag-text-color': 'var(--ls-color-text-inverse)'
   };
 }
 

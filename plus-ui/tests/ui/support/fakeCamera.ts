@@ -4,7 +4,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { BarcodeFormat, EncodeHintType, QRCodeWriter } from '@zxing/library';
+import * as zxingModule from '@zxing/library';
+
+// @zxing/library 是 CommonJS 包：Node 22 的 ESM 无法按名导入，从默认导出取（Node 24 两种都行）
+const zxing = ((zxingModule as any).default ?? zxingModule) as typeof zxingModule;
+const { BarcodeFormat, EncodeHintType, QRCodeWriter } = zxing;
+type EncodeHintType = zxingModule.EncodeHintType;
 
 export function qrVideo(text: string, file = path.join(os.tmpdir(), `ls-scan-${process.pid}-${Date.now()}.y4m`)) {
   const W = 640;

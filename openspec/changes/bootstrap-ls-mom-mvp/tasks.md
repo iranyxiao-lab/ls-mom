@@ -8,7 +8,7 @@
 - [x] 1.2 选定 RuoYi-Vue-Plus 5.X 最新 Spring Boot 3.x 稳定 tag 与对应 plus-ui 版本，记录到 `docs/upstream-patches.md`；以未修改快照单独提交并添加 `upstream` 远程；验证 `mvn -q -DskipTests package` 在快照上成功
 - [x] 1.3 编写 README（产品定位、模块图、快速启动、RuoYi MIT 版权与致谢）和 `LICENSE`／`NOTICE`；验证 README 中的快速启动命令在后续 3.x 完成后可照做
 - [x] 1.4 由用户完成 GitHub 登录（安装 `gh` 并 `gh auth login`，或提供 PAT 由用户自行配置凭据助手，令牌不写入仓库），创建私有仓库 `ls-mom` 并推送 `main`；验证 `git ls-remote origin main` 返回与本地相同的提交
-- [ ] 1.5 配置 `main` 分支保护（需 CI 通过、禁止强推）；验证对 `main` 强推被拒绝
+- [x] 1.5 配置 `main` 分支保护（需 CI 通过、禁止强推）；验证对 `main` 强推被拒绝
 
 ## 2. 工程改造与模块骨架（P0）
 
@@ -22,7 +22,7 @@
 
 - [x] 3.1 编写 `deploy/docker-compose.yml`（app、postgres:16 含 pgvector、redis、minio，`flowable` 独立 schema，可选 profile `dcs`）与健康检查；验证全新机器 `docker compose up -d` 后所有服务 healthy
 - [x] 3.2 编写幂等种子（演示组织、管理员、角色、班次、工作类型），重复执行不产生重复数据；验证连续执行两次种子命令后记录数不变
-- [ ] 3.3 编写 GitHub Actions：backend（构建、单测、ArchUnit、Testcontainers）、frontend（pnpm build、`vitest --browser.headless`）、security（gitleaks、许可证扫描拒绝 GPL/AGPL、CycloneDX SBOM）；验证提交含伪造密钥的分支时 CI 失败
+- [x] 3.3 编写 GitHub Actions：backend（构建、单测、ArchUnit、Testcontainers）、frontend（pnpm build、`vitest --browser.headless`）、security（gitleaks、许可证扫描拒绝 GPL/AGPL、CycloneDX SBOM）；验证提交含伪造密钥的分支时 CI 失败
 - [x] 3.4 编写 `deploy/scripts/backup.sh` 与 `restore.sh`（业务库＋flowable schema＋对象存储＋Pack 清单）；验证在空环境恢复后可登录并读取附件
 
 ## 4. 稳定核心：主体、组织与工作（P1）

@@ -14,6 +14,8 @@ export default defineConfig({
   },
   // 一致性用例位于仓库根目录 packs/_shared，测试服务需允许读取
   server: { fs: { allow: [path.resolve(__dirname, '..')] } },
+  // 浏览器模式中途发现新依赖会重新预构建并重载页面，CI 上偶发挂起到超时：预先声明（列表来自 CI 日志）
+  optimizeDeps: { include: ['nprogress', 'element-plus/es'] },
   test: {
     include: ['src/**/*.{test,spec}.ts', 'tests/unit/**/*.{test,spec}.ts'],
     browser: {

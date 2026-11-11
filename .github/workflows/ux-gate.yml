@@ -1,6 +1,7 @@
 name: ux-gate
 
-# 体验质量门禁（modernize-ui-ux 第 2 组）：在 Docker Compose 全新环境上对核心页面跑无障碍扫描、点击预算等检查。
+# 体验质量门禁（modernize-ui-ux 第 2 组）：在一键重置的验收环境（演示种子＋验收种子，与本地验收、视觉基线同一份数据）上
+# 对核心页面跑无障碍扫描、点击预算、性能预算与视觉回归。
 # 浏览器一律无头。只在合并到 main 与手动触发时运行（构建镜像较慢）。
 on:
   push:
@@ -20,20 +21,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
-      CAPTCHA_ENABLED: 'false'
-      LSMOM_HTTP_PORT: '18081'
-      LSMOM_E2E_BASE: http://127.0.0.1:18081
+      LSMOM_E2E_BASE: http://127.0.0.1:18101
+      LSMOM_E2E_PROJECT: lsmom-acc
     steps:
       - uses: actions/checkout@v4
-      - name: 启动全新环境（演示种子）
-        working-directory: deploy
-        run: |
-          docker compose -p lsmom-ci up -d --build
-          for i in $(seq 1 120); do
-            [ "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose -p lsmom-ci ps -q app)")" = healthy ] && break
-            sleep 5
-          done
-          curl -fsS http://127.0.0.1:18081/login >/dev/null
+      - name: 一键重置验收环境（构建镜像）
+        run: deploy/scripts/acceptance-reset.sh --build
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -71,4 +64,4 @@ jobs:
       - name: 清理
         if: always()
         working-directory: deploy
-        run: docker compose -p lsmom-ci down -v
+        run: docker compose -p lsmom-acc --profile dcs down -v

@@ -7,7 +7,7 @@
 - [x] 1.1 建立 `acceptance/` 目录结构，编写 `schema/case.schema.json` 与 ajv 校验脚本 `tools/validate.ts`；验证缺少 `ref.scenario` 或 AUTO 用例缺脚本的示例用例校验失败
 - [x] 1.2 编写 `tools/trace.ts`：调用 `openspec show <change> --json --type change` 提取 (spec, requirement, scenario)，输出未覆盖、悬空、P0 缺 AUTO 三类问题；验证对两个 change 运行后列出全部 264 个未覆盖场景（当前用例为空）
 - [x] 1.3 编写 `priorities.yaml`，把 v2.1 §13 验收编号（DOM、CRUD、FORM、FLOW、AI）涉及的 Requirement 和 UI 操作预算项标为 P0；验证 trace 报告中 P0 数量与清单一致
-- [ ] 1.4 把 `validate` 与 `trace` 接入 CI（先只报告不阻断）；验证 PR 中出现覆盖报告摘要
+- [x] 1.4 把 `validate` 与 `trace` 接入 CI（先只报告不阻断）；验证 PR 中出现覆盖报告摘要
 - [x] 1.5 编写 `acceptance/README.md`（用例写法、命名规则、如何运行、如何补用例）；验证按文档新增一条用例后 trace 覆盖数加 1
 
 ## 2. 数据基线与执行框架
@@ -20,7 +20,7 @@
 
 ## 3. 缺陷管理与报告
 
-- [ ] 3.1 编写 `.github/ISSUE_TEMPLATE/defect.yml`（必填：严重级别、类型、用例编号、spec/Scenario、复现步骤、预期与实际、证据）并创建 `defect`、`S1`～`S4`、`type/*` 标签；验证缺少用例编号时无法提交 Issue
+- [x] 3.1 编写 `.github/ISSUE_TEMPLATE/defect.yml`（必填：严重级别、类型、用例编号、spec/Scenario、复现步骤、预期与实际、证据）并创建 `defect`、`S1`～`S4`、`type/*` 标签；验证缺少用例编号时无法提交 Issue
 - [x] 3.2 在 `acceptance/README.md` 中写明 S1～S4 定级规则和示例；验证"非办理人可办理他人任务"示例被定为 S1
 - [ ] 3.3 编写 `tools/defects.ts`（`gh issue list --json` 拉取缺陷并关联到矩阵，网络失败时标注"未同步"）与修复 PR 自动回归工作流（`Fixes #n` → 重跑关联用例 → 结果评论回 Issue，失败则重新打开）；验证示例缺陷的回归结果出现在 Issue 评论中
 - [x] 3.4 编写 `tools/report.ts`：生成 Markdown＋单文件 HTML 报告（范围与提交号、覆盖、通过率、缺陷、预算实测、可用性结果、延期项），并按准出条件自动判定结论；验证有 1 个 S2 缺陷时结论为"不通过"并给出原因
