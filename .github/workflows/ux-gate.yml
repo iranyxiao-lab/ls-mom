@@ -25,8 +25,6 @@ jobs:
       LSMOM_E2E_PROJECT: lsmom-acc
     steps:
       - uses: actions/checkout@v4
-      - name: 一键重置验收环境（构建镜像）
-        run: deploy/scripts/acceptance-reset.sh --build
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -40,6 +38,11 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps --only-shell chromium
+      - name: 安装验收工具依赖（重置脚本用它生成种子 SQL）
+        working-directory: acceptance
+        run: pnpm install --frozen-lockfile
+      - name: 一键重置验收环境（构建镜像）
+        run: deploy/scripts/acceptance-reset.sh --build
       - name: 无障碍扫描、点击预算（无头）
         working-directory: plus-ui
         run: LS_UI_NO_STORYBOOK=1 pnpm exec playwright test --project=app
