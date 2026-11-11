@@ -34,6 +34,7 @@ acceptance/
 | `pnpm collect <run>` | 合并 `playwright.json`、`auto.json`、`manual.json` 为 `results.json` |
 | `node tools/defects.ts sync <run>` | 从 GitHub Issues 拉取缺陷写 `defects.json`（失败时标注"未同步"）；`labels` 创建标签，`label <n>` 按表单补打标签 |
 | `pnpm report <run>` | 生成 `report.md` 与单文件 `report.html`，按准出条件自动判定"通过／不通过"并列出原因 |
+| `pnpm usability <run>` | 把 `docs/ui/usability-report.md`「5.1 完成率与耗时」表（真人测试后填写）导入为 `runs/<run>/usability.json`，供报告判定完成率 ≥80% |
 
 一轮完整执行：`acceptance-reset.sh` → `run-auto` → `walk` → `manual generate`（人工填写）→ `manual import` → `collect` →
 `defects.ts sync` → `report`。`run` 目录名用 `<yyyymmdd-hhmm>-<提交号>`，报告据此取提交号。报告还读取同目录的 `budgets.json`

@@ -9,6 +9,7 @@
     "collect": "node tools/collect.ts",
     "manual": "node tools/manual.ts",
     "report": "node tools/report.ts",
+    "usability": "node tools/usability.ts",
     "pages": "node tools/pages.ts",
     "test": "node --test tools/*.test.ts",
     "walk": "playwright test",
