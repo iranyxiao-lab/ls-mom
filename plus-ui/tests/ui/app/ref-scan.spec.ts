@@ -6,7 +6,7 @@
  */
 import fs from 'node:fs';
 import { chromium, expect, test, type Browser } from '@playwright/test';
-import { api, freshLogin } from '../support/auth';
+import { api, freshLogin, orgIds } from '../support/auth';
 import { expectAccessible } from '../support/a11y';
 import { qrVideo } from '../support/fakeCamera';
 
@@ -25,18 +25,20 @@ test('扫码点检：摄像头扫设备码打开待点检清单；扫码枪同�
   const keeper = await freshLogin(browser, 'demo_asset', { viewport: { width: 1440, height: 900 } });
   await keeper.page.goto('/index');
   const k = api(keeper.page);
-  const assets = (
-    await k('POST', '/api/crud/ls.asset.Asset/query', { filters: [{ field: 'status', op: 'eq', value: 'RUNNING' }], page: 1, size: 50 })
-  ).data.rows as any[];
   const leader = await freshLogin(browser, 'demo_team');
   await leader.page.goto('/index');
   const me = (await api(leader.page)('GET', '/api/flow/me')).data;
-  // 选班长名下没有待点检的设备，扫码结果才确定
-  const drafts = (await api(leader.page)('GET', '/api/asset/inspections/mine?status=DRAFT')).data as any[];
   await leader.context.close();
-  const free = assets.filter((a) => !drafts.some((d) => d.asset_id === a.id));
-  expect(free.length, '至少两台班长名下没有待点检的在用设备').toBeGreaterThan(1);
-  const [asset, other] = free;
+  // 本次专用的两台在用设备（班长所在的一车间甲班），扫码结果不受环境里已有点检影响
+  const { team } = await orgIds(keeper.page);
+  const mark = `SC${Date.now().toString(36).toUpperCase()}`;
+  const make = async (i: number) => {
+    const r = await k('POST', '/api/crud/ls.asset.Asset', { assetCode: `${mark}-${i}`, name: `扫码测试设备 ${i}`, assetType: 'STATION', orgId: team });
+    expect(r.code, JSON.stringify(r)).toBe(200);
+    return (await k('GET', `/api/crud/ls.asset.Asset/${r.data.id}`)).data;
+  };
+  const asset = await make(1);
+  const other = await make(2);
 
   // 设备员给班长建一个点检计划并立即生成点检工作
   const name = `扫码点检 ${Date.now().toString(36)}`;
