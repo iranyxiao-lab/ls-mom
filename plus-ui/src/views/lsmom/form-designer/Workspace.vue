@@ -534,7 +534,10 @@ let loading = 0;
 function load(s: FormSchema) {
   loading++;
   const { rule, options } = toFcRule(s);
-  Object.assign(meta, JSON.parse(JSON.stringify({ ...s, layout: [], fields: [], subTables: undefined })));
+  // 先清掉旧键：撤销到没有某项（如规则）的快照时，不能把当前的规则留在 meta 里
+  const next = JSON.parse(JSON.stringify({ ...s, layout: [], fields: [], subTables: undefined }));
+  for (const k of Object.keys(meta)) if (!(k in next)) delete (meta as any)[k];
+  Object.assign(meta, next);
   designer.value.setRule(rule);
   const { lsMeta: _meta, ...designerOptions } = options;
   void _meta;

@@ -4,7 +4,7 @@
  *   DCS 报警页：自动草稿的报警确认为正式问题 →
  *   先人工后报警：设备员先登记泵振动缺陷，现场系统随后报出该泵振动报警 → 系统建议关联 → 确认后报警挂在该缺陷的 Issue 下、不新建 →
  *   只读边界：已发布 Operation 清单经黑名单扫描无 DCS 写入能力；无 DCS 权限的操作工被拒。
- * 运行：node tests/e2e/dcs-alarm.e2e.mjs（LSMOM_E2E_BASE 指定环境；LSMOM_E2E_TSDB 为时序库容器名，默认 lsmom-verify-tsdb-1）
+ * 运行：node tests/e2e/dcs-alarm.e2e.mjs（LSMOM_E2E_BASE 指定环境；LSMOM_E2E_TSDB 为时序库容器名，默认 <LSMOM_E2E_PROJECT>-tsdb-1）
  */
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { BASE, check, open } from './lib.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const TSDB = process.env.LSMOM_E2E_TSDB ?? 'lsmom-verify-tsdb-1';
+const TSDB = process.env.LSMOM_E2E_TSDB ?? `${process.env.LSMOM_E2E_PROJECT ?? 'lsmom-verify'}-tsdb-1`;
 const ASSET = 'ls.asset.Asset';
 const DEFECT = 'ls.asset.Defect';
 const ts = Date.now().toString(36).toUpperCase();

@@ -5,13 +5,11 @@
  * 2. 保存"本班组未完成"并设为默认 → 重新打开列表时自动应用（芯片选中、只显示本车间未完成的记录）。
  */
 import { expect, test, type Page } from '@playwright/test';
-import { api, loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 test.describe.configure({ timeout: 180_000 });
 const NC = 'ls.quality.NonConformance';
 const ROWS = '[data-testid="table"] .vxe-table--main-wrapper .vxe-body--row';
-const WORKSHOP = 17; // 一车间
-const TEAM = 18; // 一车间甲班
 
 let marker = '';
 async function rows(page: Page) {
@@ -27,6 +25,7 @@ test('组合筛选与"本班组未完成"默认视图', async ({ browser }) => {
   const { context: adminCtx, page: adminPage } = await loggedIn(browser, 'admin');
   await adminPage.goto('/index');
   const admin = api(adminPage);
+  const { workshop: WORKSHOP, team: TEAM } = await orgIds(adminPage);
   const make = async (suffix: string, orgId: number, severity: string) => {
     const r = await admin('POST', `/api/crud/${NC}`, { title: `${marker}-${suffix}`, description: '保存视图测试', severity, orgId });
     expect(r.code, JSON.stringify(r)).toBe(200);

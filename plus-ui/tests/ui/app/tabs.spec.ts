@@ -3,7 +3,7 @@
  * 切回列表：筛选条件、筛选结果与滚动位置不变；未保存表单：切换页签后内容还在，关闭该页签时提示，可选择继续编辑或仍然关闭。
  */
 import { expect, test, type Page } from '@playwright/test';
-import { loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 const tag = (page: Page, title: string) => page.locator('.tags-view-item', { hasText: title });
 /** 应用内跳转（与点菜单相同）；page.goto 会整页刷新，页签缓存随之清空。 */
@@ -15,14 +15,22 @@ const spaGo = async (page: Page, path: string) => {
 test('从筛选后的列表切到其他页签再切回：筛选条件、结果与滚动位置不变', async ({ browser }) => {
   const { context, page } = await loggedIn(browser, 'admin', { viewport: { width: 1440, height: 700 } });
   await page.goto('/asset/center');
+  // 准备数据：本次专用前缀的 30 台设备，筛选后足够滚动（不依赖环境里已有的数据）
+  const mark = `TB${Date.now().toString(36).toUpperCase()}-`;
+  const call = api(page);
+  const { team } = await orgIds(page);
+  for (let i = 0; i < 30; i++) {
+    const r = await call('POST', '/api/crud/ls.asset.Asset', { assetCode: `${mark}${i}`, name: `页签测试 ${i}`, assetType: 'STATION', orgId: team });
+    expect(r.code, JSON.stringify(r)).toBe(200);
+  }
   const keyword = page.getByTestId('asset-keyword');
-  await keyword.fill('TL-');
+  await keyword.fill(mark);
   await keyword.press('Enter');
   const rows = page.locator('[data-testid="asset-table"] .el-table__body tr.el-table__row');
-  await expect.poll(async () => (await rows.allInnerTexts()).filter((t) => !t.includes('TL-')).length, { timeout: 15000 }).toBe(0);
+  await expect.poll(async () => (await rows.allInnerTexts()).filter((t) => !t.includes(mark)).length, { timeout: 15000 }).toBe(0);
   const filtered = await rows.allInnerTexts();
   expect(filtered.length, '筛选后有足够多的行可以滚动').toBeGreaterThan(10);
-  expect(filtered.every((t) => t.includes('TL-'))).toBe(true);
+  expect(filtered.every((t) => t.includes(mark))).toBe(true);
   await page.evaluate(() => window.scrollTo(0, 250));
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(200);
   const y = await page.evaluate(() => Math.round(window.scrollY));
@@ -33,7 +41,7 @@ test('从筛选后的列表切到其他页签再切回：筛选条件、结果�
   await tag(page, '设备台账').click();
   await expect(page.getByTestId('asset-center')).toBeVisible();
 
-  await expect(keyword).toHaveValue('TL-');
+  await expect(keyword).toHaveValue(mark);
   expect(await rows.allInnerTexts(), '筛选结果不变（没有重新加载成全部数据）').toEqual(filtered);
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY)), { message: '滚动位置恢复' }).toBeGreaterThan(y - 5);
   expect(await page.evaluate(() => Math.round(window.scrollY))).toBeLessThan(y + 5);

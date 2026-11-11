@@ -4,11 +4,10 @@
  * 期间列表不重新查询；关闭抽屉后才刷新；拖宽抽屉后重新打开仍是该宽度；"在新页签打开"显示同一条记录。
  */
 import { expect, test } from '@playwright/test';
-import { api, loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 test.describe.configure({ timeout: 180_000 });
 const NC = 'ls.quality.NonConformance';
-const WORKSHOP = 17; // 一车间
 
 test('连续审阅：抽屉内办理并切换下一条，列表保持不动', async ({ browser }) => {
   const run = Date.now().toString(36).toUpperCase();
@@ -16,6 +15,7 @@ test('连续审阅：抽屉内办理并切换下一条，列表保持不动', as
   const { context: adminCtx, page: adminPage } = await loggedIn(browser, 'admin');
   await adminPage.goto('/index');
   const admin = api(adminPage);
+  const { workshop: WORKSHOP } = await orgIds(adminPage);
   const ids: number[] = [];
   for (const s of ['1', '2', '3']) {
     const r = await admin('POST', `/api/crud/${NC}`, { title: `${marker}-${s}`, description: '抽屉审阅测试', severity: 'LOW', orgId: WORKSHOP });

@@ -1,0 +1,2774 @@
+{
+  "rows": [
+    {
+      "caseId": "AC-ACT-OG-001",
+      "title": "调用未注册 Operation",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-002",
+      "title": "守卫失败回滚",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-003",
+      "title": "通用更新改状态",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.RiskAndExternalTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-004",
+      "title": "重复提交",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-005",
+      "title": "并发编辑",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-006",
+      "title": "失败也审计",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-007",
+      "title": "外部过账失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.RiskAndExternalTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-OG-008",
+      "title": "文档一致性",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.OpenApiTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-001",
+      "title": "L0 提示",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-002",
+      "title": "L2 阻断",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-003",
+      "title": "非法表达式",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.695Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.CelRuleEngineTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-004",
+      "title": "执行超限",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.CelRuleEngineTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-005",
+      "title": "绕过前端",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-006",
+      "title": "一致性测试",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.CelConformanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-007",
+      "title": "风险定级",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-008",
+      "title": "双签互斥",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-ACT-RG-009",
+      "title": "试图放宽",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.rule.RuleGuardTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-010",
+      "title": "交接班摘要",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.SummaryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-002",
+      "title": "事件完整性",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-003",
+      "title": "业务失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.OutboxTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-004",
+      "title": "下游超时",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.OutboxTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-007",
+      "title": "事件清理",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.OutboxTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-003",
+      "title": "非法迁移",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-004",
+      "title": "阻塞与恢复",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 26452,
+      "startedAt": "2026-11-10T20:23:19.696Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-action/target/surefire-reports/TEST-com.lsmom.action.GatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-002",
+      "title": "AI-05 越权读取",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.agent.AgentGatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-003",
+      "title": "审计主体",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.agent.AgentGatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-005",
+      "title": "关闭前检查",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.agent.AgentGatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-006",
+      "title": "AI-07 输入变化",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.agent.AgentGatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-008",
+      "title": "AI-09 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.agent.AgentGatewayTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-011",
+      "title": "AI-10 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9986,
+      "startedAt": "2026-11-10T20:23:46.148Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-ai/target/surefire-reports/TEST-com.lsmom.ai.knowledge.KnowledgeTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-009",
+      "title": "工具同步",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 6156,
+      "startedAt": "2026-11-10T20:23:56.135Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-mcp/target/surefire-reports/TEST-com.lsmom.mcp.McpServerTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-001",
+      "title": "Schema 校验",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13713,
+      "startedAt": "2026-11-10T20:24:02.291Z",
+      "evidence": [
+        "ls-mom-cli/target/surefire-reports/TEST-com.lsmom.cli.LsIrTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-002",
+      "title": "AI-02 可构建",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13713,
+      "startedAt": "2026-11-10T20:24:02.291Z",
+      "evidence": [
+        "ls-mom-cli/target/surefire-reports/TEST-com.lsmom.cli.PackGeneratorTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-003",
+      "title": "复用已有对象",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13713,
+      "startedAt": "2026-11-10T20:24:02.292Z",
+      "evidence": [
+        "ls-mom-cli/target/surefire-reports/TEST-com.lsmom.cli.BuildCopilotTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-005",
+      "title": "转换样例",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13713,
+      "startedAt": "2026-11-10T20:24:02.292Z",
+      "evidence": [
+        "ls-mom-cli/target/surefire-reports/TEST-com.lsmom.cli.FrappeImporterTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-008",
+      "title": "指标报告",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13713,
+      "startedAt": "2026-11-10T20:24:02.292Z",
+      "evidence": [
+        "ls-mom-cli/target/surefire-reports/TEST-com.lsmom.cli.PackGeneratorTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-004",
+      "title": "AI-01 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.005Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-001",
+      "title": "缺少负责人",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.005Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-002",
+      "title": "循环依赖",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.005Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-003",
+      "title": "未批准发布",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.006Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-004",
+      "title": "停用培训 Pack",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.006Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-005",
+      "title": "标准 Pack 升级",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13226,
+      "startedAt": "2026-11-10T20:24:16.006Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-pack/target/surefire-reports/TEST-com.lsmom.pack.PackLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-001",
+      "title": "人工读数",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.document.DocumentObservationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-005",
+      "title": "越权下载",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.document.DocumentObservationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-001",
+      "title": "正常关闭",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-002",
+      "title": "验证不通过",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-003",
+      "title": "独立异常",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-004",
+      "title": "整改未完成",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-005",
+      "title": "不符合项",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-IM-006",
+      "title": "重复报警",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.issue.IssueTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-PO-001",
+      "title": "用户创建时生成 Party",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.org.PartyOrgTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-PO-002",
+      "title": "外部协作方无登录",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.234Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.org.PartyOrgTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-PO-003",
+      "title": "班组撤销",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.org.PartyOrgTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-PO-004",
+      "title": "班组数据域",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.org.PartyOrgTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-PO-005",
+      "title": "负责人缺失",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.org.LeaderResolverTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-001",
+      "title": "无制造主数据创建生产工作",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.WorkItemTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-002",
+      "title": "缺少标题",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.WorkItemTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-005",
+      "title": "冲突提示",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.ConstraintProfileTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-006",
+      "title": "冲突阻断",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.ConstraintProfileTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-007",
+      "title": "草稿到提交",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.ConstraintProfileTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-008",
+      "title": "成环拒绝",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.WorkRelationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-009",
+      "title": "启用严格 Profile",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.work.ConstraintProfileTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PLAT-PB-007",
+      "title": "手工 DDL 检测",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8568,
+      "startedAt": "2026-11-10T20:24:29.235Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-core/target/surefire-reports/TEST-com.lsmom.core.schema.SchemaDriftPostgresTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-010",
+      "title": "表单升级后查看历史",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.804Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.FormVersionTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-004",
+      "title": "粘贴脚本",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.804Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.ComponentAndScriptTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-001",
+      "title": "字段未绑定 Concept",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.ViewSchemaTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-002",
+      "title": "引用越过滤",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.FormRecordTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-003",
+      "title": "绑定草稿 Operation",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.FormRecordTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-005",
+      "title": "看板写 SQL",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.ViewSchemaTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-006",
+      "title": "发布新版本后打开旧单",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.FormVersionTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-008",
+      "title": "节点策略引用被删字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.805Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.FormVersionTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-009",
+      "title": "readonly 通配与显式 editable",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15371,
+      "startedAt": "2026-11-10T20:24:37.806Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-form/target/surefire-reports/TEST-com.lsmom.form.NodePolicyCheckTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-WC-011",
+      "title": "维修工作",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:24:53.177Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-asset/target/surefire-reports/TEST-com.lsmom.biz.asset.AssetPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-AM-001",
+      "title": "状态变更留痕",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:24:53.177Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-asset/target/surefire-reports/TEST-com.lsmom.biz.asset.AssetPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-AM-002",
+      "title": "点检异常项",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:24:53.177Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-asset/target/surefire-reports/TEST-com.lsmom.biz.asset.AssetPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-AM-003",
+      "title": "缺陷登记",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:24:53.178Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-asset/target/surefire-reports/TEST-com.lsmom.biz.asset.AssetPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-AM-004",
+      "title": "维修到关闭",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:24:53.178Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-asset/target/surefire-reports/TEST-com.lsmom.biz.asset.SliceBGoldenScenariosTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-001",
+      "title": "发布工器具借还台账",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.DdlPlannerTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-002",
+      "title": "改字段类型",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.DdlPlannerTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-003",
+      "title": "子表校验失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudWriteTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-004",
+      "title": "注入尝试",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudQueryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-005",
+      "title": "非白名单字段过滤",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudQueryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-006",
+      "title": "越域读取",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudWriteTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-007",
+      "title": "已提交记录通用编辑",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudWriteTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-008",
+      "title": "导入有错误行",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.ImportExportTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-009",
+      "title": "超量导出",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.033Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.ImportExportTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-010",
+      "title": "双击保存",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudWriteTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-CRUD-GL-011",
+      "title": "Agent 调通用接口",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.CrudWriteTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-001",
+      "title": "重复口径",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.MetricTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-002",
+      "title": "参数越界",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.MetricTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-003",
+      "title": "超时",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.MetricTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-004",
+      "title": "班组长看指标",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.MetricTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-006",
+      "title": "口径升级",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.MetricTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-005",
+      "title": "导出审计",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28927,
+      "startedAt": "2026-11-10T20:25:07.034Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-crud/target/surefire-reports/TEST-com.lsmom.crud.ImportExportTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-003",
+      "title": "业务库检查",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.961Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.SnapshotServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-004",
+      "title": "乱序与重复",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.961Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.AlarmServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-005",
+      "title": "断网续传",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.962Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.SnapshotServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-006",
+      "title": "时钟偏差",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.962Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.AlarmServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-007",
+      "title": "报警生成草稿",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.962Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.AlarmServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-008",
+      "title": "先人工后报警",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.962Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.AlarmServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-009",
+      "title": "报警上下文摘要",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15865,
+      "startedAt": "2026-11-10T20:25:35.962Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-dcs/target/surefire-reports/TEST-com.lsmom.dcs.AlarmServiceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-001",
+      "title": "文字需求转工作",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15357,
+      "startedAt": "2026-11-10T20:25:51.827Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-production/target/surefire-reports/TEST-com.lsmom.biz.production.ProductionPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-002",
+      "title": "DOM-01 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15357,
+      "startedAt": "2026-11-10T20:25:51.828Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-production/target/surefire-reports/TEST-com.lsmom.biz.production.SliceAGoldenScenariosTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-003",
+      "title": "拖动调整班次",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15357,
+      "startedAt": "2026-11-10T20:25:51.828Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-production/target/surefire-reports/TEST-com.lsmom.biz.production.ProductionPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-004",
+      "title": "默认不核销",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15357,
+      "startedAt": "2026-11-10T20:25:51.828Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-production/target/surefire-reports/TEST-com.lsmom.biz.production.SliceAGoldenScenariosTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-005",
+      "title": "双方确认",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15357,
+      "startedAt": "2026-11-10T20:25:51.828Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-production/target/surefire-reports/TEST-com.lsmom.biz.production.ProductionPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-QM-001",
+      "title": "DOM-04 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 11832,
+      "startedAt": "2026-11-10T20:26:07.186Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-quality/target/surefire-reports/TEST-com.lsmom.biz.quality.SliceCGoldenScenariosTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-QM-002",
+      "title": "高严重度缺字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 11832,
+      "startedAt": "2026-11-10T20:26:07.186Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-quality/target/surefire-reports/TEST-com.lsmom.biz.quality.SliceCGoldenScenariosTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-QM-004",
+      "title": "Agent 试图关闭",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 11832,
+      "startedAt": "2026-11-10T20:26:07.186Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-quality/target/surefire-reports/TEST-com.lsmom.biz.quality.QualityPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-003",
+      "title": "研发流程含脚本任务",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.019Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowEngineTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-004",
+      "title": "引用表单不存在字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.019Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-005",
+      "title": "角色无成员",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.019Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-009",
+      "title": "超时未办理时提醒办理人并升级给上级负责人",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-002",
+      "title": "变量检查",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-003",
+      "title": "查询绑定",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-004",
+      "title": "退回再提交",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-005",
+      "title": "已审核后撤回",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowLifecycleTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-006",
+      "title": "会签",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-007",
+      "title": "或签",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-008",
+      "title": "无人可办",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-010",
+      "title": "审核人越权改字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-012",
+      "title": "在途实例",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-014",
+      "title": "重复回调",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-015",
+      "title": "读模型缺失",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-016",
+      "title": "批准后数据被改",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowGovernanceTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-018",
+      "title": "受控质量跑通",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.021Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.QualityLoopFlowTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-004",
+      "title": "服务身份审批",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.022Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.FlowCollaborationTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-WB-CC-001",
+      "title": "待办排序",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.022Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.WorkCenterTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-WB-CC-002",
+      "title": "已读不等于完成",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.022Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.WorkCenterTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-WB-CC-003",
+      "title": "转办",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.022Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.WorkCenterTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-WB-CC-004",
+      "title": "频繁催办",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 38277,
+      "startedAt": "2026-11-10T20:26:19.022Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-flow/target/surefire-reports/TEST-com.lsmom.flow.WorkCenterTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-001",
+      "title": "核心对象注册",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.299Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-002",
+      "title": "修改显示名",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.299Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-003",
+      "title": "复用已删除编码",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.299Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-004",
+      "title": "删除被引用字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.300Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-005",
+      "title": "影响分析",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.300Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-META-CR-006",
+      "title": "核心污染检测",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5719,
+      "startedAt": "2026-11-10T20:26:57.300Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-meta/target/surefire-reports/TEST-com.lsmom.meta.concept.ConceptRegistryTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-CO-001",
+      "title": "匿名意见",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 12249,
+      "startedAt": "2026-11-10T20:27:03.019Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-consultation/target/surefire-reports/TEST-com.lsmom.biz.consultation.ConsultationPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-CO-002",
+      "title": "意见转整改",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 12249,
+      "startedAt": "2026-11-10T20:27:03.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-consultation/target/surefire-reports/TEST-com.lsmom.biz.consultation.ConsultationPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-CO-003",
+      "title": "总结引用",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 12249,
+      "startedAt": "2026-11-10T20:27:03.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-consultation/target/surefire-reports/TEST-com.lsmom.biz.consultation.ConsultationPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-CO-004",
+      "title": "仅安装咨询 Pack",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 12249,
+      "startedAt": "2026-11-10T20:27:03.020Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-consultation/target/surefire-reports/TEST-com.lsmom.biz.consultation.ConsultationPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-TE-001",
+      "title": "新增题目",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 14782,
+      "startedAt": "2026-11-10T20:27:15.270Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-training/target/surefire-reports/TEST-com.lsmom.biz.training.TrainingPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-TE-002",
+      "title": "超时交卷",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 14782,
+      "startedAt": "2026-11-10T20:27:15.270Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-training/target/surefire-reports/TEST-com.lsmom.biz.training.TrainingPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-TE-003",
+      "title": "资质查询",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 14782,
+      "startedAt": "2026-11-10T20:27:15.271Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-training/target/surefire-reports/TEST-com.lsmom.biz.training.TrainingPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-TE-004",
+      "title": "LLM 草拟题目",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 14782,
+      "startedAt": "2026-11-10T20:27:15.271Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-biz/pack-training/target/surefire-reports/TEST-com.lsmom.biz.training.TrainingPackTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PACK-TE-005",
+      "title": "DOM-05 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 3167,
+      "startedAt": "2026-11-10T20:27:30.056Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-architecture-test/target/surefire-reports/TEST-com.lsmom.architecture.ModuleDependencyTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PLAT-PB-003",
+      "title": "违规依赖被拦截",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 3167,
+      "startedAt": "2026-11-10T20:27:30.058Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-architecture-test/target/surefire-reports/TEST-com.lsmom.architecture.ModuleDependencyTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-PLAT-PB-004",
+      "title": "AI 模块绕过 Operation",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 3167,
+      "startedAt": "2026-11-10T20:27:30.061Z",
+      "evidence": [
+        "ls-mom-modules/ls-mom-architecture-test/target/surefire-reports/TEST-com.lsmom.architecture.ModuleDependencyTest.xml"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-001",
+      "title": "调用 DENY 能力",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 1587,
+      "startedAt": "2026-11-10T20:27:33.228Z",
+      "evidence": [
+        "auto-logs/agent-tool-sync.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-004",
+      "title": "AI-06 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8807,
+      "startedAt": "2026-11-10T20:27:34.815Z",
+      "evidence": [
+        "auto-logs/agent-gateway.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-007",
+      "title": "AI-08 重复执行",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8807,
+      "startedAt": "2026-11-10T20:27:34.815Z",
+      "evidence": [
+        "auto-logs/agent-gateway.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-002",
+      "title": "吊销 Key",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8807,
+      "startedAt": "2026-11-10T20:27:34.815Z",
+      "evidence": [
+        "auto-logs/agent-gateway.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-003",
+      "title": "限流",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 8807,
+      "startedAt": "2026-11-10T20:27:34.815Z",
+      "evidence": [
+        "auto-logs/agent-gateway.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-AI-AG-012",
+      "title": "未发布文档",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 6501,
+      "startedAt": "2026-11-10T20:27:43.622Z",
+      "evidence": [
+        "auto-logs/knowledge-qa.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-006",
+      "title": "AI-04 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:27:50.124Z",
+      "evidence": [
+        "auto-logs/frappe-conversion.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-AI-IR-007",
+      "title": "AI-03 验收",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13854,
+      "startedAt": "2026-11-10T20:27:50.124Z",
+      "evidence": [
+        "auto-logs/frappe-conversion.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-CORE-DE-006",
+      "title": "查看时间轴",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 35354,
+      "startedAt": "2026-11-10T20:28:03.979Z",
+      "evidence": [
+        "auto-logs/quality-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-QM-003",
+      "title": "审核节点改描述",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 35354,
+      "startedAt": "2026-11-10T20:28:03.979Z",
+      "evidence": [
+        "auto-logs/quality-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-QM-005",
+      "title": "无证据提交",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 35354,
+      "startedAt": "2026-11-10T20:28:03.979Z",
+      "evidence": [
+        "auto-logs/quality-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-006",
+      "title": "关闭问题确认",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 35354,
+      "startedAt": "2026-11-10T20:28:03.979Z",
+      "evidence": [
+        "auto-logs/quality-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-AM-005",
+      "title": "查看设备时间轴",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 34572,
+      "startedAt": "2026-11-10T20:28:53.804Z",
+      "evidence": [
+        "auto-logs/asset-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-001",
+      "title": "服务节点选择",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15294,
+      "startedAt": "2026-11-10T20:29:37.967Z",
+      "evidence": [
+        "auto-logs/flow-designer.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-002",
+      "title": "粘贴 XML",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15294,
+      "startedAt": "2026-11-10T20:29:37.967Z",
+      "evidence": [
+        "auto-logs/flow-designer.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-006",
+      "title": "版本对比",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 15294,
+      "startedAt": "2026-11-10T20:29:37.967Z",
+      "evidence": [
+        "auto-logs/flow-designer.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-FD-007",
+      "title": "缺少回调",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 1405,
+      "startedAt": "2026-11-10T20:29:53.261Z",
+      "evidence": [
+        "auto-logs/flow-api.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-001",
+      "title": "拖拽主子表",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9896,
+      "startedAt": "2026-11-10T20:30:57.623Z",
+      "evidence": [
+        "auto-logs/form-designer.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-008",
+      "title": "大表单性能",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5909,
+      "startedAt": "2026-11-10T20:31:07.519Z",
+      "evidence": [
+        "auto-logs/form-designer-perf.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-006",
+      "title": "环境被手工修改",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 102831,
+      "startedAt": "2026-11-10T20:31:13.428Z",
+      "evidence": [
+        "auto-logs/pack-lifecycle.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-007",
+      "title": "超期未用",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 102831,
+      "startedAt": "2026-11-10T20:31:13.428Z",
+      "evidence": [
+        "auto-logs/pack-lifecycle.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-META-PL-008",
+      "title": "升级演练失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 102831,
+      "startedAt": "2026-11-10T20:31:13.428Z",
+      "evidence": [
+        "auto-logs/pack-lifecycle.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-WB-CC-005",
+      "title": "查看 Pack 状态",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 102831,
+      "startedAt": "2026-11-10T20:31:13.428Z",
+      "evidence": [
+        "auto-logs/pack-lifecycle.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-MET-MQ-005",
+      "title": "钻取",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 3061,
+      "startedAt": "2026-11-10T20:32:56.259Z",
+      "evidence": [
+        "auto-logs/metrics-dashboard.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-007",
+      "title": "恢复演练",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 386886,
+      "startedAt": "2026-11-10T20:33:05.165Z",
+      "evidence": [
+        "auto-logs/upgrade-restore.sh.log"
+      ]
+    },
+    {
+      "caseId": "AC-J-UPGRADE-001",
+      "title": "旅程：带在途流程的版本升级",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 386886,
+      "startedAt": "2026-11-10T20:33:05.165Z",
+      "evidence": [
+        "auto-logs/upgrade-restore.sh.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-008",
+      "title": "安装 Pack 后菜单",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 10943,
+      "startedAt": "2026-11-10T20:39:32.051Z",
+      "evidence": [
+        "auto-logs/menu-groups.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-001",
+      "title": "硬编码检测",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 425,
+      "startedAt": "2026-11-10T20:39:42.994Z",
+      "evidence": [
+        "auto-logs/style-gate.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-001",
+      "title": "用借还模板",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 49209,
+      "startedAt": "2026-11-10T20:39:43.421Z",
+      "evidence": [
+        "auto-logs/template-library.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-002",
+      "title": "推断字段",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 45204,
+      "startedAt": "2026-11-10T20:40:32.631Z",
+      "evidence": [
+        "auto-logs/excel-ledger.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-005",
+      "title": "一键定位",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 12116,
+      "startedAt": "2026-11-10T20:42:04.640Z",
+      "evidence": [
+        "auto-logs/flow-issues.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-009",
+      "title": "离开导入页",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 21242,
+      "startedAt": "2026-11-10T20:44:54.719Z",
+      "evidence": [
+        "auto-logs/task-center.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-001",
+      "title": "操作工打开手机",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-002",
+      "title": "常规报工",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-003",
+      "title": "底部操作区",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-004",
+      "title": "语音描述缺陷",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-005",
+      "title": "断网报工",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-006",
+      "title": "同步时校验失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-MF-007",
+      "title": "添加到主屏",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13949,
+      "startedAt": "2026-11-10T20:45:15.961Z",
+      "evidence": [
+        "auto-logs/mobile.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-UX-002",
+      "title": "包体超标",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 22817,
+      "startedAt": "2026-11-10T20:45:29.910Z",
+      "evidence": [
+        "auto-logs/size-gate.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-UX-006",
+      "title": "发现放弃点",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 28049,
+      "startedAt": "2026-11-10T20:49:31.621Z",
+      "evidence": [
+        "auto-logs/ui-usage.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-002",
+      "title": "撤销删除",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-003",
+      "title": "设备引用过滤",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-005",
+      "title": "模拟审核节点",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-006",
+      "title": "手工改 Schema",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FD-007",
+      "title": "往返转换",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-004",
+      "title": "移动端精简",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-FORM-FS-007",
+      "title": "编辑旧单",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-004",
+      "title": "拼音匹配",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-003",
+      "title": "切换深色",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-005",
+      "title": "状态色盲可辨",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-007",
+      "title": "平板查看列表",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-008",
+      "title": "无数据",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-009",
+      "title": "减少动态效果",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-002",
+      "title": "连续报工",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-006",
+      "title": "子表连续录入",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-009",
+      "title": "部分失败",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-001",
+      "title": "等待他人",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-003",
+      "title": "查看退回原因",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-004",
+      "title": "批量连续审批",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-002",
+      "title": "视图字段被弃用",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-004",
+      "title": "隐藏列",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-008",
+      "title": "跨页全选",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-009",
+      "title": "骨架屏",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13889,
+      "startedAt": "2026-11-10T20:53:52.040Z",
+      "evidence": [
+        "auto-logs/plus-ui-vitest.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-UX-005",
+      "title": "完成率不足",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 166,
+      "startedAt": "2026-11-10T20:54:05.930Z",
+      "evidence": []
+    },
+    {
+      "caseId": "AC-UI-UX-004",
+      "title": "意外样式变化",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 211515,
+      "startedAt": "2026-11-11T00:55:29.060Z",
+      "evidence": [
+        "auto-logs/visual-docker.sh.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-006",
+      "title": "草稿未确认",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13800,
+      "startedAt": "2026-11-11T01:00:46.270Z",
+      "evidence": [
+        "auto-logs/production-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-007",
+      "title": "移动填报拍照",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13800,
+      "startedAt": "2026-11-11T01:00:46.270Z",
+      "evidence": [
+        "auto-logs/production-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DOM-LP-008",
+      "title": "看板钻取",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13800,
+      "startedAt": "2026-11-11T01:00:46.270Z",
+      "evidence": [
+        "auto-logs/production-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-005",
+      "title": "撤销移动",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 13800,
+      "startedAt": "2026-11-11T01:00:46.270Z",
+      "evidence": [
+        "auto-logs/production-ops.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-FLOW-WC-017",
+      "title": "普通台账跑通",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 61937,
+      "startedAt": "2026-11-11T01:01:00.071Z",
+      "evidence": [
+        "auto-logs/toolloan-config.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-SEC-AA-001",
+      "title": "有菜单无数据域",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 7010,
+      "startedAt": "2026-11-11T01:02:02.008Z",
+      "evidence": [
+        "auto-logs/access-matrix.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-004",
+      "title": "切换节点视角",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 44430,
+      "startedAt": "2026-11-11T01:02:12.596Z",
+      "evidence": [
+        "auto-logs/designer-perspective.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-006",
+      "title": "试运行审批",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 45849,
+      "startedAt": "2026-11-11T01:02:57.027Z",
+      "evidence": [
+        "auto-logs/trial-run.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-001",
+      "title": "班组长首页",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-002",
+      "title": "个人调整",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-003",
+      "title": "按编号直达",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-005",
+      "title": "无权限对象不出现",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-006",
+      "title": "继续上次工作",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-009",
+      "title": "从通知办理",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-010",
+      "title": "无权限",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DS-002",
+      "title": "品牌换色",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-001",
+      "title": "从设备发起缺陷",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-003",
+      "title": "意外关闭",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-004",
+      "title": "会话过期",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-005",
+      "title": "服务端错误定位",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-007",
+      "title": "粘贴 30 行",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-008",
+      "title": "扫设备码",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DE-010",
+      "title": "记忆值已失效",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-002",
+      "title": "轮到我",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-008",
+      "title": "跳过引导",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.119Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-006",
+      "title": "行内改数量",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.120Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-007",
+      "title": "已完成的工作",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.120Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-UX-001",
+      "title": "审核预算",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.120Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-UX-003",
+      "title": "缺少按钮标签",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 205849,
+      "startedAt": "2026-11-11T01:03:56.120Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-001",
+      "title": "写入能力扫描",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 41888,
+      "startedAt": "2026-11-11T01:14:13.675Z",
+      "evidence": [
+        "auto-logs/dcs-alarm.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-DCS-DI-002",
+      "title": "设备查看点位",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 41888,
+      "startedAt": "2026-11-11T01:14:13.675Z",
+      "evidence": [
+        "auto-logs/dcs-alarm.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-DU-003",
+      "title": "生成条件必填",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 5492,
+      "startedAt": "2026-11-11T01:14:55.563Z",
+      "evidence": [
+        "auto-logs/form-assist.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-GW-007",
+      "title": "守卫拒绝",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 9510,
+      "startedAt": "2026-11-11T01:15:01.056Z",
+      "evidence": [
+        "auto-logs/qualification.e2e.mjs.log"
+      ]
+    },
+    {
+      "caseId": "AC-UI-SN-007",
+      "title": "切回列表",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 50163,
+      "startedAt": "2026-11-11T01:15:10.567Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-001",
+      "title": "我的默认视图",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 50163,
+      "startedAt": "2026-11-11T01:15:10.567Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-003",
+      "title": "组合筛选",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 50163,
+      "startedAt": "2026-11-11T01:15:10.567Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-005",
+      "title": "连续审阅",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 50163,
+      "startedAt": "2026-11-11T01:15:10.567Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    },
+    {
+      "caseId": "AC-UI-LI-010",
+      "title": "他人更新",
+      "source": "auto",
+      "result": "PASSED",
+      "durationMs": 50163,
+      "startedAt": "2026-11-11T01:15:10.567Z",
+      "evidence": [
+        "auto-logs/plus-ui-playwright.json"
+      ]
+    }
+  ]
+}

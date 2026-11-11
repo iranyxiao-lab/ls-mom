@@ -5,7 +5,7 @@
  * 已驳回（终态）的行没有行内编辑入口，也不出现"登记提交"等动作。
  */
 import { expect, test } from '@playwright/test';
-import { api, loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 test.describe.configure({ timeout: 180_000 });
 const NC = 'ls.quality.NonConformance';
@@ -16,8 +16,9 @@ test('草稿行内编辑经服务端校验；非草稿不可编辑、不显示�
   const { context, page } = await loggedIn(browser, 'admin', { viewport: { width: 1600, height: 900 } });
   await page.goto('/index');
   const call = api(page);
+  const { workshop } = await orgIds(page);
   const make = async (s: string) => {
-    const r = await call('POST', `/api/crud/${NC}`, { title: `${marker}-${s}`, description: '行内编辑测试', severity: 'LOW', orgId: 17 });
+    const r = await call('POST', `/api/crud/${NC}`, { title: `${marker}-${s}`, description: '行内编辑测试', severity: 'LOW', orgId: workshop });
     expect(r.code, JSON.stringify(r)).toBe(200);
     return r.data.id as number;
   };

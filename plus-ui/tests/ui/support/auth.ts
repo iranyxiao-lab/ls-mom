@@ -108,3 +108,13 @@ export function api(page: Page) {
       [method, url, body, CLIENT_ID, API] as const
     );
 }
+
+/** 按名称取演示/验收组织的 id（各环境 id 不同，不要写死）：一车间、一车间甲班 */
+export async function orgIds(page: Page): Promise<{ workshop: number; team: number }> {
+  const orgs = (await api(page)<{ data: { id: number; name: string; unit_type: string }[] }>('GET', '/api/asset/orgs')).data;
+  const find = (type: string, name: string) => orgs.find((o) => o.unit_type === type && o.name === name)?.id;
+  const workshop = find('WORKSHOP', '一车间');
+  const team = find('TEAM', '一车间甲班');
+  if (!workshop || !team) throw new Error('没有找到一车间 / 一车间甲班');
+  return { workshop, team };
+}

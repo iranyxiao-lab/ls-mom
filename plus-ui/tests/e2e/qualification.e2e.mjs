@@ -8,6 +8,7 @@
  *   再试一次分派给郑师傅，点「查看培训记录」→ 打开该培训记录。
  * 运行：node tests/e2e/qualification.e2e.mjs（LSMOM_E2E_BASE 指定环境）
  */
+import { execFileSync } from 'node:child_process';
 import { BASE, check, open } from './lib.mjs';
 
 const COURSE = 'ls.training.Course';
@@ -17,7 +18,18 @@ const kw = `动火${ts.slice(-4)}`;
 
 const admin = await open({ user: 'admin' });
 const impl = await open({ user: 'demo_implementer', browser: admin.browser });
-const leader = await open({ user: 'demo_leader', browser: admin.browser });
+// 课程审批人是一车间负责人：演示环境为 demo_leader；验收环境（种子把负责人设为验收账号）为该负责人的账号
+const leaderUser = (() => {
+  try {
+    const project = process.env.LSMOM_E2E_PROJECT ?? 'lsmom-verify';
+    const u = execFileSync('docker', ['exec', `${project}-postgres-1`, 'sh', '-c',
+      `psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "select u.user_name from core_org_unit o join core_party p on p.id = o.leader_party_id join sys_user u on u.user_id = p.user_id where o.code = 'D2010'"`], { encoding: 'utf8' }).trim();
+    return u || 'demo_leader';
+  } catch {
+    return 'demo_leader';
+  }
+})();
+const leader = await open({ user: leaderUser, browser: admin.browser });
 
 const ok = (r, what) => {
   if (r.code !== 200) throw new Error(`${what} 失败：${r.msg}`);

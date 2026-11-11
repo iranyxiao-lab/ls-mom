@@ -14,6 +14,11 @@ export const CLIENT_ID = /^VITE_APP_CLIENT_ID\s*=\s*'([^']*)'/m.exec(env)[1];
 export const API = /^VITE_APP_BASE_API\s*=\s*'([^']*)'/m.exec(env)[1];
 
 function seedPassword(user) {
+  // 验收种子账号（acc_*）的口令在 deploy/seed/acceptance/accounts.yaml 的 password 行
+  if (user.startsWith('acc_')) {
+    const line = fs.readFileSync(path.join(root, 'deploy/seed/acceptance/accounts.yaml'), 'utf8').split('\n').find((l) => /^password:/.test(l));
+    return line.slice(line.indexOf(':') + 1).trim().replace(/^['"]|['"]$/g, '');
+  }
   const row = fs
     .readFileSync(path.join(root, 'deploy/seed/README.md'), 'utf8')
     .split('\n')

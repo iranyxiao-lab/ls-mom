@@ -6,7 +6,7 @@
  * "重试失败项"取最新版本后只发 2 条请求，全部成功。
  */
 import { expect, test } from '@playwright/test';
-import { api, loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 test.describe.configure({ timeout: 240_000 });
 const NC = 'ls.quality.NonConformance';
@@ -17,13 +17,14 @@ test('批量登记提交：跨页全选二次确认、逐条结果、只重试�
   const { context, page } = await loggedIn(browser, 'admin', { viewport: { width: 1600, height: 1000 } });
   await page.goto('/index');
   const call = api(page);
+  const { workshop } = await orgIds(page);
   const ids: number[] = [];
   for (let i = 1; i <= 20; i++) {
     const r = await call('POST', `/api/crud/${NC}`, {
       title: `${marker}-${String(i).padStart(2, '0')}`,
       description: '批量测试',
       severity: 'LOW',
-      orgId: 17
+      orgId: workshop
     });
     expect(r.code, JSON.stringify(r)).toBe(200);
     ids.push(r.data.id);

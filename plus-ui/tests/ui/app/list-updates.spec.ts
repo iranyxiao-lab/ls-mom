@@ -4,7 +4,7 @@
  * 列表顶部出现"有 1 条更新"，列表不自动刷新、勾选保持；点"刷新查看"后出现新记录，原来的勾选仍在。
  */
 import { expect, test } from '@playwright/test';
-import { api, loggedIn } from '../support/auth';
+import { api, loggedIn, orgIds } from '../support/auth';
 
 test.describe.configure({ timeout: 180_000 });
 const NC = 'ls.quality.NonConformance';
@@ -15,8 +15,9 @@ test('他人新增时提示有更新，勾选保持', async ({ browser }) => {
   const { context: aCtx, page: aPage } = await loggedIn(browser, 'admin');
   await aPage.goto('/index');
   const admin = api(aPage);
+  const { workshop } = await orgIds(aPage);
   const make = async (s: string) => {
-    const r = await admin('POST', `/api/crud/${NC}`, { title: `${marker}-${s}`, description: '更新提示测试', severity: 'LOW', orgId: 17 });
+    const r = await admin('POST', `/api/crud/${NC}`, { title: `${marker}-${s}`, description: '更新提示测试', severity: 'LOW', orgId: workshop });
     expect(r.code, JSON.stringify(r)).toBe(200);
     return r.data.id as number;
   };
