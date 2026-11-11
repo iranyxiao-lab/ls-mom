@@ -48,7 +48,8 @@ test('首页待办原地审核一次不超过 3 次点击，办完自动打开�
   const { context, page } = await loggedIn(browser, 'demo_leader', { viewport: { width: 1440, height: 900 } });
   const clicks = await countClicks(page);
   await page.goto('/index');
-  const rows = page.getByTestId('home-card-ls.home.myReviews').getByTestId('home-row');
+  // 只办借还单的部门审核：账号里可能还有别的待办（如课程审批）
+  const rows = page.getByTestId('home-card-ls.home.myReviews').getByTestId('home-row').filter({ hasText: '部门审核' });
   await expect(rows.first()).toBeVisible();
   await clicks.reset();
 
@@ -59,7 +60,7 @@ test('首页待办原地审核一次不超过 3 次点击，办完自动打开�
   await expect(page).toHaveURL(/\/index/);
   await expect(panel.getByTestId('task-remaining')).toContainText(/本条之后还剩 \d+ 条/);
   // 2. 点审核意见填写（文字输入不计点击）
-  const note = panel.locator('[data-field-key="auditNote"] textarea');
+  const note = panel.locator('[data-field-key="auditNote"]').locator('textarea, input').first();
   await note.click();
   await page.keyboard.type('同意借用');
   // 3. 通过
@@ -70,6 +71,8 @@ test('首页待办原地审核一次不超过 3 次点击，办完自动打开�
   // 抽屉自动显示下一条待办
   await expect(panel.getByTestId('task-form')).toBeVisible();
   await expect(page).toHaveURL(/\/index/);
-  await expect.poll(async () => panel.locator('[data-field-key="auditNote"] textarea').inputValue()).toBe('');
+  // 下一条若也是借还单，审核意见是空的（不沿用上一条的输入）
+  const nextNote = panel.locator('[data-field-key="auditNote"]').locator('textarea, input').first();
+  if (await nextNote.count()) await expect.poll(async () => nextNote.inputValue()).toBe('');
   await context.close();
 });

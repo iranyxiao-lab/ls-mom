@@ -44,9 +44,13 @@ test('[AC-UI-DS-004] 紧凑列表：1080p 屏幕以紧凑密度打开台账列�
 });
 
 /** 只按 Tab（或 Shift+Tab）把焦点移到满足条件的元素，最多按 max 次 */
-async function tabTo(page: Page, match: string, opts: { back?: boolean; max?: number } = {}) {
+async function tabTo(page: Page, match: string, opts: { back?: boolean; max?: number; text?: string } = {}) {
   for (let i = 0; i < (opts.max ?? 120); i++) {
-    if (await page.evaluate((sel) => !!document.activeElement?.closest(sel), match)) return;
+    const hit = await page.evaluate(([sel, text]) => {
+      const el = document.activeElement?.closest(sel);
+      return !!el && (!text || (el.textContent ?? '').includes(text));
+    }, [match, opts.text ?? ''] as const);
+    if (hit) return;
     await page.keyboard.press(opts.back ? 'Shift+Tab' : 'Tab');
   }
   throw new Error(`按 Tab 到不了 ${match}`);
@@ -75,7 +79,8 @@ test('[AC-UI-DS-006] 键盘遍历：只用 Tab／Shift+Tab／Enter／Esc 完成�
     await p.goto('/index');
     await expect(p.getByTestId('home-card-ls.home.myReviews').getByTestId('home-row').first()).toBeVisible({ timeout: 15_000 });
     await p.locator('body').click({ position: { x: 1, y: 1 } }).catch(() => undefined);
-    await tabTo(p, '[data-testid="home-card-ls.home.myReviews"] [data-testid="home-row"]');
+    // 找课程审批：账号里可能还有别的待办（如须填写审核意见的借还单），卡片只列前几条
+    await tabTo(p, '[data-testid="home-card-ls.home.myReviews"] [data-testid="home-row"]', { text: '课程发布审批' });
     await p.keyboard.press('Enter');
     await expect(p.getByTestId('task-panel').getByTestId('task-form')).toBeVisible();
   }, leader);

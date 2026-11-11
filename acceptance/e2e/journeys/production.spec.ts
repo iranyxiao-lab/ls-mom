@@ -131,10 +131,10 @@ test('[AC-J-A-PROD-001] 旅程：无 BOM 生产闭环（需求→工作→分派
   }, leader);
 
   await walk.step('经营看板：按期完成率钻取明细包含刚完成的工作', async () => {
-    // 计划结束时间可能在今天任意时刻：统计窗口取今天到明天
+    // 计划结束时间可能是今天任意时刻，中班则为明天 00:00；指标区间左闭右开，统计窗口取今天到后天
     const from = today();
     const t = new Date();
-    t.setDate(t.getDate() + 1);
+    t.setDate(t.getDate() + 2);
     const to = `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
     const q = ok<any>(await admin.api('POST', '/api/metrics/ls.production.onTimeRate/query', { from, to }), '按期完成率').rows[0];
     expect(q, '有指标值').toBeTruthy();
