@@ -158,7 +158,9 @@ try {
   row(
     '字段',
     `脱离待办直接改字段返回 ${r4b.data?.errorCode ?? r4b.msg}`,
-    r4b.code !== 200 && ['FIELD_READONLY', 'ACCESS_DENIED'].includes(r4b.data?.errorCode)
+    // 审批中的单据不能脱离待办调用动作（流程守卫），或字段只读、无权限：都必须被拒
+    r4b.code !== 200 &&
+      (['FIELD_READONLY', 'ACCESS_DENIED'].includes(r4b.data?.errorCode) || (r4b.data?.errorCode === 'GUARD_FAILED' && String(r4b.msg).includes('审批中')))
   );
   row('字段', 'op_audit 记录失败', opAudits(`actor_party = ${P.team} and error_code = 'FIELD_READONLY'`) >= 1);
   row('字段', '访问审计 FIELD_READONLY', audits(`actor_party = ${P.team} and action = 'FIELD_READONLY'`) >= 1);

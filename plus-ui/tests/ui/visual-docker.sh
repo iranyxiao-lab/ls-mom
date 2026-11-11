@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # 在固定的 Playwright 容器中运行视觉回归（无头、字体一致）。本机与 CI 用同一镜像，基线才可比。
+# acc-order: first（核心页面截图依赖刚重置的验收数据，全量执行时排在最前）
 # 用法：tests/ui/visual-docker.sh [--update-snapshots]
 #   LSMOM_E2E_BASE：静态页面截图的环境（默认 http://127.0.0.1:18081）
 set -euo pipefail

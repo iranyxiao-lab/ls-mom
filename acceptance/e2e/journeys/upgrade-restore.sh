@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # 旅程 J-RESTORE / J-UPGRADE（acceptance-walkthrough 5.4，只用于测试环境）：
+# acc-order: last（会重置验收环境，全量执行时排在最后）
 #   1. 从上一版本（默认：最近一次新增迁移的提交的父提交，可用 LSMOM_PREV_REF 指定）构建镜像 lsmom/*:prev，
 #      验收环境以该版本一键重置，并经模板→演练→批准→发布准备借还台账配置包；
 #   2. upgrade-acceptance.sh：准备标准与客户扩展 Pack、带客户字段的记录、在途审批与附件，联合备份；

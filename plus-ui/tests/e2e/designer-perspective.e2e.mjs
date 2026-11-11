@@ -31,8 +31,8 @@ try {
   const frag = await ok(api('GET', '/api/pack-templates/loan'), '读模板');
   frag.flow.nodes[0] = { ...frag.flow.nodes[0], key: 'workshopAudit', name: '车间审核' };
   const body = { fragment: frag, ns, title: `视角预览 ${run}`, owner: '设备科王工', requester: '一车间周主任', initiatorRoles: ['team_leader'] };
-  await ok(api('POST', '/api/pack-templates/grants', body), '授权');
-  const cs = await ok(api('POST', '/api/pack-templates/draft', body), '生成草稿');
+  // 管理员有角色管理权限：生成草稿时当场执行授权清单（发布门禁要求授权已完成）
+  const cs = await ok(api('POST', '/api/pack-templates/draft', { ...body, grant: true }), '生成草稿');
   const d = spawnSync(path.join(root, 'deploy/scripts/upgrade-drill.sh'), ['--changeset', String(cs.id), '--backup-from', PROJECT], {
     env: { ...process.env, LSMOM_E2E_BASE: BASE },
     encoding: 'utf8',

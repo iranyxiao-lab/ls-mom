@@ -16,6 +16,11 @@ export class History<T> {
     return true;
   }
 
+  /** 当前步骤是 from 时改记为 to（载入后设计器回读的规范化结果），避免回读被当成新的一步 */
+  normalize(from: T, to: T): void {
+    if (this.index >= 0 && this.stack[this.index] === JSON.stringify(from)) this.stack[this.index] = JSON.stringify(to);
+  }
+
   undo(): T | undefined {
     if (!this.canUndo) return undefined;
     this.index--;

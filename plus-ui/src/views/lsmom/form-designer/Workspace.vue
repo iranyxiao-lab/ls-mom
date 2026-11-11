@@ -541,7 +541,15 @@ function load(s: FormSchema) {
   designer.value.setOption(designerOptions);
   current.value = JSON.parse(JSON.stringify(s));
   active.value = null;
-  settle().then(() => loading--);
+  settle().then(() => {
+    // 设计器回读的结构与载入的快照可能有规范化差异：替换当前步骤，免得回读多记一步、撤销只退到回读结果
+    const r = readDesigner();
+    if (r) {
+      history.normalize(s, r);
+      current.value = r;
+    }
+    loading--;
+  });
 }
 
 async function settle() {

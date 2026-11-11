@@ -250,3 +250,24 @@ test('准入检查：未完成任务、CI 未全绿或无法确认、门禁仍�
   assert.equal(gateItem("ACCEPTANCE_BLOCKING: 'true'", true).ok, false);
   assert.equal(gateItem("ACCEPTANCE_BLOCKING: 'true'", false).ok, true);
 });
+
+test('Playwright 结果按文件名与标题片段匹配：文件级测试（不在 describe 中）也能匹配', async () => {
+  const { judgePw } = await import('./run-auto.ts');
+  const c = { id: 'AC-X-001', mode: 'AUTO', script: 'plus-ui/tests/ui/app/home.spec.ts#首屏三张卡片' } as any;
+  const t = { kind: 'pw' as const, file: 'plus-ui/tests/ui/app/home.spec.ts', fragment: '首屏三张卡片', case: c };
+  const json = { suites: [{ title: 'app/home.spec.ts', file: 'app/home.spec.ts', specs: [{ title: '班组长首页：首屏三张卡片', file: 'app/home.spec.ts', tests: [{ status: 'expected', results: [{}] }] }], suites: [] }] };
+  const [r] = judgePw([t], json, 1, '', []);
+  assert.equal(r.result, 'PASSED');
+  const other = { suites: [{ title: 'app/x.spec.ts', file: 'app/x.spec.ts', specs: [{ title: '班组长首页：首屏三张卡片', file: 'app/x.spec.ts', tests: [{ status: 'expected', results: [{}] }] }] }] };
+  assert.equal(judgePw([t], other, 1, '', [])[0].result, 'FAILED', '其他文件的同名测试不算');
+});
+
+test('端到端脚本按 acc-order 标记排序：依赖重置数据的排最前，会重置环境的排最后', async () => {
+  const { e2eOrder } = await import('./run-auto.ts');
+  const src: Record<string, string> = { 'a.sh': '#!/bin/bash\n# acc-order: last\n', 'b.mjs': '// 普通脚本\n', 'c.sh': '# acc-order: first\n' };
+  const read = (f: string) => src[f];
+  assert.deepEqual(['a.sh', 'b.mjs', 'c.sh'].sort((x, y) => e2eOrder(x, read) - e2eOrder(y, read)), ['c.sh', 'b.mjs', 'a.sh']);
+  assert.equal(e2eOrder('plus-ui/tests/ui/visual-docker.sh'), 0);
+  assert.equal(e2eOrder('acceptance/e2e/journeys/upgrade-restore.sh'), 2);
+  assert.equal(e2eOrder('no/such/file.sh'), 1);
+});

@@ -19,7 +19,8 @@ BUILD=()
 [ "${1:-}" = "--build" ] && BUILD=(--build)
 
 compose() {
-  CAPTCHA_ENABLED=false LSMOM_HTTP_PORT=$PORT LSMOM_DB_PORT=$DB_PORT LSMOM_DCS_ENABLED=true LSMOM_SEED_DEMO_ENABLED=true \
+  # DCS 模拟器回填 24 小时历史（报警去重、趋势用例按 24 小时数据断言）
+  CAPTCHA_ENABLED=false LSMOM_HTTP_PORT=$PORT LSMOM_DB_PORT=$DB_PORT LSMOM_DCS_ENABLED=true LSMOM_SEED_DEMO_ENABLED=true DCS_BACKFILL_HOURS=${DCS_BACKFILL_HOURS:-24} \
     docker compose -p "$PROJECT" --profile dcs "$@"
 }
 psql_acc() {

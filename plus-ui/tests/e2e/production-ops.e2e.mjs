@@ -165,6 +165,8 @@ try {
   await t.getByTestId('btn-new-handover').click();
   await t.getByTestId('ho-to').click();
   await t.locator('.el-select-dropdown__item:visible', { hasText: '一车间乙班' }).first().click();
+  // 工作排在今天早班；新建交接班默认当前班次，这里明确选早班
+  await t.getByTestId('ho-shift-DAY').click();
   await t.getByTestId('btn-create-handover').click();
   await t.getByTestId('ho-summary').waitFor({ timeout: 15000 });
   const summaryText = await t.getByTestId('ho-summary').inputValue();

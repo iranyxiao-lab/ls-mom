@@ -118,10 +118,26 @@ function runJava(ts: Target[], exec: Exec, log: (s: string) => void): ResultRow[
   return rows;
 }
 
+/**
+ * 端到端脚本的执行顺序：脚本开头的注释 `acc-order: first`（依赖刚重置的数据，如视觉基线）排最前，
+ * `acc-order: last`（自身会重置验收环境，如升级/恢复旅程）排最后，其余按用例顺序。
+ */
+export function e2eOrder(file: string, read: (f: string) => string = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8')): number {
+  let head = '';
+  try {
+    head = read(file).split('\n').slice(0, 20).join('\n');
+  } catch {
+    return 1;
+  }
+  const m = head.match(/acc-order:\s*(first|last)/);
+  return m ? (m[1] === 'first' ? 0 : 2) : 1;
+}
+
 function runE2e(ts: Target[], exec: Exec, log: (s: string) => void, dir: string): ResultRow[] {
   const rows: ResultRow[] = [];
-  const byFile = new Map<string, Target[]>();
-  for (const t of ts) byFile.set(t.file, [...(byFile.get(t.file) ?? []), t]);
+  const grouped = new Map<string, Target[]>();
+  for (const t of ts) grouped.set(t.file, [...(grouped.get(t.file) ?? []), t]);
+  const byFile = new Map([...grouped].sort((a, b) => e2eOrder(a[0]) - e2eOrder(b[0])));
   const pause = Number(process.env.E2E_PAUSE_SECONDS ?? 0);
   let first = true;
   for (const [file, list] of byFile) {
@@ -147,14 +163,15 @@ function runE2e(ts: Target[], exec: Exec, log: (s: string) => void, dir: string)
 }
 
 /** Playwright JSON 报告 → 每个用例按标题片段判定 */
-function judgePw(ts: Target[], json: any, ms: number, err: string, ev: string[]): ResultRow[] {
+export function judgePw(ts: Target[], json: any, ms: number, err: string, ev: string[]): ResultRow[] {
   const tests: { title: string; ok: boolean; error?: string }[] = [];
   const visit = (s: any, prefix: string) => {
     for (const x of s.suites ?? []) visit(x, `${prefix}${x.title} › `);
     for (const sp of s.specs ?? [])
       for (const t of sp.tests ?? []) {
         const r = t.results?.[t.results.length - 1];
-        tests.push({ title: `${prefix}${sp.title}`, ok: t.status === 'expected' || t.status === 'flaky', error: r?.error?.message?.split('\n')[0] });
+        // 文件级测试的标题不含文件名（顶层 suite 的标题才是文件），用 spec.file 补上
+        tests.push({ title: `${sp.file ?? s.file ?? ''} › ${prefix}${sp.title}`, ok: t.status === 'expected' || t.status === 'flaky', error: r?.error?.message?.split('\n')[0] });
       }
   };
   if (json) for (const s of json.suites ?? []) visit(s, '');
