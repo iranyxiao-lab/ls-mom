@@ -46,3 +46,5 @@ rm -f "$out"
 
 echo "== 验收环境恢复为当前版本"
 deploy/scripts/acceptance-reset.sh >/dev/null && echo "验收环境已重置为当前版本"
+# 重置会清掉借还台账配置包；之后执行的界面用例与走查依赖它，在这里补回
+LSMOM_E2E_BASE=http://127.0.0.1:$PORT LSMOM_E2E_PROJECT=$PROJECT node plus-ui/tests/e2e/toolloan-config.e2e.mjs >/dev/null || { echo "✗ 恢复后借还台账配置包准备失败" >&2; exit 1; }
